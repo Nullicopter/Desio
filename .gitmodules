@@ -1,0 +1,3 @@
+[submodule "desio/public/j/quaid"]
+	path = desio/public/j/quaid
+	url = git://github.com/benogle/quaid.git

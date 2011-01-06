@@ -1,0 +1,3 @@
+include desio/config/deployment.ini_tmpl
+recursive-include desio/public *
+recursive-include desio/templates *
