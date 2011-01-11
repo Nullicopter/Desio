@@ -1,5 +1,6 @@
 from desio.lib.base import h, logger
-from desio.model import Session, users
+from desio.model import Session, users, STATUS_APPROVED
+from desio.model.users import ROLE_ADMIN, ROLE_USER
 import sqlalchemy as sa
 from pylons.controllers.util import abort
 
@@ -96,6 +97,47 @@ class HasRole(IsLoggedIn):
             raise ClientException("User must be in role %s" % self.roles, FORBIDDEN)
         
         return True
+
+ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
+ORGANIZATION_ROLE_CREATOR = 'creator'
+ORGANIZATION_ROLE_USER = ROLE_USER
+
+class HasOrgRole(IsLoggedIn):
+    def __init__(self, roles, organization='organization'):
+        self.param = organization
+        self.roles = roles
+    
+    def check(self, real_user, user, **kwargs):
+        super(HasOrgRole, self).check(real_user, user, **kwargs)
+        
+        #assume admins are not special. They can pretend and get the user's behaviors
+        #otherwise we could short circuit here with a check to is admin
+        org = kwargs.get(self.param)
+        if not org:
+            raise ClientException('No organization specified', NOT_FOUND, field=self.param)
+        
+        role = org.get_role(user, status=STATUS_APPROVED)
+        
+        if not role or role not in self.roles:
+            raise ClientException('CANNOT(!)', FORBIDDEN, field=self.param)
+        
+        return True
+
+class CanReadOrg(HasOrgRole):
+    def __init__(self, organization='organization'):
+        super(CanReadOrg, self).__init__(
+            [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
+            organization=organization)
+
+class CanContributeToOrg(HasOrgRole):
+    def __init__(self, organization='organization'):
+        super(CanContributeToOrg, self).__init__(
+            [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
+            organization=organization)
+
+class CanEditOrg(HasOrgRole):
+    def __init__(self, organization='organization'):
+        super(CanEditOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], organization=organization)
 
 class MustOwn(IsLoggedIn):
     

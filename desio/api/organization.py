@@ -1,9 +1,10 @@
 from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     INVALID, NOT_FOUND, FORBIDDEN, abort, FieldEditor, auth, \
-                    IsAdmin, MustOwn, IsLoggedIn
+                    IsAdmin, MustOwn, IsLoggedIn, CanReadOrg, CanEditOrg, \
+                    CanContributeToOrg
 
-from desio.model import users, Session, STATUS_APPROVED, STATUS_PENDING
+from desio.model import users, Session, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 
 import formencode
@@ -12,6 +13,8 @@ import formencode.validators as fv
 ID_PARAM = 'organization'
 
 ROLES = [users.ROLE_USER, users.ROLE_ADMIN, users.ROLE_ENGINEER]
+ORGANIZATION_ROLES = [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN]
+ROLE_STATUSES = [STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED]
 EDIT_FIELDS = ['name', 'url']
 ADMIN_EDIT_FIELDS = ['is_active']
 
@@ -33,6 +36,10 @@ class UniqueSubdomain(fv.FancyValidator):
             raise fv.Invalid('That subdomain already exists :(', value, state)
         
         return value
+
+class RoleStatusForm(formencode.Schema):
+    role = fv.OneOf(ORGANIZATION_ROLES, not_empty=True)
+    status = fv.OneOf(ROLE_STATUSES, not_empty=True)
 
 class EditForm(formencode.Schema):
     name = fv.UnicodeString(not_empty=False, min=4, max=64)
@@ -64,21 +71,21 @@ def create(real_user, user, **params):
     return org
 
 @enforce()
-@authorize(MustOwn('organization'))
+@authorize(CanReadOrg())
 def get(real_user, user, organization):
     if not organization:
         abort(403)
     return organization
 
 @enforce(is_active=bool)
-@authorize(MustOwn('organization'))
+@authorize(CanEditOrg())
 def edit(real_user, user, organization, **kwargs):
     """
     Editing of the campaigns. Supports editing one param at a time. Uses the FieldEditor
     paradigm.
     """
     editor = Editor()
-    editor.edit(real_user, user, u, **kwargs)
+    editor.edit(real_user, user, organization, **kwargs)
     Session.flush()
     Session.refresh(organization)
     return organization
@@ -107,24 +114,46 @@ def is_unique(subdomain):
         return False
     return True
 
-### stubs
+@enforce(u=users.User, role=unicode, status=unicode)
+@authorize(IsLoggedIn())
+def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
+
+    params = validate(RoleStatusForm, role=role, status=status)
+    
+    if not organization:
+        raise ClientException('Organization not found', NOT_FOUND, field='organization')
+    if not u:
+        raise ClientException('User not found', NOT_FOUND, field='u')
+    
+    orgu = organization.get_organization_user(u, status=None)
+    if orgu:
+        raise ClientException('User already attached', INVALID)
+    
+    role = organization.get_role(user)
+    if role == users.ORGANIZATION_ROLE_ADMIN:
+        #special. We adhere to role and status vars
+        orgu = organization.attach_user(u, role=params.role, status=params.status)
+    else:
+        # anyone can attempt to attach themselves, but they will be pending approval in
+        # read group only
+        orgu = organization.attach_user(u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING)
+    
+    return bool(orgu)
 
 @enforce(u=users.User, role=unicode)
-@authorize(MustOwn('organization'))
-def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_USER):
-    pass
-
-@enforce(u=users.User, role=unicode)
-@authorize(MustOwn('organization'))
+@authorize(CanEditOrg())
 def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED):
     if status not in [STATUS_APPROVED, STATUS_REJECTED]:
         raise ClientException('Invalid status', field='status', code=INVALID)
-    if not user:
+    if not u:
         raise ClientException('Need a user!', field='u', code=INVALID)
     
-    return True
+    #returns false when user/org connection not found
+    return bool(organization.set_user_status(u, status))
+
+### stubs
 
 @enforce()
-@authorize(MustOwn('organization'))
+@authorize(CanReadOrg())
 def get_users(real_user, user, organization):
     pass

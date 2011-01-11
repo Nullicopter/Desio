@@ -72,7 +72,41 @@ class Organization(Base):
     def __repr__(self):
         return u'Organization(%s, %s)' % (self.id, self.subdomain)
     
-    def attach_user(self, user, role=ORGANIZATION_ROLE_USER, status=STATUS_APPROVED):
+    def get_role(self, user, status=STATUS_APPROVED):
+        orgu = self.get_organization_user(user, status)
+        if orgu:
+            return orgu.role
+        return None
+    
+    def get_organization_user(self, user, status=None):
+        q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==user.id)
+        if status:
+            q = q.filter(OrganizationUser.status==status)
+        return q.filter(OrganizationUser.organization_id==self.id).first()
+    
+    def set_user_status(self, user, status):
+        # could check pending?
+        org_user = self.get_organization_user(user)
+        if not org_user:
+            return False
+        org_user.status = status
+        return org_user
+    
+    def approve_user(self, user):
+        self.set_user_status(user, STATUS_APPROVED)
+    
+    def reject_user(self, user):
+        self.set_user_status(user, STATUS_REJECTED)
+    
+    def attach_user(self, user, role=ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
+        org_user = Session.query(OrganizationUser) \
+                    .filter(OrganizationUser.organization==self) \
+                    .filter(OrganizationUser.user==user).first()
+        if org_user:
+            org_user.role = role
+            org_user.status = status
+            return org_user
+        
         org_user = OrganizationUser(user=user, organization=self, role=role, status=status)
         Session.add(org_user)
         return org_user
