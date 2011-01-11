@@ -39,6 +39,7 @@ class RegisterForm(formencode.Schema):
     username = fv.UnicodeString(not_empty=False, min=4, max=64)
     first_name = fv.UnicodeString(not_empty=False, max=64)
     last_name = fv.UnicodeString(not_empty=False, max=64)
+    name = fv.UnicodeString(not_empty=False, max=128)
     
     chained_validators = [fv.FieldsMatch('password', 'confirm_password')]
 
@@ -60,8 +61,18 @@ def create(**params):
     user.username = 'username' in scrubbed and scrubbed.username or scrubbed.email
     user.password = scrubbed.password
     user.set_timezone_int(scrubbed.default_timezone)
-    user.first_name = scrubbed.get('first_name')
-    user.last_name = scrubbed.get('last_name')
+    
+    if scrubbed.get('name'):
+        name = scrubbed.get('name').split(' ', 1)
+        user.first_name = name[0].strip()
+        user.last_name = len(name) == 2 and name[1].strip() or u''
+    else:
+        user.first_name = scrubbed.get('first_name')
+        user.last_name = scrubbed.get('last_name')
+    
+    #first user is an admin. 
+    if numusers == 0:
+        user.role = users.ROLE_ADMIN
     
     return user
 
