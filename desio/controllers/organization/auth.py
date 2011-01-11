@@ -54,9 +54,4 @@ class AuthController(BaseController):
         self.commit()
         
         return {'url': auth.login(user) or '/'}
-    
-    def logout(self):
-        auth.logout()
-        
-        return self.redirect('/')
 
