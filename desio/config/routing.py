@@ -13,16 +13,16 @@ def make_map(config):
     map.minimization = False
     map.explicit = False
     map.sub_domains = True
-    map.sub_domains_ignore = "www"
+    map.sub_domains_ignore = ["www", None]
+    
+    has_subdomain = dict(sub_domain=True)
+    no_subdomain = dict(sub_domain=False)
 
     # The ErrorController route (handles 404/500 error pages); it should
     # likely stay at the top, ensuring it can always be resolved
     map.connect('/error/{action}', controller='error')
     map.connect('/error/{action}/{id}', controller='error')
 
-    # CUSTOM ROUTES HERE
-    map.connect('/', controller='index', action='index')
-    
     # Web API
     # Wraps a safe subset of adroll.api for public consumption.
     map.connect('/api/v{version}/{module}/{function}/{id}', version=1, controller='api', action='dispatch')
@@ -33,7 +33,23 @@ def make_map(config):
     map.connect('/v1/{module}/{function}/{id}', version=1, controller='api', action='dispatch', sub_domain='api')
     map.connect('/v1/{module}/{function}', version=1, controller='api', action='dispatch', sub_domain='api')
     map.connect('/v1/{module}', version=1, controller='api', action='dispatch', sub_domain='api')
-
+    
+    # NO subdomain
+    map.connect('/', controller='index', action='index', conditions=no_subdomain)
+    
+    map.connect('/login', controller='auth', action='login', conditions=no_subdomain)
+    map.connect('/register', controller='auth', action='register', conditions=no_subdomain)
+    
+    map.connect('/create', controller='organization/create', action='index', conditions=no_subdomain)
+    
+    # in the application with subdomain
+    map.connect('/', controller='organization/home', action='index', conditions=has_subdomain)
+    
+    map.connect('/login', controller='organization/auth', action='login', conditions=has_subdomain)
+    map.connect('/register', controller='organization/auth', action='register', conditions=has_subdomain)
+    
+    
+    #dont care on subdomain
     map.connect('/admin', controller='admin/search', action='index')
     
     map.connect('/{controller}/{action}')

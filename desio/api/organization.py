@@ -70,11 +70,16 @@ def create(real_user, user, **params):
     Session.flush()
     return org
 
-@enforce()
-@authorize(CanReadOrg())
-def get(real_user, user, organization):
-    if not organization:
+@enforce(subdomain=unicode)
+#@authorize(CanReadOrg()) # dont have to be logged in. Must be careful if we expose this to webservice
+def get(organization=None, subdomain=None):
+    if not organization and not subdomain:
         abort(403)
+    
+    if organization: return organization
+    
+    organization = Session.query(users.Organization).filter(users.Organization.subdomain==subdomain).first()
+    
     return organization
 
 @enforce(is_active=bool)

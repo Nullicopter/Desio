@@ -11,6 +11,10 @@ from desio.lib import auth as a
 <%
 if not c.meta:
     c.meta = {}
+
+name = 'binder.io'
+if c.organization:
+    name = c.organization.name
 %>
 
 <!DOCTYPE html>
@@ -23,7 +27,7 @@ if not c.meta:
             % endfor
         % endif
         ## <link rel="Shortcut Icon" href="${h.static_url('i', 'favicon.ico')}" type="image/x-icon"/>
-        <title>${c.title or 'Welcome'} | desio</title>
+        <title>${c.title or 'Welcome'} | ${name}</title>
 		
 		<%def name="js_includes()">
 			${r.require_js('core')}
@@ -69,8 +73,8 @@ if not c.meta:
                     
                 </div>
                 
-                <h1><a href="/">desio</a></h1>
-                <h2>Make shit. Quickly.</h2>
+                <h1><a href="/">${name}</a></h1>
+                <h2>Some subtitle here?</h2>
             </hgroup></div>
 		</header></div>
 		

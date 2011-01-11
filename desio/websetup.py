@@ -5,6 +5,7 @@ import pylons.test
 
 from desio.config.environment import load_environment
 from desio.model.meta import Session, Base
+from desio.model.users import User, UserPreference, Organization, OrganizationUser
 
 log = logging.getLogger(__name__)
 

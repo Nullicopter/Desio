@@ -7,11 +7,7 @@ import formencode.validators as fv
 
 import sqlalchemy as sa
 
-class LoginForm(formencode.Schema):
-    username = formencode.All(fv.UnicodeString(not_empty=True), fv.MaxLength(64))
-    password = formencode.All(fv.UnicodeString(not_empty=True), fv.MaxLength(32))
-
-class AuthController(BaseController):
+class OrganizationController(BaseController):
     """
     """
     def __before__(self, **kw):
