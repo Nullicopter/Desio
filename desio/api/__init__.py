@@ -60,8 +60,14 @@ def authorize(*filters):
             dargs = dict([i for i in kwargs.items()])
             dargs['real_user'] = real_user
             dargs['user'] = user
+            
+            #get rid of self from the decorated object
+            if 'self' in dargs:
+                del dargs['self']
+                
             for filter in filters:
                 filter.check(**dargs)
+            
             
             return fn(**kwargs)
             

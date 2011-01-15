@@ -1,7 +1,7 @@
 from desio import api
 from desio.lib.base import *
 from desio.model import users
-from desio.api import IsNotLoggedIn
+from desio.api import IsNotLoggedIn, authorize
 
 import pylons
 
@@ -16,7 +16,7 @@ class CreateController(BaseController):
     """
     """
     
-    #@authorize(IsNotLoggedIn())
+    @authorize(IsNotLoggedIn())
     def __before__(self, **k):
         pass
     

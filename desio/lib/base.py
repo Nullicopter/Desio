@@ -14,8 +14,6 @@ from pylons_common.web.response import *
 log.set_default_logger('desio')
 from pylons_common.lib.log import logger
 
-from desio.lib.auth import authorize
-
 import time
 import auth
 import helpers as h
