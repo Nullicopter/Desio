@@ -6,7 +6,13 @@
     padding: 5px;
     font-family: arial, sans-serif;
     font-size: 1.1em;
-	border: 1px solid #ccc;
+	border: 1px solid #ddd;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+.editable input.hint, input.text.hint, textarea.hint{
+    color: #999;
 }
 
 /*form label*/
@@ -70,7 +76,7 @@
 .error-container .error{
     color: #c00;
     font-size: 10pt;
-    font-weight: normal;
+    font-weight: bold;
 }
 
 .error-container{
@@ -79,5 +85,5 @@
 }
 
 input.error, textarea.error{
-    border: 1px solid #c00;
+    border: 2px solid #c00;
 }

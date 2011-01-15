@@ -1,3 +1,4 @@
+<%inherit file="/bones.html"/>
 <%namespace name="f" file="/forms.html"/>
 <%namespace name="r" file="/require.html"/>
 
@@ -9,113 +10,60 @@ from desio.lib import helpers as h
 from desio.lib import auth as a
 %>
 <%
-if not c.meta:
-    c.meta = {}
-
 name = 'binder.io'
 if c.organization:
     name = c.organization.name
 %>
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        % if c.meta:
-            % for name, content in c.meta.iteritems():
-                <meta name="${name}" content="${content.replace('"',r'\"')}"/>
-            % endfor
-        % endif
-        ## <link rel="Shortcut Icon" href="${h.static_url('i', 'favicon.ico')}" type="image/x-icon"/>
-        <title>${c.title or 'Welcome'} | ${name}</title>
-		
-		<%def name="js_includes()">
-			${r.require_js('core')}
-        </%def>
-        ${self.js_includes()}
+<div id="header"><header>
+    <div id="header-inner"><hgroup>
+        <div id="header-right">
         
-        <%def name="header()">
-			${r.require_css('core')}
-			
-			<!--[if IE]>
-            ${r.require_css('ie')}
-            <![endif]-->
-        </%def>
-        ${self.header()}
+            <%
+            real_user = a.get_real_user()
+            user = a.get_user()
+            %>
+            % if real_user:
+                <span class="user real-user">${real_user.username}</span>
+                % if user and user.id != real_user.id:
+                    <span class="pretend-user user">[p: ${user.username}
+                    <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
+                % endif
+                % if a.is_admin():
+                |
+                <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
+                % endif
+                |
+                <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
+            % else:
+                <a href="${h.url_for(controller='auth', action='login')}">login</a>
+                | <a href="${h.url_for(controller='auth', action='register')}">register</a>
+            % endif
+            
+        </div>
         
-    </head>
+        <h1><a href="/">${name}</a></h1>
+        <h2>Some subtitle here?</h2>
+    </hgroup></div>
+</header></div>
 
-    <body id="${pylons.request.path.strip('/').replace('/','_')}" class="${a.is_logged_in() and 'user-logged-in' or ''}">
-		<div id="header"><header>
-			<div id="header-inner"><hgroup>
-                <div id="header-right">
-                
-                    <%
-                    real_user = a.get_real_user()
-                    user = a.get_user()
-                    %>
-                    % if real_user:
-                        <span class="user real-user">${real_user.username}</span>
-                        % if user and user.id != real_user.id:
-                            <span class="pretend-user user">[p: ${user.username}
-                            <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
-                        % endif
-                        % if a.is_admin():
-                        |
-                        <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
-                        % endif
-                        |
-                        <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
-                    % else:
-                        <a href="${h.url_for(controller='auth', action='login')}">login</a>
-                        | <a href="${h.url_for(controller='auth', action='register')}">register</a>
-                    % endif
-                    
-                </div>
-                
-                <h1><a href="/">${name}</a></h1>
-                <h2>Some subtitle here?</h2>
-            </hgroup></div>
-		</header></div>
-		
-		<%def name="pre_content()"></%def>
-		${self.pre_content()}
-        <div id="page">
-            <div id="page-inner">
-                
-                ${next.body()}
-                
-                <div id="notification-display"></div>
-            </div>
-        </div> <!--page-->
-		<%def name="post_content()"></%def>
-		${self.post_content()}
-		
-		<div id="footer"><footer>
-			<div id="footer-inner">
-                <p>
-                    Copyright &copy; 2010 ben ogle
-                </p>
-            </div>
-		</footer></div>
+<%def name="pre_content()"></%def>
+${self.pre_content()}
+<div id="page">
+    <div id="page-inner">
         
-        % if c.show_debug:
-            <div id="fancy-debug-bar"></div>
-            <script type="text/javascript">
-                $(document).ready(function(){
-                    <% queries = sorted(c.queries, key=lambda x: -x[1]) %>
-                    <% jsonqueries = [{'query': q, 'time': t} for q, t in c.queries] %>
-                    window.DEBUG = $('#fancy-debug-bar').DebugBar({
-                    data:{
-                        'queries': ${len(c.queries)},
-                        'query_time': ${c.query_time or 0},
-                        'total_time': ${time() - c.render_start},
-                        'requested_url': '${c.requested_url | n}',
-                        'query_data': ${json.dumps(jsonqueries) | n}
-                    }
-                    });
-                });
-            </script>
-        % endif
-    </body>
-</html>
+        ${next.body()}
+        
+        <div id="notification-display"></div>
+    </div>
+</div> <!--page-->
+<%def name="post_content()"></%def>
+${self.post_content()}
+
+<div id="footer"><footer>
+    <div id="footer-inner">
+        <p>
+            Copyright &copy; 2010 ben ogle
+        </p>
+    </div>
+</footer></div>

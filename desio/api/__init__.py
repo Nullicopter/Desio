@@ -68,6 +68,13 @@ def authorize(*filters):
         return new
     return decorator
 
+class IsNotLoggedIn(object):
+    
+    def check(self, real_user, user, **kwargs):
+        if real_user or user:
+            raise ClientException("You cannot be logged in.", INCOMPLETE, field='user')
+        return True
+
 class IsLoggedIn(object):
     
     def check(self, real_user, user, **kwargs):

@@ -2,6 +2,7 @@
 """
 
 from pylons_common.lib.utils import itemize
+from desio.api import CanReadOrg
 
 class error:
     class explode: pass
@@ -20,3 +21,9 @@ class user:
         def output(self, u):
             return itemize(u, 'email', 'display_username', 'is_active', 'first_name', 'last_name', 'default_timezone')
     class set_pref: pass
+
+class organization:
+    
+    class get:
+        def output(self, org):
+            return itemize(u, 'subdomain', 'name')

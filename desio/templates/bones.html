@@ -1,0 +1,71 @@
+<%namespace name="f" file="/forms.html"/>
+<%namespace name="r" file="/require.html"/>
+
+<%!
+import pylons, simplejson as json
+from time import time
+from pylons import tmpl_context as c
+from desio.lib import helpers as h
+from desio.lib import auth as a
+%>
+<%
+if not c.meta:
+    c.meta = {}
+
+name = 'binder.io'
+if c.organization:
+    name = c.organization.name
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        % if c.meta:
+            % for name, content in c.meta.iteritems():
+                <meta name="${name}" content="${content.replace('"',r'\"')}"/>
+            % endfor
+        % endif
+        ## <link rel="Shortcut Icon" href="${h.static_url('i', 'favicon.ico')}" type="image/x-icon"/>
+        <title>${c.title or 'Welcome'} | ${name}</title>
+		
+		<%def name="js_includes()">
+			${r.require_js('core')}
+        </%def>
+        ${self.js_includes()}
+        
+        <%def name="header()">
+			${r.require_css('core')}
+			
+			<!--[if IE]>
+            ${r.require_css('ie')}
+            <![endif]-->
+        </%def>
+        ${self.header()}
+        
+    </head>
+
+    <body id="${pylons.request.path.strip('/').replace('/','_')}" class="${a.is_logged_in() and 'user-logged-in' or ''}">
+        
+        ${next.body()}
+        
+        % if c.show_debug:
+            <div id="fancy-debug-bar"></div>
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    <% queries = sorted(c.queries, key=lambda x: -x[1]) %>
+                    <% jsonqueries = [{'query': q, 'time': t} for q, t in c.queries] %>
+                    window.DEBUG = $('#fancy-debug-bar').DebugBar({
+                    data:{
+                        'queries': ${len(c.queries)},
+                        'query_time': ${c.query_time or 0},
+                        'total_time': ${time() - c.render_start},
+                        'requested_url': '${c.requested_url | n}',
+                        'query_data': ${json.dumps(jsonqueries) | n}
+                    }
+                    });
+                });
+            </script>
+        % endif
+    </body>
+</html>

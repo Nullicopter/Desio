@@ -195,7 +195,7 @@
 
 <%def name="form_chunk_start(name, chunkId=None, chunkClass=None, label=None, sublabel=None, labelClass=None, labelId=None, tooltip=None)">
     <div class='form-chunk ${chunkClass and '%s' % chunkClass or '' | n}' ${chunkId and 'id="%s"' % chunkId or '' | n}>
-        % if name or label:
+        % if name or label and label != '':
             ${form_chunk_label(name, label=label, sublabel=sublabel, labelClass=labelClass, id=labelId, tooltip=tooltip)}
         % endif
 </%def>

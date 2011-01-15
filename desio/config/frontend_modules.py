@@ -50,6 +50,7 @@ JS = {
         'include/jquery.cookie.js',
         'include/jquery.json.js',
         'include/jquery.jeditable.js',
+        'include/jquery.input-hint.js',
         'include/underscore.js',
         'include/backbone.js',
         
@@ -77,6 +78,9 @@ JS = {
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
     'controllers.admin': ('build/controllers/admin.js', [
         'controllers/admin/base.js'
+    ]),
+    'controllers.organization': ('build/controllers/organization.js', [
+        'controllers/organization/create.js'
     ])
 }
 

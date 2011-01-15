@@ -195,3 +195,28 @@ def is_in_roles(roles):
     else:
         role = session.get('role', '')
     return role in roles
+
+def authorize(*filters):
+    
+    """
+    Authorization checking. Pass in objects that have a check() method. In your check method
+    you can raise client exceptions.
+    """
+    def decorator(fn):
+        
+        def new(*args, **kwargs):
+            
+            # find the user
+            real_user = auth.get_real_user()
+            user = auth.get_user()
+            
+            dargs = dict([i for i in kwargs.items()])
+            dargs['real_user'] = real_user
+            dargs['user'] = user
+            for filter in filters:
+                filter.check(**dargs)
+            
+            return fn(**kwargs)
+            
+        return new
+    return decorator

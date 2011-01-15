@@ -74,11 +74,14 @@ def create(real_user, user, **params):
 #@authorize(CanReadOrg()) # dont have to be logged in. Must be careful if we expose this to webservice
 def get(organization=None, subdomain=None):
     if not organization and not subdomain:
-        abort(403)
+        abort(404)
     
     if organization: return organization
     
     organization = Session.query(users.Organization).filter(users.Organization.subdomain==subdomain).first()
+    
+    if not organization:
+        raise ClientException('Org not found', code=NOT_FOUND)
     
     return organization
 

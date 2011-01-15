@@ -23,8 +23,11 @@ Q.defaultValidationOptions = {
 
 Q.Page = Q.Module.extend({
     init: function(settings){
+        var defs = {
+            pageSelector: '#page'
+        };
         this.args = arguments;
-        this.settings = settings;
+        this.settings = $.extend({}, defs, settings);
         window.PAGE = this;
     },
     
@@ -37,7 +40,7 @@ Q.Page = Q.Module.extend({
     },
     
     run: function(){
-        this.container = $('#page');
+        this.container = $(this.settings.pageSelector);
         this.delegateEvents();
         this.cacheNodes();
     }
