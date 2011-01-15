@@ -16,7 +16,7 @@ class CreateController(BaseController):
     """
     """
     
-    @authorize(IsNotLoggedIn())
+    @authorize(auth.RedirectOnFail(IsNotLoggedIn(), url='/'))
     def __before__(self, **k):
         pass
     

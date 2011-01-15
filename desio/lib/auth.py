@@ -1,5 +1,6 @@
 import pylons
 from pylons import session, request, tmpl_context as c
+from pylons.controllers.util import redirect
 import helpers as h
 
 from pylons_common.lib import exceptions
@@ -8,6 +9,7 @@ from desio.model.meta import Session
 from desio.model import users
 
 from pylons_common.lib.log import logger
+from pylons_common.lib.exceptions import *
 
 from datetime import datetime
 
@@ -196,3 +198,20 @@ def is_in_roles(roles):
         role = session.get('role', '')
     return role in roles
 
+##
+### authentication classes
+##
+
+class RedirectOnFail(object):
+    
+    def __init__(self, auth_object, url):
+        self.auth_object = auth_object
+        self.url = url
+    
+    def check(self, real_user, user, **kwargs):
+        
+        try:
+            return self.auth_object.check(real_user, user, **kwargs)
+        except ClientException, e:
+            redirect(self.url)
+        
