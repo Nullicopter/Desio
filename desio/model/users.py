@@ -18,8 +18,7 @@ ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
 ORGANIZATION_ROLE_CREATOR = 'creator'
 ORGANIZATION_ROLE_USER = ROLE_USER
 
-def now():
-    return datetime.utcnow()
+now = date.now
 
 def hash_password(clear_pass):
     """

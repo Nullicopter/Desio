@@ -48,7 +48,7 @@ class AuthController(BaseController):
     
     @mixed_response('register')
     def _do_register(self, **kw):
-        
+
         user = api.user.create(**dict(request.params))
         
         self.commit()
