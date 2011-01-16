@@ -294,6 +294,12 @@ class User(Base):
             offset = offset + 24
         return offset
     
+    def get_organizations(self, status=STATUS_APPROVED):
+        q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==self.id)
+        if status:
+            q = q.filter(OrganizationUser.status==status)
+        return [r.organization for r in q.all()]
+    
     def must_own(self, *things):
         if self.is_admin():
             return True
