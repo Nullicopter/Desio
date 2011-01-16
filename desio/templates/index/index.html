@@ -10,9 +10,19 @@
 </%def>
 
 <h1>Hey!</h1>
-<p>
-    Neat stuff we get for free.
-</p>
+
+% if c.organizations:
+    <h2>Your orgs</h2>
+    % for o in c.organizations:
+    <div><a href="${h.subdomain_url(o.subdomain)}"></a></div>
+    % endfor
+% else:
+    <p>You have no orgs</p>
+% endif
+
+<h1>
+    Neat stuff we get for free:
+</h1>
 
 <h2><a href="${h.url_for(controller='test', action='exercise')}">Framework Exercise</a></h2>
 <h2><a href="${h.url_for(controller='test', action='qunit')}">QUnit Tests</a></h2>
