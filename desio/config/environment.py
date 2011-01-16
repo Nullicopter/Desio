@@ -12,6 +12,7 @@ import desio.lib.app_globals as app_globals
 import desio.lib.helpers
 from desio.config.routing import make_map
 from desio.model import init_model
+from desio.utils import fs
 
 from pylons_common.sqlalchemy.proxy import TimerProxy
 
@@ -55,5 +56,6 @@ def load_environment(global_conf, app_conf):
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
+    fs.setup_directories(config)
     
     return config

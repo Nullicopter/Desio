@@ -51,9 +51,9 @@ def create(**params):
     DO NOT EXPOSE THIS to the web api. Please.
     """
     numusers = len(Session.query(users.User).all())
-    
+
     scrubbed = validate(RegisterForm, **params)
-    
+
     user = users.User()
     Session.add(user)
     

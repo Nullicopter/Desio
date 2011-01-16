@@ -26,7 +26,6 @@ class CreateController(BaseController):
     
     @mixed_response('index')
     def _do_create(self, **kw):
-        
         user_params = extract(request.params, 'name', 'email', 'password', 'confirm_password', 'default_timezone')
         user = api.user.create(**user_params)
         
