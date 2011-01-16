@@ -55,6 +55,12 @@ def js_url(filename):
     """
     return "/j/%s" % (filename)
 
+def get_domain(subdomain):
+    return pylons.config['subdomain_url'] % subdomain
+
+def subdomain_url(subdomain, *args, **kw):
+    return get_domain(subdomain) + url_for(*args, **kw)
+
 def has_request_object():
     """
     Sometimes we get

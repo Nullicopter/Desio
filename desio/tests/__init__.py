@@ -109,9 +109,12 @@ class TestController(TestRollback):
             else:
                 kw[k] = v
     
-    def get(self, url, params=None, headers={'Accept': 'text/html'}, **kw):
+    def get(self, url, params=None, sub_domain=None, headers={'Accept': 'text/html'}, **kw):
 
         dict = self.get_auth_kw()
+        if sub_domain:
+            dict['extra_environ'] = {'HTTP_HOST': str('%s.%s' % (sub_domain, pylons.config['domain']))}
+        
         self.__merge_dictionaries__(dict, kw)
         response = self.app.get(url, params, headers=headers, **kw)
 
@@ -123,9 +126,11 @@ class TestController(TestRollback):
             return obj.encode('utf-8')
         return obj
     
-    def post(self, url, params=None, headers={'Accept': 'text/html'}, **kw):
+    def post(self, url, params=None, sub_domain=None, headers={'Accept': 'text/html'}, **kw):
         
         auth_dict = self.get_auth_kw()
+        if sub_domain:
+            dict['extra_environ'] = {'HTTP_HOST': str('%s.%s' % (sub_domain, pylons.config['domain']))}
         self.__merge_dictionaries__(auth_dict, kw)
         # TODO - this is temporary until paste actually allows for unicode input
         # UPDATE - paste won't fix this - paste.fixture.TestApp is getting deprecated
@@ -176,6 +181,11 @@ class TestController(TestRollback):
         if response.status == 302: # redirect
             response = response.follow()
         return "Please Sign In" in response
+    
+    def follow(self, response):
+        while response.status >= 300:
+            response = response.follow()
+        return response
     
     def throws_exception(self, fn, types=(ClientException, CompoundException, formencode.validators.Invalid)):
         """

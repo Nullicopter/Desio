@@ -22,7 +22,7 @@ def create_email_address():
 
 def create_str(length=None):
         
-        letters = u' abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        letters = u'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         key = []
         
         l = length or random.randint(30, 50)

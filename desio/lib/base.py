@@ -144,3 +144,21 @@ class BaseController(WSGIController):
             self._session.flush()
         else:
             self._session.commit()
+
+
+class OrganizationBaseController(BaseController):
+    """
+    """
+    def __before__(self, **kw):
+        from desio import api
+        
+        auth.RedirectOnFail(api.IsLoggedIn(), url='/login')
+        
+        ru, u = (auth.get_real_user(), auth.get_user())
+        c.organization = api.organization.get(subdomain=kw.get('sub_domain'))
+        
+        def tohome(*a, **k):
+            print 'No read access: for %s; Redirecting to home' % (u)
+            return config.get('pylons_url') or '/'
+        
+        auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(ru, u, organization=c.organization)

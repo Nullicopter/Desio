@@ -1,6 +1,7 @@
 """Setup the desio application"""
 import logging
 
+import pylons
 import pylons.test
 
 from desio.config.environment import load_environment
@@ -17,6 +18,8 @@ def setup_app(command, conf, vars):
     
     engine = config['pylons.app_globals'].sa_default_engine
     
+    #effin config garbage
+    pylons.config._push_object(config)
     #init_model(engine)
     
     # Create the tables if they don't already exist

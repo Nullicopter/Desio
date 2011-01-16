@@ -1,5 +1,4 @@
 from desio import api
-from desio.controllers import OrganizationBaseController
 from desio.lib.base import *
 from desio.model import users
 
@@ -13,4 +12,4 @@ class HomeController(OrganizationBaseController):
     """
     
     def index(self):
-        pass
+        return self.render('/organization/home.html')

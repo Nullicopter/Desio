@@ -1,6 +1,6 @@
-from desio import api
 from desio.lib.base import *
 from desio.model import users
+from desio import api
 from desio.api import IsNotLoggedIn, authorize
 
 import pylons

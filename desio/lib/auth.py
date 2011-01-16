@@ -204,14 +204,16 @@ def is_in_roles(roles):
 
 class RedirectOnFail(object):
     
-    def __init__(self, auth_object, url):
+    def __init__(self, auth_object, url='/', fn=None):
         self.auth_object = auth_object
         self.url = url
+        self.fn = fn
     
     def check(self, real_user, user, **kwargs):
         
         try:
             return self.auth_object.check(real_user, user, **kwargs)
         except ClientException, e:
-            redirect(self.url)
+            url = self.url or fn(real_user, user, **kwargs)
+            redirect(url)
         
