@@ -208,6 +208,12 @@ class User(Base):
             for pref in self.preferences:
                 self.preferences_dict[pref.key] = pref
     
+    @property
+    def human_name(self):
+        if self.first_name and self.last_name:
+            return '%s %s' % (self.first_name, self.last_name)
+        return self.username
+    
     def get_preference(self, key, ignore_default=False):
         """
         Gets a user's preference.

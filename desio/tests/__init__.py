@@ -130,7 +130,7 @@ class TestController(TestRollback):
         
         auth_dict = self.get_auth_kw()
         if sub_domain:
-            dict['extra_environ'] = {'HTTP_HOST': str('%s.%s' % (sub_domain, pylons.config['domain']))}
+            auth_dict['extra_environ'] = {'HTTP_HOST': str('%s.%s' % (sub_domain, pylons.config['domain']))}
         self.__merge_dictionaries__(auth_dict, kw)
         # TODO - this is temporary until paste actually allows for unicode input
         # UPDATE - paste won't fix this - paste.fixture.TestApp is getting deprecated

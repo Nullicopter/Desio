@@ -15,6 +15,7 @@
 <h1>Register</h1>
 
 <form action="${h.url_for(controller='auth', action='register')}" method="post">
+    ${f.text_chunk('name', label='First and Last Name')}
     ${f.text_chunk('email')}
     ${f.password_chunk('password')}
     ${f.password_chunk('confirm_password')}

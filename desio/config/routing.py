@@ -45,6 +45,7 @@ def make_map(config):
     # in the application with subdomain
     map.connect('/', controller='organization/home', action='index', conditions=has_subdomain)
     
+    map.connect('/pending', controller='organization/auth', action='pending', conditions=has_subdomain)
     map.connect('/login', controller='organization/auth', action='login', conditions=has_subdomain)
     map.connect('/register', controller='organization/auth', action='register', conditions=has_subdomain)
     

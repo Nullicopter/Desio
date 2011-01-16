@@ -12,7 +12,7 @@ class TestAccountController(TestController):
         
         # test registering
         response = self.get(url_for(controller='auth', action='register'))
-        assert "auth_register" in response
+        assert '="register"' in response
 
         username = u'test@example.com'
         post_vars = {'default_timezone' : u'-8', 'password' : u'secret', 'confirm_password' : u'secret', 'email' : username}

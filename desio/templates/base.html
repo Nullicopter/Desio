@@ -24,7 +24,7 @@ if c.organization:
             user = a.get_user()
             %>
             % if real_user:
-                <span class="user real-user">${real_user.username}</span>
+                <span class="user real-user" title="${real_user.username}">${real_user.human_name}</span>
                 % if user and user.id != real_user.id:
                     <span class="pretend-user user">[p: ${user.username}
                     <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>

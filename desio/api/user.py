@@ -92,11 +92,17 @@ def set_pref(real_user, user, key, value, use_real_user=True):
 def generate_password():
     return utils.uuid()[:8]
 
-@enforce(u=users.User)
-@authorize(IsAdmin())
-def get(real_user, user, u):
+@enforce(u=users.User, username=unicode)
+#@authorize(IsAdmin())
+def get(u=None, username=None):
+    if not u and not username:
+        abort(403)
+    elif u: return u
+    
+    u = Session.query(users.User).filter_by(username=username).first()
     if not u:
         abort(403)
+    
     return u
 
 @enforce(u=users.User)

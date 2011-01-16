@@ -151,14 +151,22 @@ class OrganizationBaseController(BaseController):
     """
     def __before__(self, **kw):
         from desio import api
-        
-        auth.RedirectOnFail(api.IsLoggedIn(), url='/login')
+        from desio.model import STATUS_PENDING
         
         ru, u = (auth.get_real_user(), auth.get_user())
-        c.organization = api.organization.get(subdomain=kw.get('sub_domain'))
+        
+        auth.RedirectOnFail(api.IsLoggedIn(), url='/login').check(ru, u)
+        
+        try:
+            c.organization = api.organization.get(subdomain=kw.get('sub_domain'))
+        except ClientException, e:
+            abort(404)
         
         def tohome(*a, **k):
-            print 'No read access: for %s; Redirecting to home' % (u)
+            orgu = c.organization.get_organization_user(u, status=None)
+            if orgu and orgu.status == STATUS_PENDING:
+                return '/pending'
+            
             return config.get('pylons_url') or '/'
         
         auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(ru, u, organization=c.organization)

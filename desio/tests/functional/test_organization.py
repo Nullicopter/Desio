@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
-from desio.model import users
+from desio import api
+from desio.model import users, STATUS_PENDING
 from desio.tests import *
 from desio.lib import helpers as h
 import desio.model.fixture_helpers as fh
@@ -26,4 +27,24 @@ class TestOrganizationHomeController(TestController):
         resp = self.get(url, sub_domain=org.subdomain)
         
         assert 'org-'+org.subdomain in resp
+
+class TestOrganizationAuthController(TestController):
+    
+    def test_register(self):
+        u = fh.create_user()
+        org = fh.create_organization(user=u)
+        self.flush()
         
+        post_vars = {'default_timezone' : u'-8', 'password' : u'secret', 'confirm_password' : u'secret', 'email' : 'bleh@omg.com', 'name': 'Jim Bob'}
+        r = self.client_async('/register', post_vars, sub_domain=org.subdomain)
+        assert r.results.url == '/'
+        
+        r = self.get('/', sub_domain=org.subdomain, status=302)
+        assert '/pending' in r
+        
+        user = api.user.get(username='bleh@omg.com')
+        
+        orgu = org.get_organization_user(user)
+        
+        assert orgu
+        assert orgu.status == STATUS_PENDING
