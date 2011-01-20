@@ -44,3 +44,15 @@ class TestProject(TestController):
         assert project.created_date
         assert project.last_modified_date
         assert project.organization == org
+
+        fetched_p = api.project.get(u, u, org)
+        assert fetched_p == [project]
+
+        fetched_p = api.project.get(u, u, org, project.eid)
+        assert fetched_p == project
+
+        org1 = fh.create_organization()
+        assert self.throws_exception(lambda : api.project.get(u, u, org1)).code == FORBIDDEN
+        assert self.throws_exception(lambda : api.project.get(u, u, org1, u'fakeeid')).code == FORBIDDEN
+        assert self.throws_exception(lambda : api.project.get(u, u, org, u'fakeeid')).code == NOT_FOUND
+

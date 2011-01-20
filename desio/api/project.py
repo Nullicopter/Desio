@@ -54,12 +54,16 @@ def create(real_user, user, organization, **params):
 
 @enforce(eid=unicode)
 @authorize(CanContributeToOrg())
-def get(real_user, user, eid=None):
+def get(real_user, user, organization, eid=None):
     if not user and not eid:
         abort(403)
 
-    p = Session.query(projects.Project).filter_by(eid=eid).first()
+    q = Session.query(projects.Project).filter_by(organization=organization)
+
+    if eid is None:
+        return q.order_by(sa.desc(projects.Project.last_modified_date)).all()
+    p = q.filter_by(eid=eid).first()
+
     if not p:
-        abort(403)
-    
+        raise ClientException("Project not found", code=NOT_FOUND)
     return p
