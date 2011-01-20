@@ -316,4 +316,5 @@ class FieldEditor(object):
 
 import user
 import organization
+import project
 import error

@@ -142,14 +142,14 @@ class User(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
 
-    email = sa.Column(sa.Unicode(64), unique=True, index=True, nullable=False)
+    email = sa.Column(sa.Unicode(256), unique=True, index=True, nullable=False)
     #: Phone number
     phone = sa.Column(sa.Unicode(25), nullable=True)
     #: User entered nickname, required maximum 64 characters
     _username = sa.Column("username", sa.Unicode(64), unique=True, index=True, nullable=False)
     _display_username = sa.Column("display_username", sa.Unicode(64), unique=True, index=True, nullable=False)
     #: The encrypted version of the password
-    _password = sa.Column("password", sa.Unicode(32), nullable=False)
+    _password = sa.Column("password", sa.UnicodeText(), nullable=False)
     #: One of [ROLE_ADMIN, ROLE_ENGINEER, ROLE_OPS, ROLE_USER]
     role = sa.Column(sa.Unicode(30), nullable=False, default=u'user', index=True)
     #: Is True unless an Admin has deactivated this user, which prevents them

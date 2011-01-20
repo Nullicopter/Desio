@@ -27,3 +27,7 @@ class organization:
     class get:
         def output(self, org):
             return itemize(u, 'subdomain', 'name')
+
+class project:
+    class create: pass
+    class get: pass
