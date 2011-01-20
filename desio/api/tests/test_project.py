@@ -56,3 +56,5 @@ class TestProject(TestController):
         assert self.throws_exception(lambda : api.project.get(u, u, org1, u'fakeeid')).code == FORBIDDEN
         assert self.throws_exception(lambda : api.project.get(u, u, org, u'fakeeid')).code == NOT_FOUND
 
+        err = self.throws_exception(lambda : api.project.create(u, u, org, **p))
+        assert 'A project with this name already exists. Please choose another' in err.msg
