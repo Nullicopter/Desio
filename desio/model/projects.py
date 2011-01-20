@@ -11,7 +11,6 @@ class Project(Base):
     """
     A Project represents a revisioned tree of files
     """
-    print "loaded"
     __tablename__ = "projects"
     
     id = sa.Column(sa.Integer, primary_key=True)
