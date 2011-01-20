@@ -32,9 +32,9 @@ class UniqueEmail(fv.FancyValidator):
 
 class RegisterForm(formencode.Schema):
     
-    password = fv.UnicodeString(not_empty=True, min=5, max=32)
-    confirm_password = fv.UnicodeString(not_empty=True, min=5, max=32)
-    email = formencode.All(fv.Email(not_empty=True), fv.MaxLength(64), UniqueEmail())
+    password = fv.UnicodeString(not_empty=True, min=5)
+    confirm_password = fv.UnicodeString(not_empty=True, min=5)
+    email = formencode.All(fv.Email(not_empty=True), fv.MaxLength(256), UniqueEmail())
     default_timezone = fv.Int(not_empty=True)
     username = fv.UnicodeString(not_empty=False, min=4, max=64)
     first_name = fv.UnicodeString(not_empty=False, max=64)
@@ -144,7 +144,7 @@ def edit(real_user, user, u, **kwargs):
 
 class EditForm(formencode.Schema):
     role = formencode.All(fv.UnicodeString(not_empty=False), fv.OneOf(ROLES))
-    password = formencode.All(fv.UnicodeString(not_empty=False), fv.MaxLength(32))
+    password = formencode.All(fv.UnicodeString(not_empty=False))
     first_name = formencode.All(fv.UnicodeString(not_empty=False), fv.MaxLength(64))
     last_name = formencode.All(fv.UnicodeString(not_empty=False), fv.MaxLength(64))
     default_timezone = fv.Int(not_empty=False)

@@ -5,6 +5,9 @@ from desio.model.meta import Session, Base
 STATUS_APPROVED = u'approved'
 STATUS_REJECTED = u'rejected'
 STATUS_PENDING = u'pending'
+STATUS_OPEN = u'open'
+STATUS_COMPLETED = u'completed'
+STATUS_INACTIVE = u'inactive'
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
