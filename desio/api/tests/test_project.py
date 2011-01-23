@@ -33,12 +33,13 @@ class TestProject(TestController):
         assert orgu.role == users.ORGANIZATION_ROLE_ADMIN
         assert orgu.status == STATUS_APPROVED
 
-        p = {'name': u'HellaProject',
+        p = {'name': u' Hella Project! ye$ah   man_',
              'description': u'No description for HellaProject'}
         project = api.project.create(u, u, org, **p)
         self.flush()
         assert project.eid
         assert project.status == STATUS_OPEN
+        assert project.slug == 'hella-project-ye-ah-man'
         assert project.name == p['name']
         assert project.description == p['description']
         assert project.created_date
@@ -50,6 +51,9 @@ class TestProject(TestController):
 
         fetched_p = api.project.get(u, u, org, project.eid)
         assert fetched_p == project
+        
+        fetched_p = api.project.get(u, u, org, project.slug)
+        assert fetched_p == project
 
         org1 = fh.create_organization()
         assert self.throws_exception(lambda : api.project.get(u, u, org1)).code == FORBIDDEN
@@ -58,3 +62,8 @@ class TestProject(TestController):
 
         err = self.throws_exception(lambda : api.project.create(u, u, org, **p))
         assert 'A project with this name already exists. Please choose another' in err.msg
+        
+        p['name'] = u'Hella Project! ye$ah   man'
+        project = api.project.create(u, u, org, **p)
+        self.flush()
+        assert project.slug == 'hella-project-ye-ah-man1'
