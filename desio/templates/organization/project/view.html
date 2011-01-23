@@ -1,0 +1,17 @@
+<%inherit file="base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="f" file="/forms.html"/>
+
+<%def name="header()">
+    ${parent.header()}
+    <style type="text/css">
+    </style>
+</%def>
+
+<h1>${c.title}</h1>
+
+% if c.project.description:
+    <p>${c.project.description}</p>
+% endif
+
+PROJECT STUFF HERE

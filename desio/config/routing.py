@@ -49,6 +49,14 @@ def make_map(config):
     map.connect('/login', controller='organization/auth', action='login', conditions=has_subdomain)
     map.connect('/register', controller='organization/auth', action='register', conditions=has_subdomain)
     
+    #TODO, figure out way to not have to have two for trailing slash or not.
+    map.connect('/project/{slug}', controller='organization/project', action='view', conditions=has_subdomain)
+    map.connect('/project/{slug}/', controller='organization/project', action='view', conditions=has_subdomain)
+    map.connect('/project/{slug}/{path}', controller='organization/project', action='view', conditions=has_subdomain)
+    
+    map.connect('/projects', controller='organization/home', action='index', conditions=has_subdomain)
+    map.connect('/projects/{action}', controller='organization/project', action='index', conditions=has_subdomain)
+    map.connect('/projects/{action}/{slug}', controller='organization/project', action='index', conditions=has_subdomain)
     
     #dont care on subdomain
     map.connect('/admin', controller='admin/search', action='index')

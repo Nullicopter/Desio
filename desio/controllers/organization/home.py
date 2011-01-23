@@ -12,4 +12,6 @@ class HomeController(OrganizationBaseController):
     """
     
     def index(self):
+        c.projects = api.project.get(c.real_user, c.user, c.organization)
+        
         return self.render('/organization/home.html')

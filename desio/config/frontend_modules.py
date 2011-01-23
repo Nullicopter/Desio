@@ -81,6 +81,9 @@ JS = {
     ]),
     'controllers.organization': ('build/controllers/organization.js', [
         'controllers/organization/create.js'
+    ]),
+    'controllers.organization.project': ('build/controllers/organization.project.js', [
+        'controllers/organization/project.js'
     ])
 }
 

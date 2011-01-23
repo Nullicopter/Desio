@@ -137,18 +137,28 @@ class HasOrgRole(IsLoggedIn):
         return True
 
 class CanReadOrg(HasOrgRole):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
     def __init__(self, organization='organization'):
         super(CanReadOrg, self).__init__(
             [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
             organization=organization)
 
 class CanContributeToOrg(HasOrgRole):
+    """
+    They can create and modify projects and membership in projects.
+    """
     def __init__(self, organization='organization'):
         super(CanContributeToOrg, self).__init__(
             [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
             organization=organization)
 
 class CanEditOrg(HasOrgRole):
+    """
+    They are an organization admin. They can edit CC information, organization membership, they
+    can read/write all projects.
+    """
     def __init__(self, organization='organization'):
         super(CanEditOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], organization=organization)
 

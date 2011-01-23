@@ -23,7 +23,7 @@ import formencode
 
 from pylons.controllers import WSGIController
 
-from desio.model import meta
+from desio.model import meta, users
 from desio.model.meta import Session
 
 class BaseController(WSGIController):
@@ -148,6 +148,17 @@ class BaseController(WSGIController):
 
 class OrganizationBaseController(BaseController):
     """
+    Controllers that extend this base controller are guaranteed a user is logged into
+    an organization that he has at the ver least, read access to. It will set a few
+    variables in the context for you:
+    
+    c.organization: the organization being viewed
+    c.real_user: the logged in user
+    c.user: the pretend or logged in user
+    c.user_role: the user's role in this org
+    c.is_org_admin: do they have role == admin?
+    c.is_org_creator: Are they a creator?
+    c.is_org_*: if we add more roles, we should add them here for easy checking in the templates
     """
     def __before__(self, **kw):
         from desio import api
@@ -170,3 +181,51 @@ class OrganizationBaseController(BaseController):
             return config.get('pylons_url') or '/'
         
         auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(ru, u, organization=c.organization)
+        
+        c.user_role = c.organization.get_role(c.user)
+        c.is_org_admin = c.user_role in [users.ORGANIZATION_ROLE_ADMIN]
+        c.is_org_creator = c.user_role in [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR]
+        c.is_org_user = True #if we get here this is always true. prolly stupid to have in here
+
+"""
+This may be confusing. Here are some authorization classes, specific to the controllers.
+They are different than the api classes in that they are dependent on the context variables
+that are placed by the base controller. They also redirect on failed test.
+"""
+class HasOrgRole(object):
+    
+    def __init__(self, *roles, **kw):
+        self.roles = roles
+        self.url = kw.get('url') or '/'
+    
+    def check(self, real_user, user, **kwargs):
+        
+        if c.user_role not in self.roles:
+            redirect(self.url)
+        
+        return True
+
+class CanReadOrgRedirect(HasOrgRole):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
+    def __init__(self, **kw):
+        super(CanReadOrgRedirect, self).__init__(
+            users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_USER,
+            **kw)
+
+class CanContributeToOrgRedirect(HasOrgRole):
+    """
+    They can create and modify projects and membership in projects.
+    """
+    def __init__(self, **kw):
+        super(CanContributeToOrgRedirect, self).__init__(
+            users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR, **kw)
+
+class CanEditOrgRedirect(HasOrgRole):
+    """
+    They are an organization admin. They can edit CC information, organization membership, they
+    can read/write all projects.
+    """
+    def __init__(self, **kw):
+        super(CanEditOrgRedirect, self).__init__(users.ORGANIZATION_ROLE_ADMIN, **kw)

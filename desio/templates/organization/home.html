@@ -6,6 +6,20 @@
     
 </%def>
 
-<h1>APP HERE</h1>
+<h1>Your Dash</h1>
 
-<p>Stuff goes here!</p>
+<h2>Projects</h2>
+
+% if c.projects:
+    <div><a href="${h.url_for(controller='organization/project', action='new')}">New</a></div>
+    % for p in c.projects:
+        <div><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></div>
+    % endfor
+% else:
+    <p>
+        No projects
+        % if c.is_org_creator:
+            <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
+        % endif
+    </p>
+% endif
