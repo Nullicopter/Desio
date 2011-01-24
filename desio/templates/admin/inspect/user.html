@@ -15,3 +15,9 @@
 <h1>${c.title}</h1>
 
 ${self.render_attribute_table(c.obj, c.attrs, c.edit_url)}
+
+<%self:section name="Organizations">
+    % for ou in c.user_orgs:
+        <div>${self.render_object(ou.organization)} : ${ou.role}</div>
+    % endfor
+</%self:section>

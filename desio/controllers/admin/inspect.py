@@ -47,6 +47,8 @@ class InspectController(BaseController):
             {'attr': 'last_login_date'},
         ]
         
+        c.user_orgs = c.obj.get_organization_users(status=None)
+        
         return self.render('/admin/inspect/user.html')
     
     def organization(self, *a, **kw):
