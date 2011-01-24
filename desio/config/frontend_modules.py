@@ -51,6 +51,7 @@ JS = {
         'include/jquery.json.js',
         'include/jquery.jeditable.js',
         'include/jquery.input-hint.js',
+        'include/jquery.tablesorter.js',
         'include/underscore.js',
         'include/backbone.js',
         
@@ -77,7 +78,8 @@ JS = {
     
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
     'controllers.admin': ('build/controllers/admin.js', [
-        'controllers/admin/base.js'
+        'controllers/admin/base.js',
+        'controllers/admin/report.js'
     ]),
     'controllers.organization': ('build/controllers/organization.js', [
         'controllers/organization/create.js'
@@ -92,6 +94,7 @@ CSS = {
         'main.css',
         'forms.css',
         'core/notifications.css',
+        'core/tables.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
     ]),

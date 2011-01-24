@@ -1,0 +1,28 @@
+<%inherit file="base.html"/>
+<%namespace name="f" file="/forms.html"/>
+
+<%!
+    import pylons
+    from pylons_common.lib import date
+%>
+
+<%def name="header()">
+    ${parent.header()}
+    <style>
+    </style>
+</%def>
+
+<h1>${c.title}</h1>
+
+<p>Add a function to the report module with a doc string that has a first line:</p>
+
+<p><code>Section: name of report</code></p>
+
+<p>And it will be added to the index here.</p>
+
+% for k, v in c.modules.items():
+    <h2>${k}</h2>
+    % for name, url in v:
+        <div><a href="${url}">${name}</a></div>
+    % endfor
+% endfor

@@ -1,10 +1,11 @@
 
 from desio import api
 from desio.lib.base import *
+from desio.controllers.admin import AdminController
 
 from desio.model import users
 
-class InspectController(BaseController):
+class InspectController(AdminController):
     
     def __before__(self, *a, **kw):
         c.tab = 'Search'

@@ -3,7 +3,7 @@
 <%
 tab_def = [
     ('Search', h.url_for(controller='admin/search', action='index'), True),
-    ('Reports', '#'),
+    ('Reports', h.url_for(controller='admin/report', action='index')),
     # add more!
 ] %>
 <%def name="tabs(tab_def, current)">
