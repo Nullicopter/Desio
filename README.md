@@ -22,6 +22,13 @@ a template. This needs to be installed.
 
 Installation and Setup
 ----------------------
+Install bsdiff/bspatch binary using brew:
+
+    brew install bsdiff
+
+or with macports:
+
+    sudo port install bsdiff
 
 Download + extract/clone. Then run
 
