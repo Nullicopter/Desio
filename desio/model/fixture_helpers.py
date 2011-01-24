@@ -3,6 +3,7 @@ To help you writing tests. Should be able to create each type of object in the s
 with no other inputs. 
 """
 from desio.model import Session, users, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio.model import projects
 from pylons_common.lib import utils
 import random
 
@@ -66,3 +67,17 @@ def create_organization(user=None, role=users.ORGANIZATION_ROLE_ADMIN, status=ST
     Session.flush()
     
     return org
+
+def create_project(user=None, organization=None, role=users.ORGANIZATION_ROLE_ADMIN, **kw):
+    kw.setdefault("name", create_unique_str(u'project'))
+    kw.setdefault("description", create_unique_str(u"description"))
+    kw.setdefault("status", STATUS_APPROVED)
+
+    org = organization or create_organization(user, role)
+
+    project = projects.Project(organization=org, **kw)
+    Session.add(project)
+    Session.flush()
+
+    return project
+    

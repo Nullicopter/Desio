@@ -8,6 +8,8 @@ STATUS_PENDING = u'pending'
 STATUS_OPEN = u'open'
 STATUS_COMPLETED = u'completed'
 STATUS_INACTIVE = u'inactive'
+STATUS_EXISTS = u'exists'
+STATUS_REMOVED = u'removed'
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""

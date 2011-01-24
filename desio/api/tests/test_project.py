@@ -38,8 +38,8 @@ class TestProject(TestController):
         project = api.project.create(u, u, org, **p)
         self.flush()
         assert project.eid
-        assert project.status == STATUS_OPEN
         assert project.slug == 'hella-project-ye-ah-man'
+        assert project.status == STATUS_APPROVED
         assert project.name == p['name']
         assert project.description == p['description']
         assert project.created_date
