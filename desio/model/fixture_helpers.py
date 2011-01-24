@@ -59,7 +59,7 @@ def create_organization(user=None, role=users.ORGANIZATION_ROLE_ADMIN, status=ST
     
     user = user or create_user()
     
-    org = users.Organization(**kw)
+    org = users.Organization(creator=user, **kw)
     Session.add(org)
     
     #connect user to org as admin of org

@@ -48,8 +48,19 @@ class SearchController(AdminController):
                 word = '%'+t.strip().lower()+'%'
                 q = q.filter(sa.or_(sa.func.lower(users.User.username).like(word), sa.func.lower(users.User.email).like(word),
                                     sa.func.lower(users.User.first_name).like(word), sa.func.lower(users.User.last_name).like(word)))
-        
         q = q.order_by(sa.desc(users.User.is_active), sa.desc(users.User.id))
         ret['users'] = q.all()
+        
+        #orgs
+        q = Session.query(users.Organization)
+        if is_int:
+            q = q.filter_by(id=query)
+        else:
+            txt = query.split()
+            for t in txt:
+                word = '%'+t.strip().lower()+'%'
+                q = q.filter(sa.or_(sa.func.lower(users.Organization.name).like(word), sa.func.lower(users.Organization.subdomain).like(word)))
+        q = q.order_by(sa.desc(users.Organization.is_active), sa.desc(users.Organization.id))
+        ret['orgs'] = q.all()
         
         return ret

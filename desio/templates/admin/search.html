@@ -21,7 +21,42 @@
 </form>
 
 % if c.results:
-    % if 'users' in c.results:
+    % if c.results.get('orgs'):
+        <h3 id="users" class="section-heading">Organizations</h3>
+        <div id="user-items">
+        % for org in c.results['orgs']:
+        
+            <div class="item">
+                <div>
+                    <span class="name">
+                        <a href="${h.url_for(controller='admin/inspect', action='organization', eid=org.id)}" title="Inspect this org">
+                            ${org.name}
+                        </a>
+                    </span>
+                </div>
+                
+                <div>
+                    Created by:
+                    % if org.creator:
+                        <a href="${h.url_for(controller='admin/inspect', action='user', eid=org.creator.id)}" title="Inspect this user">
+                            ${org.creator.username}
+                        </a>
+                        <a class="reload-link" href="${h.api_url('user', 'pretend', id=org.creator.id)}">Pretend</a> |
+                        <a class="reload-link" href="${h.api_url('user', 'masquerade', id=org.creator.id)}">Masquerade</a>
+                    % else:
+                        Unknown
+                    % endif
+                </div>
+                
+                <div class="meta">
+                    <span class="label">Created</span> ${date.relative_date_str(org.created_date)};
+                </div>
+           </div>
+        
+        % endfor
+        </div>
+    % endif
+    % if c.results.get('users'):
         <h3 id="users" class="section-heading">Users</h3>
         <div id="user-items">
         % for user in c.results['users']:

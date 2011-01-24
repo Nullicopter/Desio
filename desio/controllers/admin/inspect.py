@@ -13,7 +13,7 @@ class InspectController(BaseController):
         
     def user(self, *a, **kw):
         c.obj = api.user.get(c.real_user, c.user, request.params.get('eid'))
-        c.title = 'User %s' % c.obj.username
+        c.title = 'User %s:%s' % (c.obj.id, c.obj.username)
         
         """
         id               | integer                     | not null default nextval('users_id_seq'::regclass)
@@ -48,3 +48,31 @@ class InspectController(BaseController):
         ]
         
         return self.render('/admin/inspect/user.html')
+    
+    def organization(self, *a, **kw):
+        
+        c.obj = api.organization.get(request.params.get('eid'))
+        c.title = 'Org %s:%s' % (c.obj.id, c.obj.name)
+        
+        c.edit_url = h.api_url('organization', 'edit', id=c.obj.id)
+        """
+        {
+            'attr': name of field
+            'value': if specified, will use instead of obj.attr
+            'label': label in attr table. if not specified will use attr name
+            'edit': type: True (uses the attr type), 'str', 'int', 'date', 'bool', ['list of selects']
+            'format': the js formatter 'number', 'dollar', etc...
+        }
+        """
+        c.attrs = [
+            {'attr': 'name', 'edit' : True},
+            {'attr': 'creator'},
+            {'attr': 'subdomain', 'edit' : True},
+            {'attr': 'is_active', 'edit' : True},
+            
+            {'attr': 'created_date'}
+        ]
+        
+        c.org_users = api.organization.get_users(c.real_user, c.user, c.obj)
+        
+        return self.render('/admin/inspect/organization.html')

@@ -1,6 +1,11 @@
 <%inherit file="../base.html"/>
 <%namespace name="f" file="/forms.html"/>
 
+<%!
+    from desio.model import users
+    from datetime import datetime
+    from desio.lib import auth
+%>
 <%def name="id_and_status(obj)">
     <% 
         fields = [str(obj.id)]
@@ -19,16 +24,20 @@
 
 <%def name="render_object(obj, show_actions=True)">
     % if isinstance(obj, users.User):
-        <a href="${h.url_for(controller='admin/inspect', action='user', eid=user.id)}">${user.username}</a>
-        ${id_and_status(user)}
+        <a href="${h.url_for(controller='admin/inspect', action='user', eid=obj.id)}">${obj.username}</a>
+        ${id_and_status(obj)}
         % if show_actions:
-            (<a class="reload-link" href="${h.api_url('user', 'pretend', u=user.id)}">Pretend</a>,
-            <a class="reload-link" href="${h.api_url('user', 'pretend', u=user.id)}">Masque</a>)
+            (<a class="reload-link" href="${h.api_url('user', 'pretend', u=obj.id)}">Pretend</a>,
+            <a class="reload-link" href="${h.api_url('user', 'pretend', u=obj.id)}">Masque</a>)
         % endif
     
+    % elif isinstance(obj, users.Organization):
+        <a href="${h.url_for(controller='admin/inspect', action='organization', eid=obj.id)}">${obj.name}</a>
+        ${id_and_status(obj)}
+    
     % elif isinstance(obj, datetime):
-        <% dt = h.get_actual_user().as_local_time(obj) %>
-        ${main_utils.format_date(dt)}
+        <% dt = auth.get_real_user().as_local_time(obj) %>
+        ${dt}
     % elif isinstance(obj, list) or isinstance(obj, tuple):
         <div class="items">
             % for o in obj:
@@ -53,7 +62,7 @@
                 <% k = ['%s=%s' % (k, v) for k, v in kw.items()] %>
                 <% val = d.get('value') or getattr(obj, d['attr']) %>
                 <${tag} ${'format' in d and 'format="%s"' % d['format'] or '' | n} ${data and 'data="%s"' % val or '' | n} ${' '.join(k)}>
-                    ${val}
+                    ${render_object(val)}
                 </${tag}>
             </%def>
             

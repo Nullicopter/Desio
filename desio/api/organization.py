@@ -16,10 +16,16 @@ ROLES = [users.ROLE_USER, users.ROLE_ADMIN, users.ROLE_ENGINEER]
 ORGANIZATION_ROLES = [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN]
 ROLE_STATUSES = [STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED]
 EDIT_FIELDS = ['name', 'url']
-ADMIN_EDIT_FIELDS = ['is_active']
+ADMIN_EDIT_FIELDS = ['is_active', 'subdomain']
 
 SUBDOMAIN_VALIDATOR = formencode.All(
     fv.UnicodeString(not_empty=True, min=2, max=32),
+    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
+    messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'})
+)
+
+SUBDOMAIN_VALIDATOR_EDIT = formencode.All(
+    fv.UnicodeString(not_empty=False, min=2, max=32),
     fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
     messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'})
 )
@@ -44,6 +50,7 @@ class RoleStatusForm(formencode.Schema):
 class EditForm(formencode.Schema):
     name = fv.UnicodeString(not_empty=False, min=4, max=64)
     url = formencode.All(fv.MaxLength(512, not_empty=False), fv.URL())
+    subdomain = formencode.All(SUBDOMAIN_VALIDATOR_EDIT, UniqueSubdomain())
     is_active = fv.Bool(not_empty=False)
 
 class CreateForm(formencode.Schema):
@@ -61,7 +68,8 @@ def create(real_user, user, **params):
     scrubbed = validate(CreateForm, **params)
     scrubbed.setdefault('is_active', True)
     
-    org = users.Organization(**scrubbed)
+    #attach the user as a creator.
+    org = users.Organization(creator=user, **scrubbed)
     Session.add(org)
     
     #connect user to org as admin of org
@@ -110,6 +118,9 @@ class Editor(FieldEditor):
     
     def edit_is_active(self, real_user, user, u, key, param):
         self._edit_generic('IsActive', u, key, param)
+    
+    def edit_subdomain(self, real_user, user, u, key, param):
+        self._edit_generic('Subdomain', u, key, param)
 
 @enforce(subdomain=unicode)
 def is_unique(subdomain):
@@ -161,7 +172,8 @@ def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED
 
 ### stubs
 
-@enforce()
+@enforce(status=unicode)
 @authorize(CanReadOrg())
-def get_users(real_user, user, organization):
-    pass
+def get_users(real_user, user, organization, status=None):
+    
+    return organization.get_organization_users(status=status)

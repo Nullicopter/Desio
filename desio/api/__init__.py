@@ -144,6 +144,11 @@ class CanReadOrg(HasOrgRole):
         super(CanReadOrg, self).__init__(
             [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
             organization=organization)
+    
+    def check(self, real_user, user, **kwargs):
+        if real_user.is_admin(): return True
+        
+        return super(CanReadOrg, self).check(real_user, user, **kwargs)
 
 class CanContributeToOrg(HasOrgRole):
     """

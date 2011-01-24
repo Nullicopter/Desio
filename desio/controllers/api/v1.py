@@ -24,9 +24,13 @@ class user:
 
 class organization:
     
+    class edit:
+        def output(self, o):
+            return organization.get().output(o)
+    
     class get:
         def output(self, org):
-            return itemize(u, 'subdomain', 'name')
+            return itemize(org, 'subdomain', 'name')
 
 class project:
     class create: pass

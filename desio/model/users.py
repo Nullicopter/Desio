@@ -65,6 +65,10 @@ class Organization(Base):
     
     is_active = sa.Column(sa.Boolean(), default=True)
     
+    #user is the creator
+    creator = relation("User", backref=backref("created_organizations"))
+    creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    
     created_date = sa.Column(sa.DateTime, nullable=False, default=now)
     updated_date = sa.Column(sa.DateTime, nullable=False, onupdate=now, default=now)
     
@@ -78,10 +82,22 @@ class Organization(Base):
         return None
     
     def get_organization_user(self, user, status=None):
+        """
+        Find a single user's membership within this org
+        """
         q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==user.id)
         if status:
             q = q.filter(OrganizationUser.status==status)
         return q.filter(OrganizationUser.organization_id==self.id).first()
+    
+    def get_organization_users(self, status=None):
+        """
+        Get all memberships in this org.
+        """
+        q = Session.query(OrganizationUser).filter(OrganizationUser.organization_id==self.id)
+        if status:
+            q = q.filter(OrganizationUser.status==status)
+        return q.all()
     
     def set_user_status(self, user, status):
         # could check pending?

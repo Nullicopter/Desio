@@ -84,11 +84,15 @@ class TestOrganization(TestController):
         self.flush()
         
         eorg = api.organization.edit(u, u, org, name=u'omgwow', url=u'http://wowza.com', is_active=u'f')
+        self.flush()
         
         assert eorg.id == org.id
         assert eorg.name == u'omgwow'
         assert eorg.is_active == True
         assert eorg.url == u'http://wowza.com'
+        
+        eorg = api.organization.edit(u, u, org, name=u'wowza!')
+        self.flush()
         
         assert self.throws_exception(lambda: api.organization.edit(rando, rando, org, name='m')).code ==FORBIDDEN
         assert self.throws_exception(lambda: api.user.edit(u, u, None, first_name='s')).code == NOT_FOUND
