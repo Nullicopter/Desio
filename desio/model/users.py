@@ -7,7 +7,7 @@ import hashlib
 
 from datetime import datetime
 
-from pylons_common.lib import exceptions, date
+from pylons_common.lib import exceptions, date, utils
 from desio.model import STATUS_APPROVED, STATUS_REJECTED, STATUS_PENDING
 
 ROLE_USER = u'user'
@@ -58,6 +58,7 @@ class Organization(Base):
     __tablename__ = "organizations"
 
     id = sa.Column(sa.Integer, primary_key=True)
+    eid = sa.Column(sa.Unicode(22), unique=True, default=utils.uuid)
     
     subdomain = sa.Column(sa.Unicode(64), nullable=False)
     name = sa.Column(sa.Text(), nullable=False)

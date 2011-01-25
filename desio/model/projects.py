@@ -13,6 +13,24 @@ from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, S
 from desio.model import STATUS_EXISTS, STATUS_REMOVED
 from desio.utils import file_uploaders as fu
 
+def get_unique_slug(organization, name, max=100):
+    import re
+    from pylons_common.lib.utils import uuid
+
+    def gen_slug(input, addon=u''):
+        return (u'-'.join(re.findall('[a-z0-9]+', input, flags=re.IGNORECASE)))[:max].lower() + addon
+    
+    for c in range(20):
+        slug = gen_slug(name, addon=(c and unicode(c) or u''))
+        project = Session.query(Project
+                ).filter(Project.organization==organization
+                ).filter(Project.slug==slug
+                ).first()
+        if not project: return slug
+    
+    return uuid() #they have 20 projects named similarly, now they get eids!
+
+
 class Project(Base):
     """
     A Project represents a revisioned tree of files
@@ -25,7 +43,7 @@ class Project(Base):
     status = sa.Column(sa.Unicode(16), nullable=False, default=STATUS_APPROVED)
     name = sa.Column(sa.UnicodeText(), nullable=False)
     description = sa.Column(sa.UnicodeText())
-    slug = sa.Column(sa.Unicode(128), nullable=False, index=True)
+    slug = sa.Column(sa.Unicode(128), nullable=False, index=True, unique=True)
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
 
     #: this is not the modified date of this object but of the entire project
@@ -39,6 +57,10 @@ class Project(Base):
     # to distinguish them
     __table_args__ = (sa.UniqueConstraint('organization_id', 'name'), {})
 
+    def __init__(self, **kwargs):
+        super(Project, self).__init__(**kwargs)
+        self.slug = get_unique_slug(self.organization, kwargs['name'])
+    
     def update_activity(self):
         """
         Whenever the project is changed, the code should also update the
@@ -91,27 +113,21 @@ class Project(Base):
         self.update_activity()
         return changeset
 
-    def get_file(self, filepath):
-        """
-        Get a file object given a filepath
-        """
-        path, name = os.path.split(filepath)
-
-        q = Session.query(File)
-        q = q.filter_by(name=name)
-        q = q.filter_by(path=path)
-        q = q.filter_by(project=self)
-
-        return q.first()
-
-    def get_project_files(self, changeset, path=None):
+    def get_files(self, path=u"/", name=None):
         """
         Get all project files that have a STATUS_EXISTS or are older than Changeset.
 
         Optionally that are at the given path or deeper???.
         Maybe I should re-introduce directories too, created when creating Files.
         """
-    
+        q = Session.query(File)
+        q = q.filter_by(path=path)
+        q = q.filter_by(project=self)
+        if name is not None:
+            q = q.filter_by(name=name)
+            return q.first()
+        return q.all()
+        
     
 class Changeset(Base):
     """
@@ -165,13 +181,11 @@ class Changeset(Base):
 
         path, name = os.path.split(filepath)
         
-        file_object = self.project.get_file(filepath)
+        file_object = self.project.get_files(path, name)
 
         if file_object is None:
-            mimetype, _ = mimetypes.guess_type(filepath)
             file_object = File(path=path,
                                name=name,
-                               mimetype=mimetype,
                                project=self.project)
             Session.add(file_object)
 
@@ -193,10 +207,10 @@ class Entity(Base):
     id = sa.Column(sa.Integer, primary_key=True)
     eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
 
+    status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
     type = sa.Column(sa.String(1), nullable=False)
     path = sa.Column(sa.UnicodeText(), nullable=False)
     name = sa.Column(sa.UnicodeText(), nullable=False)
-    mimetype = sa.Column(sa.Unicode(128))
     
     description = sa.Column(sa.UnicodeText())
 
@@ -206,6 +220,12 @@ class Entity(Base):
     __table_args__ = (sa.UniqueConstraint('path', 'name', 'project_id'), {})
     __mapper_args__ = {'polymorphic_on': type}
 
+    def remove(self):
+        """
+        Remove the entity from the system.
+        """
+        self.status = STATUS_REMOVED
+    
 class Directory(Entity):
     """
     A directory, mainly used to display directories and ease the querying.
@@ -224,7 +244,7 @@ class File(Entity):
     __mapper_args__ = {'polymorphic_identity': TYPE}
 
     def __init__(self, *args, **kwargs):
-        super(self, File).__init__(*args, **kwargs)
+        super(File, self).__init__(*args, **kwargs)
         self._create_parent_directory()
 
     @property
@@ -232,6 +252,8 @@ class File(Entity):
         """
         Return a dictionary containing the mime type headers for HTTP requests.
         """
+        mimetype, _ = mimetypes.guess_type(self.entity.name)
+
         
     def _create_parent_directory(self):
         """
@@ -298,7 +320,7 @@ class Change(Base):
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     size = sa.Column(sa.Integer(), nullable=False, default=0)
     diff_size = sa.Column(sa.Integer(), nullable=False, default=0)
-
+    
     entity = relationship("File", backref=backref("changes", cascade="all"))
     entity_id = sa.Column(sa.Integer, sa.ForeignKey('entities.id'), nullable=False, index=True)
 
@@ -329,10 +351,10 @@ class Change(Base):
 
         files/  ORGANIZATION_EID   /   PROJECT_EID   /   FILE_EID   /
         """
-        return "/".join("files",
+        return "/".join(["files",
                         self.entity.project.organization.eid,
                         self.entity.project.eid,
-                        self.entity.eid)
+                        self.entity.eid])
 
     @property
     def url(self):
@@ -347,8 +369,8 @@ class Change(Base):
         A different file extension requires a different file.
         """
         path = self._get_base_url_path()
-        ext = os.path.splitext(self.entity.name)
-        return "/".join(path, self.eid) + ext
+        ext = os.path.splitext(self.entity.name)[1]
+        return "/".join([path, self.eid]) + ext
 
     @property
     def diff_url(self):
@@ -356,7 +378,7 @@ class Change(Base):
         Use name mangling to get binary diff from last revision
         """
         path = self._get_base_url_path()
-        return "/".join(path, self.eid) + ".diff"
+        return "/".join([path, self.eid]) + ".diff"
 
     @property
     def thumbnail_url(self):
@@ -364,8 +386,8 @@ class Change(Base):
         Use name mangling to get the thumbnail url
         """
         path = self._get_base_url_path()
-        ext = os.path.splitext(self.entity.name)
-        return "/".join(path, "thumbnail-" + self.eid) + ext
+        ext = os.path.splitext(self.entity.name)[1]
+        return "/".join([path, "thumbnail-" + self.eid]) + ext
     
     def add_comment(self, body, x=None, y=None, width=None, height=None):
         """

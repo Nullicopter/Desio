@@ -8,6 +8,8 @@ This module initializes the application via ``websetup`` (`paster
 setup-app`) and provides the base testing objects.
 """
 from unittest import TestCase
+import tempfile
+import os
 
 from paste import fixture
 from paste.deploy import loadapp
@@ -198,3 +200,16 @@ class TestController(TestRollback):
             assert 0, 'Should have thrown an exception of %s' % (types,)
         except types, e:
             return e
+
+    def mktempdir(self):
+        path = tempfile.mktemp()
+        os.makedirs(path)
+        return path
+
+    def mktempfile(self, filename, content=None):
+        dir = self.mktempdir()
+        filepath = os.path.join(dir, filename)
+        if content is not None:
+            file(filepath, 'wb').write(content)
+        return filepath
+        

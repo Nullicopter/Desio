@@ -15,8 +15,11 @@ class LocalUploader(object):
         Store the content from local_filepath in the local filesystem
         at self.path
         """
-        shutil.move(local_filepath,
-                    os.path.join(self.path, to_filepath))
+        final_filepath = os.path.join(self.base_path, to_filepath)
+        final_directory, final_filename = os.path.split(final_filepath)
+        try: os.makedirs(final_directory)
+        except: pass
+        shutil.move(from_filepath, final_filepath)
 
 class S3Uploader(object):
     """

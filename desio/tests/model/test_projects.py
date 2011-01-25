@@ -32,7 +32,7 @@ class TestProjects(TestController):
         assert project.organization == org
 
 
-    def test_project_methods(self):
+    def test_simple_project_methods(self):
         """
         Test the Project interface
         """
@@ -90,3 +90,15 @@ class TestProjects(TestController):
         assert project.name == "%s-%s" % (project.eid, u"helloooo")
         assert project.last_modified_date > current
         
+    def test_changesets(self):
+        """
+        Test basic changeset functionality
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        changeset = project.add_changeset(user, u"foobar")
+        self.flush()
+
+        filepath = self.mktempfile("foobar.jpg", "helloooooo")
+        change = changeset.add_change(u"/foobar.jpg", filepath, u"this is a new change in a changeset")
+        self.flush()

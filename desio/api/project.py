@@ -4,12 +4,9 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     IsAdmin, MustOwn, IsLoggedIn, CanContributeToOrg, CanReadOrg
 from desio.model import users, Session, projects
 import sqlalchemy as sa
-import re
 
 import formencode
 import formencode.validators as fv
-
-from pylons_common.lib.utils import uuid
 
 ID_PARAM = 'project'
 
@@ -34,22 +31,6 @@ class UniqueName(fv.FancyValidator):
             raise fv.Invalid('A project with this name already exists. Please choose another.', value, state)
         return value
 
-def get_unique_slug(organization, name, max=100):
-    
-    def gen_slug(input, addon=u''):
-        return (u'-'.join(re.findall('[a-z0-9]+', input, flags=re.IGNORECASE)))[:max].lower() + addon
-    
-    for c in range(20):
-        slug = gen_slug(name, addon=(c and unicode(c) or u''))
-        project = Session.query(projects.Project
-                ).filter(projects.Project.organization==organization
-                ).filter(projects.Project.slug==slug
-                ).first()
-        if not project: return slug
-    
-    return uuid() #they have 20 projects named similarly, now they get eids!
-
-
 @enforce(name=unicode, description=unicode)
 @authorize(CanContributeToOrg())
 def create(real_user, user, organization, **params):
@@ -63,7 +44,6 @@ def create(real_user, user, organization, **params):
     scrubbed = validate(ProjectForm, **params)
 
     project = projects.Project(name=scrubbed.name,
-                               slug=get_unique_slug(organization, scrubbed.name),
                                description=scrubbed.description,
                                organization=organization)
     Session.add(project)
