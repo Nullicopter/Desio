@@ -36,7 +36,7 @@
 ## [{key: 'somekey', value: 'Some Value'}, {group: 'My Group', values: [{key: 'another', value: 'Another Value'}]}]
 <%def name="dropdown(name, values=[], selectedValue=None, className=None, **attrs)">
     <% disabled = _get_disabled_state(attrs) %>
-    <% attrs = _get_attrs(name, 'hidden', className, **attrs) %>
+    <% attrs = _get_attrs(name, 'select', className, **attrs) %>
     <select name="${name}" ${disabled | n} ${attrs | n}>
         % for item in values:
             <% isgroup = 'group' in item and 'values' in item %>

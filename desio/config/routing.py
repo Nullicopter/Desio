@@ -58,6 +58,9 @@ def make_map(config):
     map.connect('/projects/{action}', controller='organization/project', action='index', conditions=has_subdomain)
     map.connect('/projects/{action}/{slug}', controller='organization/project', action='index', conditions=has_subdomain)
     
+    map.connect('/settings', controller='organization/settings', action='users', conditions=has_subdomain)
+    map.connect('/settings/{action}', controller='organization/settings', action='users', conditions=has_subdomain)
+    
     #dont care on subdomain
     map.connect('/admin', controller='admin/search', action='index')
     

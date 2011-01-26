@@ -1,0 +1,23 @@
+#tabs {
+    height: 35px;
+    padding-top: 5px;
+    border-bottom: 1px solid #eee;
+}
+#tabs a, #tabs a:active{
+    color: #888;
+    float: left;
+    display:block;
+    padding: 0 10px;
+    height: 35px;
+    line-height: 35px;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    margin: 0 0 0 5px;
+    -moz-border-radius: 3px 3px 0 0;
+}
+#tabs a:hover, #tabs a.current{
+    color: #222;
+    border: 1px solid #aaa;
+    border-bottom: none;
+    background: #fff;
+}

@@ -18,6 +18,8 @@ ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
 ORGANIZATION_ROLE_CREATOR = 'creator'
 ORGANIZATION_ROLE_USER = ROLE_USER
 
+ORGANIZATION_ROLES = [ORGANIZATION_ROLE_ADMIN, ORGANIZATION_ROLE_CREATOR, ORGANIZATION_ROLE_USER]
+
 now = date.now
 
 def hash_password(clear_pass):
@@ -66,6 +68,9 @@ class Organization(Base):
     
     is_active = sa.Column(sa.Boolean(), default=True)
     
+    # does everyone in the org have read access to all projects?
+    is_read_open = sa.Column(sa.Boolean(), default=True)
+    
     #user is the creator
     creator = relation("User", backref=backref("created_organizations"))
     creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
@@ -82,6 +87,13 @@ class Organization(Base):
             return orgu.role
         return None
     
+    def set_role(self, user, role):
+        orgu = self.get_organization_user(user)
+        if orgu:
+            orgu.role = role
+            return True
+        return False
+    
     def get_organization_user(self, user, status=None):
         """
         Find a single user's membership within this org
@@ -96,8 +108,10 @@ class Organization(Base):
         Get all memberships in this org.
         """
         q = Session.query(OrganizationUser).filter(OrganizationUser.organization_id==self.id)
-        if status:
+        if status and isinstance(status, basestring):
             q = q.filter(OrganizationUser.status==status)
+        if status and isinstance(status, (list, tuple)):
+            q = q.filter(OrganizationUser.status.in_(status))
         return q.all()
     
     def set_user_status(self, user, status):

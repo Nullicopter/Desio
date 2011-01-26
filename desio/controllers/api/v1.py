@@ -24,6 +24,11 @@ class user:
 
 class organization:
     
+    class attach_user: pass
+    class remove_user: pass
+    class attachment_approval: pass
+    class set_user_role: pass
+    
     class edit:
         def output(self, o):
             return organization.get().output(o)

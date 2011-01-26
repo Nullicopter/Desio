@@ -3,14 +3,14 @@
 <%namespace name="com" file="/common.html"/>
 <%
 tab_def = [
-    ('Search', h.url_for(controller='admin/search', action='index'), True),
-    ('Reports', h.url_for(controller='admin/report', action='index')),
-    # add more!
+    ('Users', h.url_for(controller='organization/settings', action='users'), True),
+    ('General', h.url_for(controller='organization/settings', action='general')),
+    
 ] %>
 
 <%def name="js_includes()">
     ${parent.js_includes()}
-    ${r.require('controllers.admin')}
+    ${r.require('controllers.organization.settings')}
 </%def>
 
 ${com.tabs(tab_def, c.tab)}

@@ -1,0 +1,26 @@
+
+##
+## VERY VERY common things
+##
+
+## tab_def = [
+##     ('Search', h.url_for(controller='admin/search', action='index'), True),
+##     ('Reports', h.url_for(controller='admin/report', action='index')),
+##     # add more!
+## ] %>
+<%def name="tabs(tab_def, current, id='tabs')">
+
+    <%def name="tab(label, url, first=False)">
+        <% cur = current == label %>
+        <a class="tab ${first and 'first' or ''} ${cur and 'current' or ''}" href="${url}">
+            ${label}
+        </a>
+    </%def>
+    <div id="${id}">
+        
+        % for t in tab_def:
+            ${tab(*t)}
+        % endfor
+
+    </div>
+</%def>

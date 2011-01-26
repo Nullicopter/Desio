@@ -15,7 +15,7 @@ ID_PARAM = 'organization'
 ROLES = [users.ROLE_USER, users.ROLE_ADMIN, users.ROLE_ENGINEER]
 ORGANIZATION_ROLES = [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN]
 ROLE_STATUSES = [STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED]
-EDIT_FIELDS = ['name', 'url']
+EDIT_FIELDS = ['name', 'url', 'is_read_open']
 ADMIN_EDIT_FIELDS = ['is_active', 'subdomain']
 
 SUBDOMAIN_VALIDATOR = formencode.All(
@@ -52,6 +52,7 @@ class EditForm(formencode.Schema):
     url = formencode.All(fv.MaxLength(512, not_empty=False), fv.URL())
     subdomain = formencode.All(SUBDOMAIN_VALIDATOR_EDIT, UniqueSubdomain())
     is_active = fv.Bool(not_empty=False)
+    is_read_open = fv.Bool(not_empty=False)
 
 class CreateForm(formencode.Schema):
     subdomain = formencode.All(SUBDOMAIN_VALIDATOR, UniqueSubdomain())
@@ -119,6 +120,9 @@ class Editor(FieldEditor):
     def edit_is_active(self, real_user, user, u, key, param):
         self._edit_generic('IsActive', u, key, param)
     
+    def edit_is_read_open(self, real_user, user, u, key, param):
+        self._edit_generic('Is Read Open', u, key, param)
+    
     def edit_subdomain(self, real_user, user, u, key, param):
         self._edit_generic('Subdomain', u, key, param)
 
@@ -159,6 +163,11 @@ def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_U
     
     return bool(orgu)
 
+@enforce(u=users.User)
+@authorize(CanEditOrg())
+def remove_user(real_user, user, organization, u):
+    return organization.remove_user(u)
+
 @enforce(u=users.User, role=unicode)
 @authorize(CanEditOrg())
 def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED):
@@ -170,9 +179,19 @@ def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED
     #returns false when user/org connection not found
     return bool(organization.set_user_status(u, status))
 
+@enforce(u=users.User, role=unicode)
+@authorize(CanEditOrg())
+def set_user_role(real_user, user, organization, u, role):
+    if role not in users.ORGANIZATION_ROLES:
+        raise ClientException('Role must be one of %s' % users.ORGANIZATION_ROLES, field='role')
+    if not u:
+        raise ClientException('Need a user!', field='u', code=INVALID)
+    
+    return organization.set_role(u, role)
+
 ### stubs
 
-@enforce(status=unicode)
+@enforce(status=[unicode])
 @authorize(CanReadOrg())
 def get_users(real_user, user, organization, status=None):
     

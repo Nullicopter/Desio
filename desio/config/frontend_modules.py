@@ -84,6 +84,9 @@ JS = {
     'controllers.organization': ('build/controllers/organization.js', [
         'controllers/organization/create.js'
     ]),
+    'controllers.organization.settings': ('build/controllers/organization.settings.js', [
+        'controllers/organization/settings.js'
+    ]),
     'controllers.organization.project': ('build/controllers/organization.project.js', [
         'controllers/organization/project.js'
     ])
@@ -95,6 +98,8 @@ CSS = {
         'forms.css',
         'core/notifications.css',
         'core/tables.css',
+        'core/navigation.css',
+        'core/generic.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
     ]),

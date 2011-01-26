@@ -1,0 +1,21 @@
+<%inherit file="base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="f" file="/forms.html"/>
+
+<%def name="header()">
+    ${parent.header()}
+    <style type="text/css">
+    </style>
+    <script type="text/javascript">
+        new Q.GeneralSettingsPage({}).readyrun();
+    </script>
+</%def>
+
+<h1>${c.title}</h1>
+
+<form action="${h.api_url('organization', 'edit', id=c.organization.id)}" method="post">
+    ${f.text_chunk('name', value=c.organization.name)}
+    ${f.checkbox_chunk('is_read_open', 'Everyone in this organization has read access to all projects.', checked=c.organization.is_read_open)}
+    ${f.submit("Update")}
+</form>
+

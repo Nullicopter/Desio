@@ -71,6 +71,35 @@ $.fn.reloadLink = function(){
     });
 };
 
+$.postJSON = function( url, data, callback, opts) {
+    if ( $.isFunction( data ) ) {
+        callback = data;
+        data = {};
+    }
+    opts = opts || {};
+    
+    if(opts.loader)
+        opts.loader.startLoading();
+    
+    function makecb(cb){
+        return function(){
+            if($.isFunction(cb))
+                cb.apply(this, arguments);
+            if(opts.loader)
+                opts.loader.stopLoading();
+        }
+    }
+    
+    return $.ajax({
+        type: "POST",
+        url: url,
+        data: data,
+        success: makecb(callback),
+        applicationError: makecb(opts.error),
+        dataType: 'json'
+    });
+};
+
 $(document).ready(function(){
     $('.reload-link').reloadLink();
 });
