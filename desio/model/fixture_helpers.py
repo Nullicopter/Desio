@@ -75,7 +75,7 @@ def create_project(user=None, organization=None, role=users.ORGANIZATION_ROLE_AD
 
     org = organization or create_organization(user, role)
 
-    project = projects.Project(organization=org, **kw)
+    project = projects.Project(organization=org, creator=org.creator, **kw)
     Session.add(project)
     Session.flush()
 

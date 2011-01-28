@@ -13,6 +13,10 @@ from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, S
 from desio.model import STATUS_EXISTS, STATUS_REMOVED
 from desio.utils import file_uploaders as fu
 
+PROJECT_ROLE_ADMIN = u'admin'
+PROJECT_ROLE_READ = u'read'
+PROJECT_ROLE_WRITE = u'write'
+
 def get_unique_slug(organization, name, max=100):
     import re
     from pylons_common.lib.utils import uuid
@@ -28,8 +32,29 @@ def get_unique_slug(organization, name, max=100):
                 ).first()
         if not project: return slug
     
-    return uuid() #they have 20 projects named similarly, now they get eids!
+    return utils.uuid() #they have 20 projects named similarly, now they get eids!
 
+class ProjectUser(Base):
+    """
+    Stores a user's role within a project
+    """
+    __tablename__ = "project_users"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    
+    role = sa.Column(sa.Unicode(16), nullable=False)
+    status = sa.Column(sa.Unicode(16), nullable=False)
+    
+    user = relationship("User", backref=backref("project_users", cascade="all"))
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
+    
+    project = relationship("Project", backref=backref("project_users", cascade="all"))
+    project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
+    
+    created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
+    
+    def __repr__(self):
+        return u'ProjectUser(%s, org:%s, u:%s)' % (self.id, self.project_id, self.user_id)
 
 class Project(Base):
     """
@@ -52,6 +77,9 @@ class Project(Base):
 
     organization = relationship("Organization", backref=backref("projects", cascade="all"))
     organization_id = sa.Column(sa.Integer, sa.ForeignKey('organizations.id'), nullable=False, index=True)
+    
+    creator = relationship("User", backref=backref("created_projects", cascade="all"))
+    creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
 
     # no duplicate name inside the same organization, it would be hard
     # to distinguish them
@@ -60,6 +88,10 @@ class Project(Base):
     def __init__(self, **kwargs):
         super(Project, self).__init__(**kwargs)
         self.slug = get_unique_slug(self.organization, kwargs['name'])
+        
+        creator = kwargs.get('creator')
+        if creator:
+            self.attach_user(creator, PROJECT_ROLE_ADMIN)
     
     def update_activity(self):
         """
@@ -127,7 +159,72 @@ class Project(Base):
             q = q.filter_by(name=name)
             return q.first()
         return q.all()
+    
+    ##
+    ### User connection stuff
+    
+    def get_role(self, user, status=STATUS_APPROVED):
+        orgu = self.get_project_user(user, status)
+        if orgu:
+            return orgu.role
+        else:
+            if self.organization.is_read_open and self.organization.get_role(user):
+                return PROJECT_ROLE_READ
+        return None
+    
+    def set_role(self, user, role):
+        """
+        Sets a role on an existing user.
         
+        Maybe this should implicitly add a user?
+        """
+        orgu = self.get_project_user(user)
+        if orgu:
+            orgu.role = role
+            return True
+        return False
+    
+    def get_project_user(self, user, status=STATUS_APPROVED):
+        """
+        Find a single user's membership within this org
+        """
+        q = Session.query(ProjectUser).filter(ProjectUser.user_id==user.id)
+        if status:
+            q = q.filter(ProjectUser.status==status)
+        return q.filter(ProjectUser.project_id==self.id).first()
+    
+    def get_project_users(self, status=None):
+        """
+        Get all memberships in this org.
+        """
+        q = Session.query(ProjectUser).filter(ProjectUser.project_id==self.id)
+        if status and isinstance(status, basestring):
+            q = q.filter(ProjectUser.status==status)
+        if status and isinstance(status, (list, tuple)):
+            q = q.filter(ProjectUser.status.in_(status))
+        return q.all()
+    
+    def attach_user(self, user, role=PROJECT_ROLE_READ, status=STATUS_APPROVED):
+        org_user = Session.query(ProjectUser) \
+                    .filter(ProjectUser.project==self) \
+                    .filter(ProjectUser.user==user).first()
+        if org_user:
+            org_user.role = role
+            org_user.status = status
+            return org_user
+        
+        org_user = ProjectUser(user=user, project=self, role=role, status=status)
+        Session.add(org_user)
+        return org_user
+    
+    def remove_user(self, user):
+        q = Session.query(ProjectUser).filter(ProjectUser.project_id==self.id)
+        q = q.filter(ProjectUser.user_id==user.id)
+        orgu = q.first()
+        if orgu:
+            Session.delete(orgu)
+            return True
+        return False
     
 class Changeset(Base):
     """
