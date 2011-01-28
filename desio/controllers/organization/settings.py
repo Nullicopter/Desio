@@ -16,13 +16,13 @@ class SettingsController(OrganizationBaseController):
     def index(self, **kw):
         return self.users(**kw)
     
-    @authorize(CanEditOrgRedirect())
+    @authorize(CanAdminOrgRedirect())
     def general(self, **kw):
         c.tab = 'General'
         c.title = 'General Settings'
         return self.render('/organization/settings/general.html')
     
-    @authorize(CanEditOrgRedirect())
+    @authorize(CanAdminOrgRedirect())
     def users(self, **kw):
         c.tab = 'Users'
         c.title = 'User Settings'

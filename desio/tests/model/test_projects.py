@@ -108,21 +108,21 @@ class TestProjects(TestController):
         """
         Test user connection BS
         """
+        org_owner = fh.create_user()
         owner = fh.create_user()
         rando_no_org = fh.create_user()
         rando = fh.create_user()
         read = fh.create_user()
         write = fh.create_user()
         admin = fh.create_user()
-        project = fh.create_project(user=owner, name=u"helloooo")
-        
-        org = project.organization
+        org = fh.create_organization(user=org_owner)
+        project = fh.create_project(user=owner, organization=org, name=u"helloooo")
         
         # this means anyone in the org has minimum read privileges
         org.is_read_open = True
         
         org.attach_user(rando_no_org, status=STATUS_PENDING)
-        for u in [rando, read, write, admin]:
+        for u in [owner, rando, read, write, admin]:
             org.attach_user(u, status=STATUS_APPROVED)
         self.flush();
         
@@ -136,8 +136,11 @@ class TestProjects(TestController):
         def remove_user(self, user)
         """
         
-        assert project.get_role(owner) == PROJECT_ROLE_ADMIN
+        #this guy is not on the user, but he is an admin!
+        assert project.get_role(org_owner) == PROJECT_ROLE_ADMIN
+        
         assert project.creator == owner
+        assert project.get_role(owner) == PROJECT_ROLE_ADMIN
         
         assert project.get_role(rando_no_org) == None
         assert project.get_role(rando) == PROJECT_ROLE_READ

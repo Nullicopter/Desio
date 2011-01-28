@@ -94,6 +94,18 @@ class Organization(Base):
             return True
         return False
     
+    def get_projects(self, user):
+        from desio.model import projects
+        q = Session.query(projects.Project).filter_by(organization=self)
+        
+        # this is kind of hairy. If org.is_read_open, the user can see all projects, otherwise,
+        # we get based on connections
+        
+        if not self.is_read_open and self.get_role(user) != ORGANIZATION_ROLE_ADMIN:
+            q = q.join(projects.ProjectUser).filter(sa.and_(projects.ProjectUser.user==user, projects.ProjectUser.status==STATUS_APPROVED))
+        
+        return q.order_by(sa.desc(projects.Project.last_modified_date)).all()
+    
     def get_organization_user(self, user, status=None):
         """
         Find a single user's membership within this org

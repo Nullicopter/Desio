@@ -1,7 +1,7 @@
 from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     INVALID, NOT_FOUND, FORBIDDEN, abort, FieldEditor, auth, \
-                    IsAdmin, MustOwn, IsLoggedIn, CanReadOrg, CanEditOrg, \
+                    IsAdmin, MustOwn, IsLoggedIn, CanReadOrg, CanAdminOrg, \
                     CanContributeToOrg
 
 from desio.model import users, Session, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
@@ -95,7 +95,7 @@ def get(organization=None, subdomain=None):
     return organization
 
 @enforce(is_active=bool)
-@authorize(CanEditOrg())
+@authorize(CanAdminOrg())
 def edit(real_user, user, organization, **kwargs):
     """
     Editing of the campaigns. Supports editing one param at a time. Uses the FieldEditor
@@ -164,12 +164,12 @@ def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_U
     return bool(orgu)
 
 @enforce(u=users.User)
-@authorize(CanEditOrg())
+@authorize(CanAdminOrg())
 def remove_user(real_user, user, organization, u):
     return organization.remove_user(u)
 
 @enforce(u=users.User, role=unicode)
-@authorize(CanEditOrg())
+@authorize(CanAdminOrg())
 def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED):
     if status not in [STATUS_APPROVED, STATUS_REJECTED]:
         raise ClientException('Invalid status', field='status', code=INVALID)
@@ -180,7 +180,7 @@ def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED
     return bool(organization.set_user_status(u, status))
 
 @enforce(u=users.User, role=unicode)
-@authorize(CanEditOrg())
+@authorize(CanAdminOrg())
 def set_user_role(real_user, user, organization, u, role):
     if role not in users.ORGANIZATION_ROLES:
         raise ClientException('Role must be one of %s' % users.ORGANIZATION_ROLES, field='role')
@@ -188,8 +188,6 @@ def set_user_role(real_user, user, organization, u, role):
         raise ClientException('Need a user!', field='u', code=INVALID)
     
     return organization.set_role(u, role)
-
-### stubs
 
 @enforce(status=[unicode])
 @authorize(CanReadOrg())

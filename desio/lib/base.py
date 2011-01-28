@@ -222,10 +222,10 @@ class CanContributeToOrgRedirect(HasOrgRole):
         super(CanContributeToOrgRedirect, self).__init__(
             users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR, **kw)
 
-class CanEditOrgRedirect(HasOrgRole):
+class CanAdminOrgRedirect(HasOrgRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
     """
     def __init__(self, **kw):
-        super(CanEditOrgRedirect, self).__init__(users.ORGANIZATION_ROLE_ADMIN, **kw)
+        super(CanAdminOrgRedirect, self).__init__(users.ORGANIZATION_ROLE_ADMIN, **kw)

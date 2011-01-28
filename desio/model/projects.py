@@ -164,11 +164,18 @@ class Project(Base):
     ### User connection stuff
     
     def get_role(self, user, status=STATUS_APPROVED):
+        org_role = self.organization.get_role(user)
+        if not org_role: return None
+        
+        #we prolly should standardize roles in the model...
+        # this is technically an organization role, but they are the same string.
+        if org_role == PROJECT_ROLE_ADMIN: return PROJECT_ROLE_ADMIN
+        
         orgu = self.get_project_user(user, status)
         if orgu:
             return orgu.role
         else:
-            if self.organization.is_read_open and self.organization.get_role(user):
+            if self.organization.is_read_open:
                 return PROJECT_ROLE_READ
         return None
     

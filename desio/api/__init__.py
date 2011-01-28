@@ -1,5 +1,5 @@
 from desio.lib.base import h, logger
-from desio.model import Session, users, STATUS_APPROVED
+from desio.model import Session, users, projects, STATUS_APPROVED
 from desio.model.users import ROLE_ADMIN, ROLE_USER
 import sqlalchemy as sa
 from pylons.controllers.util import abort
@@ -31,6 +31,7 @@ def enforce(**types):
     types.setdefault('user', users.User)
     types.setdefault('real_user', users.User)
     types.setdefault('organization', users.Organization)
+    types.setdefault('project', projects.Project)
     
     return base_enforce(Session, **types)
     
@@ -115,57 +116,92 @@ ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
 ORGANIZATION_ROLE_CREATOR = 'creator'
 ORGANIZATION_ROLE_USER = ROLE_USER
 
-class HasOrgRole(IsLoggedIn):
-    def __init__(self, roles, organization='organization'):
-        self.param = organization
+class HasRole(IsLoggedIn):
+    def __init__(self, roles, param=None):
+        self.param = param
         self.roles = roles
     
     def check(self, real_user, user, **kwargs):
-        super(HasOrgRole, self).check(real_user, user, **kwargs)
+        super(HasRole, self).check(real_user, user, **kwargs)
         
         #assume admins are not special. They can pretend and get the user's behaviors
         #otherwise we could short circuit here with a check to is admin
-        org = kwargs.get(self.param)
-        if not org:
-            raise ClientException('No organization specified', NOT_FOUND, field=self.param)
+        obj = kwargs.get(self.param)
+        if not obj:
+            raise ClientException('No %s specified' % (self.param), NOT_FOUND, field=self.param)
         
-        role = org.get_role(user, status=STATUS_APPROVED)
+        role = obj.get_role(user, status=STATUS_APPROVED)
         
         if not role or role not in self.roles:
             raise ClientException('CANNOT(!)', FORBIDDEN, field=self.param)
         
         return True
 
-class CanReadOrg(HasOrgRole):
+class CanReadOrg(HasRole):
     """
     They can read all the projects they have access to. They can see org activity, etc.
     """
-    def __init__(self, organization='organization'):
+    def __init__(self, param='organization'):
         super(CanReadOrg, self).__init__(
             [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
-            organization=organization)
+            param=param)
     
     def check(self, real_user, user, **kwargs):
         if real_user.is_admin(): return True
         
         return super(CanReadOrg, self).check(real_user, user, **kwargs)
 
-class CanContributeToOrg(HasOrgRole):
+class CanContributeToOrg(HasRole):
     """
     They can create and modify projects and membership in projects.
     """
-    def __init__(self, organization='organization'):
+    def __init__(self, param='organization'):
         super(CanContributeToOrg, self).__init__(
             [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
-            organization=organization)
+            param=param)
 
-class CanEditOrg(HasOrgRole):
+class CanAdminOrg(HasRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
     """
-    def __init__(self, organization='organization'):
-        super(CanEditOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], organization=organization)
+    def __init__(self, param='organization'):
+        super(CanAdminOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], param=param)
+
+##
+### Project auth decorators
+##
+
+class CanReadProject(HasRole):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
+    def __init__(self, param='project'):
+        super(CanReadProject, self).__init__(
+            [projects.PROJECT_ROLE_READ, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
+            param=param)
+    
+    def check(self, real_user, user, **kwargs):
+        if real_user.is_admin(): return True
+        
+        return super(CanReadProject, self).check(real_user, user, **kwargs)
+
+class CanWriteProject(HasRole):
+    """
+    They can create and modify projects and membership in projects.
+    """
+    def __init__(self, param='project'):
+        super(CanWriteProject, self).__init__(
+            [projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
+            param=param)
+
+class CanAdminProject(HasRole):
+    """
+    They are an organization admin. They can edit CC information, organization membership, they
+    can read/write all projects.
+    """
+    def __init__(self, param='project'):
+        super(CanAdminProject, self).__init__([projects.PROJECT_ROLE_ADMIN], param=param)
 
 class MustOwn(IsLoggedIn):
     
