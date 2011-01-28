@@ -233,6 +233,7 @@ class CanAdminOrgRedirect(HasOrgRole):
 """
 Project role decorators
 """
+
 class HasProjectRole(object):
     """
     """
