@@ -23,7 +23,7 @@ import formencode
 
 from pylons.controllers import WSGIController
 
-from desio.model import meta, users
+from desio.model import meta, users, projects
 from desio.model.meta import Session
 
 class BaseController(WSGIController):
@@ -229,3 +229,45 @@ class CanAdminOrgRedirect(HasOrgRole):
     """
     def __init__(self, **kw):
         super(CanAdminOrgRedirect, self).__init__(users.ORGANIZATION_ROLE_ADMIN, **kw)
+
+"""
+Project role decorators
+"""
+class HasProjectRole(object):
+    """
+    """
+    def __init__(self, *roles, **kw):
+        self.roles = roles
+        self.url = kw.get('url') or '/'
+    
+    def check(self, real_user, user, project=None, **kwargs):
+        
+        if project and project.get_role(user) in self.roles:
+            return True
+        
+        redirect(self.url)
+
+class CanReadProjectRedirect(HasProjectRole):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
+    def __init__(self, **kw):
+        super(CanReadProjectRedirect, self).__init__(
+            projects.PROJECT_ROLE_ADMIN, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_READ,
+            **kw)
+
+class CanWriteProjectRedirect(HasProjectRole):
+    """
+    They can create and modify projects and membership in projects.
+    """
+    def __init__(self, **kw):
+        super(CanWriteProjectRedirect, self).__init__(
+            projects.PROJECT_ROLE_ADMIN, projects.PROJECT_ROLE_WRITE, **kw)
+
+class CanAdminProjectRedirect(HasProjectRole):
+    """
+    They are an organization admin. They can edit CC information, organization membership, they
+    can read/write all projects.
+    """
+    def __init__(self, **kw):
+        super(CanAdminProjectRedirect, self).__init__(projects.PROJECT_ROLE_ADMIN, **kw)
