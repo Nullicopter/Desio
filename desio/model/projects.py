@@ -447,8 +447,8 @@ class Change(Base):
         """
         from pylons import config
         files_storage = config['files_storage']
-        scheme = urlparse.urlsplit(files_storage).scheme
-        return self._uploaders[scheme](files_storage)
+        url = urlparse.urlsplit(files_storage)
+        return self._uploaders[url.scheme](files_storage)
     
     def _get_base_url_path(self):
         """

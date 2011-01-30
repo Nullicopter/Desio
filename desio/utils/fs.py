@@ -1,8 +1,11 @@
 import os
+import urlparse
 
 def setup_directories(config):
     for config_key in ['files_storage']:
-        if os.path.exists(config[config_key]):
+        path_url = config[config_key]
+        path = urlparse.urlsplit(path_url).path
+        if os.path.exists(path):
             continue
         
-        os.makedirs(config['files_storage'])
+        os.makedirs(path)
