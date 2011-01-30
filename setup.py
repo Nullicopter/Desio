@@ -18,8 +18,7 @@ setup(
         "python-memcached==1.44",
         "sqlalchemy-migrate==0.6",
         "pytz==2010e",
-        "formencode>=1.2.1",
-        "cx_bsdiff"
+        "formencode>=1.2.1"
     ],
     setup_requires=["PasteScript>=1.6.3"],
     packages=find_packages(exclude=['ez_setup']),

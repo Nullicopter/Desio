@@ -87,8 +87,9 @@ class Project(Base):
 
     def __init__(self, **kwargs):
         super(Project, self).__init__(**kwargs)
-        self.slug = get_unique_slug(self.organization, kwargs['name'])
-        
+        if not self.slug:
+            self.slug = get_unique_slug(self.organization, kwargs['name'])
+
         creator = kwargs.get('creator')
         if creator:
             self.attach_user(creator, PROJECT_ROLE_ADMIN)
