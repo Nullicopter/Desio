@@ -21,6 +21,7 @@ class TestProjects(TestController):
         project = p.Project(name=u"foobar",
                             creator=normal,
                             description=u"descripsion",
+                            creator=normal,
                             organization=org)
         Session.add(project)
         self.flush()

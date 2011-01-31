@@ -131,14 +131,15 @@ class Organization(Base):
         org_user = self.get_organization_user(user)
         if not org_user:
             return False
+        
         org_user.status = status
         return org_user
     
     def approve_user(self, user):
-        self.set_user_status(user, STATUS_APPROVED)
+        return self.set_user_status(user, STATUS_APPROVED)
     
     def reject_user(self, user):
-        self.set_user_status(user, STATUS_REJECTED)
+        return self.set_user_status(user, STATUS_REJECTED)
     
     def attach_user(self, user, role=ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
         org_user = Session.query(OrganizationUser) \

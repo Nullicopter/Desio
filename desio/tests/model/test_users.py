@@ -61,8 +61,10 @@ class TestOrganization(TestController):
         assert orguser.status == STATUS_PENDING
         assert orguser.role == ORGANIZATION_ROLE_USER
         assert org.get_role(normal) == None
+        assert org.get_role(normal, status=STATUS_PENDING) == ORGANIZATION_ROLE_USER
         
-        assert org.approve_user(normal)
+        ou = org.approve_user(normal)
+        assert ou
         self.flush()
         assert org.get_role(normal) == ORGANIZATION_ROLE_USER
         

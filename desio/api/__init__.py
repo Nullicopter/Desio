@@ -116,13 +116,13 @@ ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
 ORGANIZATION_ROLE_CREATOR = 'creator'
 ORGANIZATION_ROLE_USER = ROLE_USER
 
-class HasRole(IsLoggedIn):
+class HasObjRole(IsLoggedIn):
     def __init__(self, roles, param=None):
         self.param = param
         self.roles = roles
     
     def check(self, real_user, user, **kwargs):
-        super(HasRole, self).check(real_user, user, **kwargs)
+        super(HasObjRole, self).check(real_user, user, **kwargs)
         
         #assume admins are not special. They can pretend and get the user's behaviors
         #otherwise we could short circuit here with a check to is admin
@@ -137,7 +137,7 @@ class HasRole(IsLoggedIn):
         
         return True
 
-class CanReadOrg(HasRole):
+class CanReadOrg(HasObjRole):
     """
     They can read all the projects they have access to. They can see org activity, etc.
     """
@@ -151,7 +151,7 @@ class CanReadOrg(HasRole):
         
         return super(CanReadOrg, self).check(real_user, user, **kwargs)
 
-class CanContributeToOrg(HasRole):
+class CanContributeToOrg(HasObjRole):
     """
     They can create and modify projects and membership in projects.
     """
@@ -160,7 +160,7 @@ class CanContributeToOrg(HasRole):
             [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
             param=param)
 
-class CanAdminOrg(HasRole):
+class CanAdminOrg(HasObjRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
@@ -172,7 +172,7 @@ class CanAdminOrg(HasRole):
 ### Project auth decorators
 ##
 
-class CanReadProject(HasRole):
+class CanReadProject(HasObjRole):
     """
     They can read all the projects they have access to. They can see org activity, etc.
     """
@@ -186,7 +186,7 @@ class CanReadProject(HasRole):
         
         return super(CanReadProject, self).check(real_user, user, **kwargs)
 
-class CanWriteProject(HasRole):
+class CanWriteProject(HasObjRole):
     """
     They can create and modify projects and membership in projects.
     """
@@ -195,7 +195,7 @@ class CanWriteProject(HasRole):
             [projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
             param=param)
 
-class CanAdminProject(HasRole):
+class CanAdminProject(HasObjRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
