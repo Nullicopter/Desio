@@ -1,0 +1,54 @@
+<%namespace name="f" file="/forms.html"/>
+<%!
+import pylons
+from desio.config.frontend_modules import JS, CSS
+from desio.model.projects import PROJECT_ROLE_READ, PROJECT_ROLE_WRITE, PROJECT_ROLE_ADMIN
+
+roles = [
+    {'key': PROJECT_ROLE_READ, 'value': 'Reader'},
+    {'key': PROJECT_ROLE_WRITE, 'value': 'Contributor'},
+    {'key': PROJECT_ROLE_ADMIN, 'value': 'Admin'}
+]
+%>
+    
+##
+## users: the user objects within the organization
+## 
+<%def name="project_user_module(users)">
+    <%project_id = c.project and c.project.eid or ''%>
+    <div id="project-user-module">
+    % if users:
+        <div id="add-project-user">
+            <form action="${h.api_url('project', 'attach_user', project=project_id)}" method="post">
+                email: 
+                ${f.text('u', id='user-email')} is a 
+                ${f.dropdown('role', id=None, values=roles)}
+                ${f.submit('add')}
+            </form>
+        </div>
+        
+        <div id="project-users">
+            <form method="post">
+            </form>
+        </div>
+        
+        <script id="project-user-template" class="jstemplate" type="text/template">
+            <div class="name">{{name}}</div>
+            
+            <div class="role">
+                ${f.dropdown('role', id=None, values=roles)}
+            </div>
+            
+            <div class="actions">
+                <a href="${h.api_url('project', 'remove_user', project=project_id)}&u={{uid}}" class="remove">
+                    remove
+                </a>
+            </div>
+        </script>
+    % else:
+        <p>There are no other users to add :(. Have them
+        <a href="${h.url_for(controller='organization/auth', action='register')}">register</a>
+        and you can add them to the project later.</p>
+    % endif
+    </div>
+</%def>

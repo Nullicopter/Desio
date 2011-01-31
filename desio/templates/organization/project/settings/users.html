@@ -1,0 +1,26 @@
+<%inherit file="base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="f" file="/forms.html"/>
+<%namespace name="project" file="/modules/project.html"/>
+
+<%!
+    import simplejson as json
+%>
+<%def name="header()">
+    ${parent.header()}
+    ${r.require('project')}
+    <style type="text/css">
+    </style>
+    <script type="text/javascript">
+        
+        var params = ${json.dumps(c.project_user_module_params) | n};
+        params.sync = true;
+        new Q.ProjectUserSettingsPage(params).readyrun();
+        
+    </script>
+</%def>
+
+<div id="add-user-pane">
+    <h2>Users in this project</h2>
+    ${project.project_user_module(c.project_user_module_params['userMap'])}
+</div>

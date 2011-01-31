@@ -70,11 +70,17 @@ JS = {
         'lib/base.js'
     ]),
     
+    'ui': ('build/ui.js', [
+        'jqueryui/jquery-ui-1.8.9.custom.min.js'
+    ]),
+    
     'test': ('build/modules/tests.js',[
         'test/base.js',
         'test/qunit.js',
         'test/test_base.js',
     ]),
+    
+    'project': ('build/modules/project.js', ['lib/modules/project.js']),
     
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
     'controllers.admin': ('build/controllers/admin.js', [
@@ -102,6 +108,23 @@ CSS = {
         'core/generic.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
+    ]),
+    
+    'project': ('build/project.css', ['modules/project.css']),
+    
+    'ui': ('build/ui.css', [
+        "jqueryui/jquery.ui.core.css",
+        "jqueryui/jquery.ui.resizable.css",
+        "jqueryui/jquery.ui.selectable.css",
+        "jqueryui/jquery.ui.accordion.css",
+        "jqueryui/jquery.ui.autocomplete.css",
+        "jqueryui/jquery.ui.button.css",
+        "jqueryui/jquery.ui.dialog.css",
+        "jqueryui/jquery.ui.slider.css",
+        "jqueryui/jquery.ui.tabs.css",
+        "jqueryui/jquery.ui.datepicker.css",
+        "jqueryui/jquery.ui.progressbar.css",
+        "jqueryui/jquery.ui.theme.css",
     ]),
     
     'test': ('build/modules/test.css', [

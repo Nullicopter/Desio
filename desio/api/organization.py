@@ -161,7 +161,7 @@ def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_U
         # read group only
         orgu = organization.attach_user(u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING)
     
-    return bool(orgu)
+    return orgu
 
 @enforce(u=users.User)
 @authorize(CanAdminOrg())

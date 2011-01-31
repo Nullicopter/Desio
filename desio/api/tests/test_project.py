@@ -68,6 +68,26 @@ class TestProject(TestController):
         self.flush()
         assert project.slug == 'hella-project-ye-ah-man1'
     
+    def test_edit(self):
+        p = fh.create_project()
+        u = p.creator
+        assert p
+        assert p.name
+        assert p.description
+        
+        fetched_p = api.project.edit(u, u, p.eid, name=u'my new name')
+        assert fetched_p.id == p.id
+        assert p.name == u'my new name'
+        
+        #same name as before!
+        fetched_p = api.project.edit(u, u, p.eid, name=u'my new name')
+        assert fetched_p.id == p.id
+        assert p.name == u'my new name'
+        
+        fetched_p = api.project.edit(u, u, p.eid, description=u'new desc!!!')
+        assert fetched_p.id == p.id
+        assert p.description == u'new desc!!!'
+    
     def test_get(self):
         org_owner = fh.create_user()
         rando_no_org = fh.create_user()

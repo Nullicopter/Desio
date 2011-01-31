@@ -5,7 +5,7 @@ class UtilsController(BaseController):
 
     def load_basic_data(self):
         pw = u'password'
-        admin = fh.create_user(username=u'admin', email=u'admin@admin.com', password=pw)
+        admin = fh.create_user(username=u'admin', email=u'admin@admin.com', password=pw, role=u'admin')
         org = fh.create_organization(user=admin, name=u'Mudhut Software', subdomain='mudhut')
         
         jim = fh.create_user(username=u'jim@reynolds.com', email=u'jim@reynolds.com', password=pw)

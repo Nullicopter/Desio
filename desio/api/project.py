@@ -24,8 +24,9 @@ class RoleStatusForm(formencode.Schema):
     status = fv.OneOf(ROLE_STATUSES, not_empty=True)
 
 class UniqueName(fv.FancyValidator):
-    def __init__(self, organization):
+    def __init__(self, organization, project=None):
         self.organization = organization
+        self.project = project
     
     def _to_python(self, value, state):
         # we don't support multiple values, so we run a quick check here (we got a webapp where this was a problem)
@@ -35,7 +36,12 @@ class UniqueName(fv.FancyValidator):
         project = Session.query(projects.Project
                 ).filter(projects.Project.organization==self.organization
                 ).filter(projects.Project.name==value
-                ).first()
+                )
+        
+        if self.project:
+            project = project.filter(projects.Project.id != self.project.id)
+        
+        project = project.first()
 
         if project:
             raise fv.Invalid('A project with this name already exists. Please choose another.', value, state)
@@ -58,8 +64,40 @@ def create(real_user, user, organization, **params):
                                description=scrubbed.description,
                                organization=organization)
     Session.add(project)
+    Session.flush()
     
     return project
+
+@enforce()
+@authorize(CanAdminProject())
+def edit(real_user, user, project, **kwargs):
+    """
+    Editing of the campaigns. Supports editing one param at a time. Uses the FieldEditor
+    paradigm.
+    """
+    editor = Editor(project)
+    editor.edit(real_user, user, project, **kwargs)
+    Session.flush()
+    Session.refresh(project)
+    return project
+
+class Editor(FieldEditor):
+    def __init__(self, project):
+        
+        class EditForm(formencode.Schema):
+            name = formencode.All(fv.UnicodeString(not_empty=False), UniqueName(project.organization, project))
+            description = fv.UnicodeString(not_empty=False)
+        
+        super(Editor, self).__init__(EDIT_FIELDS, ADMIN_EDIT_FIELDS, EditForm)
+
+    def edit_name(self, real_user, user, u, key, param):
+        self._edit_generic('Name', u, key, param)
+    
+    def edit_description(self, real_user, user, u, key, param):
+        self._edit_generic('Description', u, key, param)
+    
+    def edit_status(self, real_user, user, u, key, param):
+        self._edit_generic('Status', u, key, param)
 
 @enforce(project=unicode)
 @authorize(CanReadOrg())
@@ -93,10 +131,21 @@ def attach_user(real_user, user, project, u, role=users.ORGANIZATION_ROLE_USER):
     if pu:
         raise ClientException('User already attached', INVALID)
     
-    #special. We adhere to role and status vars
     orgu = project.attach_user(u, role=params.role, status=params.status)
     
-    return bool(orgu)
+    return orgu
+
+@enforce(users=[users.User], roles=[unicode])
+@authorize(CanAdminProject())
+def attach_users(real_user, user, project, users, roles):
+    if len(users) != len(roles):
+        raise ClientException('users and roles much match in size!', field='users')
+    
+    org_users = []
+    for i, u in enumerate(users):
+        org_users.append(attach_user(real_user, user, project, u, role=roles[i]))
+    
+    return org_users
 
 @enforce(u=users.User)
 @authorize(CanAdminProject())

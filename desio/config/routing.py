@@ -54,6 +54,10 @@ def make_map(config):
     map.connect('/project/{slug}/', controller='organization/project', action='view', conditions=has_subdomain)
     map.connect('/project/{slug}/{path}', controller='organization/project', action='view', conditions=has_subdomain)
     
+    map.connect('/psettings/{slug}', controller='organization/project', action='settings_index', conditions=has_subdomain)
+    map.connect('/psettings/{slug}/general', controller='organization/project', action='settings_general', conditions=has_subdomain)
+    map.connect('/psettings/{slug}/users', controller='organization/project', action='settings_users', conditions=has_subdomain)
+    
     map.connect('/projects', controller='organization/home', action='index', conditions=has_subdomain)
     map.connect('/projects/{action}', controller='organization/project', action='index', conditions=has_subdomain)
     map.connect('/projects/{action}/{slug}', controller='organization/project', action='index', conditions=has_subdomain)

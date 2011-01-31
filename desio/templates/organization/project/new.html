@@ -1,33 +1,42 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
+<%namespace name="project" file="/modules/project.html"/>
 
+<%!
+    import simplejson as json
+%>
 <%def name="header()">
     ${parent.header()}
+    ${r.require('project')}
     <style type="text/css">
         #name{width: 500px;}
         #description{width: 550px; height: 150px;}
+        #add-user-pane{float: right; width: 365px;}
     </style>
     <script type="text/javascript">
-        new Q.ProjectCreatePage({}).readyrun();
+        
+        var params = ${json.dumps(c.project_user_module_params) | n};
+        params.sync = false;
+        new Q.ProjectCreatePage(params).readyrun();
+        
     </script>
 </%def>
 
 <h1>${c.title}</h1>
 
-<form id="new-form" action="${c.requested_url}" method="post">
+<div id="add-user-pane">
+    <h2>Add folks to the project</h2>
+    <p>You can do this later too!</p>
+    ${project.project_user_module(c.project_user_module_params['userMap'])}
+</div>
+<form id="new-form" action="${h.api_url('project', 'create', organization=c.organization.eid)}" method="post">
+    
     ${f.text_chunk('name', label='Project Name')}
     ${f.textarea_chunk('description', label='Project Description', sublabel='optional')}
     
-    <h2>Add folks to the project</h2>
-    
-    % if c.org_users:
-        &nbsp;
-    % else:
-        <p>There are no other users to add :(. Have them
-        <a href="${h.url_for(controller='organization/auth', action='register')}">register</a>
-        and you can add them to the project later.</p>
-    % endif
-    
-    ${f.submit('Create')}
 </form>
+
+<p>
+    <a id="create-project-link" href="#">Create Project</a>
+</p>

@@ -9,6 +9,12 @@
 Q.Loader.defaults.image = '/i/loaders/16x16_arrows.gif';
 Q.AsyncForm.defaults.autoGenValidationOptions = true;
 
+//Mustache-like delimiters!
+_.templateSettings = {
+  interpolate : /\{\{(.+?)\}\}/g
+};
+
+
 Q.defaultValidationOptions = {
     errorPlacement: function(error, element) {
         var errc = $('<div class="error-container"></div>');

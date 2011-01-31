@@ -1,0 +1,11 @@
+<%inherit file="../base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="com" file="/common.html"/>
+<%
+tab_def = [
+    ('General', h.url_for(controller='organization/project', action='settings_general', slug=c.project.slug), True),
+    ('Users', h.url_for(controller='organization/project', action='settings_users', slug=c.project.slug)),
+] %>
+
+${com.tabs(tab_def, c.tab)}
+${next.body()}

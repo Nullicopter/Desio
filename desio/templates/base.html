@@ -14,6 +14,10 @@ name = 'binder.io'
 if c.organization:
     name = c.organization.name
 %>
+<%def name="header()">
+    ${parent.header()}
+    ${r.require('ui')}
+</%def>
 
 <div id="header"><header>
     <div id="header-inner"><hgroup>
@@ -35,7 +39,7 @@ if c.organization:
                 % endif
                 % if c.is_org_admin:
                 |
-                <a href="${h.url_for(controller='organization/settings', action='users')}">settings</a>
+                <a href="${h.url_for(controller='organization/settings', action='users')}">account settings</a>
                 % endif
                 |
                 <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
