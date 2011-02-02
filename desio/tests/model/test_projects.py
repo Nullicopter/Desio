@@ -72,7 +72,10 @@ class TestProjects(TestController):
         filepath = self.mktempfile("foobar.jpg", "helloooooo")
         change = project.add_change(u"/foobar.jpg", filepath, u"this is a new change")
         self.flush()
-    
+
+        assert project.get_changes(u"/foobar.jpg") == [change]
+        assert change.url and change.diff_url and change.thumbnail_url
+        
     def test_membership(self):
         """
         Test user connection BS
