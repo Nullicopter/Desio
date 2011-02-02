@@ -132,6 +132,9 @@ class Project(Base):
         return q.all()
 
     def get_file(self, filepath):
+        """
+        Get the file object at the given filepath
+        """
         path, name = os.path.split(filepath)
 
         if not name:
@@ -291,6 +294,9 @@ class File(Entity):
     def _create_parent_directory(self):
         """
         Check if the parent directory exists and if it doesn't create it.
+
+        self.path is the path part of the full filepath already so name
+        here is actually the name of the directory.
         """
         path, name = os.path.split(self.path)
         q = Session.query(Directory)

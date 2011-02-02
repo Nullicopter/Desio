@@ -68,6 +68,12 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     if asbool(static_files):
         # Serve static files
         static_app = StaticURLParser(config['pylons.paths']['static_files'])
-        app = Cascade([static_app, app])
+        app_list = [static_app, app]
+
+        if config['files_storage'].startswith('file://'):
+            images_app = StaticURLParser(config['files_storage'][len('file://'):])
+            app_list.insert(0, images_app)
+
+        app = Cascade(app_list)
     app.config = config
     return app
