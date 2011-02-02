@@ -110,56 +110,61 @@ class Project(Base):
         self.status = STATUS_INACTIVE
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
-
-    def get_changesets(self, limit=None):
+    
+    def get_entities(self, filepath, only_type=None):
         """
-        Returns changesets from most recent to least recent.
-        """
-        q = Session.query(Changeset)
-        q = q.order_by(sa.desc(Changeset.order_index), sa.desc(Changeset.created_date))
-        if limit:
-            q = q.limit(limit)
-
-        if limit == 1:
-            return q.first()
-        return q.all()
-
-    def add_changeset(self, user, description):
-        """
-        Add a new changeset to the project with the given description
-        from the given user.
-        """
-        last_changeset = self.get_changesets(1)
-        if last_changeset and last_changeset.status == STATUS_OPEN:
-            raise exceptions.ClientException("Somebody is modifying project %s right now. Wait or Coordinate."  % (self.name,), exceptions.FORBIDDEN)        
-
-        new_order_index = 1
-        if last_changeset:
-            new_order_index = last_changeset.order_index + 1
-
-        changeset = Changeset(user=user,
-                              description=description,
-                              order_index=new_order_index,
-                              project=self)
-        Session.add(changeset)
-
-        self.update_activity()
-        return changeset
-
-    def get_files(self, path=u"/", name=None):
-        """
-        Get all project files that have a STATUS_EXISTS or are older than Changeset.
+        Get all project entities that have the given path and the given name if any.
+        And which status is STATUS_EXISTS.
 
         Optionally that are at the given path or deeper???.
         Maybe I should re-introduce directories too, created when creating Files.
         """
-        q = Session.query(File)
+        path, name = os.path.split(filepath)
+
+        q = Session.query(Entity)
         q = q.filter_by(path=path)
         q = q.filter_by(project=self)
-        if name is not None:
+        if only_type:
+            q = q.filter_by(type=only_type)
+        if name:
             q = q.filter_by(name=name)
             return q.first()
         return q.all()
+
+    def get_file(self, filepath):
+        path, name = os.path.split(filepath)
+
+        if not name:
+            raise Exception("Only one complete path is supported: '%s' given" % (filepath,))
+
+        return self.get_entities(filepath, File.TYPE)
+
+    def add_change(self, filepath, temp_contents_filepath, description):
+        """
+        Check that file exists, if it does add a Change directly.
+        If it doesn't exist, create the File and then add the change.
+        """
+        file_object = self.get_file(filepath)
+        
+        if file_object is None:
+            path, name = os.path.split(filepath)
+            file_object = File(path=path,
+                               name=name,
+                               project=self)
+            Session.add(file_object)
+
+        return file_object.add_change(self, temp_contents_filepath, description)
+    
+    def get_changes(self, filepath):
+        """
+        Retrieve all the changes to the filepath given related to this project
+        """
+        file_object = self.get_file(filepath)
+
+        if not file_object:
+            return []
+
+        return file_object.get_changes()
     
     ##
     ### User connection stuff
@@ -233,75 +238,6 @@ class Project(Base):
             Session.delete(orgu)
             return True
         return False
-    
-class Changeset(Base):
-    """
-    A Changeset puts together all the changes to a project that happened
-    at the same time and by the same user.
-    
-    Changesets are ordered by order_index and by creation_date to enable
-    the ability to resolve conflicts.
-    """
-    __tablename__ = "changesets"
-
-    id = sa.Column(sa.Integer, primary_key=True)
-    eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
-    status = sa.Column(sa.Unicode(16), nullable=False, default=STATUS_OPEN)
-    order_index = sa.Column(sa.Integer, nullable=False)
-
-    description = sa.Column(sa.UnicodeText())
-    created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
-
-    user = relationship("User", backref=backref("changesets", cascade="all"))
-    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
-
-    project = relationship("Project", backref=backref("changesets", cascade="all"))
-    project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
-
-    @property
-    def is_open(self):
-        """
-        Checks whether it's still possible to add new changes to this set.
-        """
-        return self.status == STATUS_OPEN
-
-    def get_change(self, filepath):
-        """
-        Retrieve all the changes to this Changeset related to a specific file.
-        """
-        path, name = os.path.split(filepath)
-
-        q = Session.query(Change)
-        q = q.filter_by(changeset=self)
-        q = q.join((File, sa.and_(File.name==name, File.path==path)))
-        return q.first()
-    
-    def add_change(self, filepath, temp_contents_filepath, description):
-        """
-        Check that file exists, if it does add a Change directly.
-        If it doesn't exist, create the File and then add the change.
-        """
-        if not self.is_open:
-            raise exceptions.ClientException("You can't modify completed changeset %s."  % (self.eid,), exceptions.FORBIDDEN)        
-
-        path, name = os.path.split(filepath)
-        
-        file_object = self.project.get_files(path, name)
-
-        if file_object is None:
-            file_object = File(path=path,
-                               name=name,
-                               project=self.project)
-            Session.add(file_object)
-
-        return file_object.add_change(self, temp_contents_filepath, description)
-        
-    def complete(self):
-        """
-        Finalize a changeset by disallowing any more changes
-        """
-        self.status = STATUS_COMPLETED
-        self.project.update_activity()
 
 class Entity(Base):
     """
@@ -351,14 +287,6 @@ class File(Entity):
     def __init__(self, *args, **kwargs):
         super(File, self).__init__(*args, **kwargs)
         self._create_parent_directory()
-
-    @property
-    def mime_headers(self):
-        """
-        Return a dictionary containing the mime type headers for HTTP requests.
-        """
-        mimetype, _ = mimetypes.guess_type(self.entity.name)
-
         
     def _create_parent_directory(self):
         """
@@ -385,12 +313,16 @@ class File(Entity):
         change.status = STATUS_REMOVED
         self.project.update_activity()
 
-    def get_change(self):
+    def get_changes(self):
         """
         Fetch change for this file.
         """
+        q = Session.query(Change)
+        q = q.filter_by(entity=self)
+        q = q.filter_by(project=self.project)
+        return q.all()
         
-    def add_change(self, changeset, temp_contents_filepath, description):
+    def add_change(self, project, temp_contents_filepath, description):
         """
         Introduce a new change in the given changeset using the file stored
         at temp_contents_filepath with the given description for the change.
@@ -402,7 +334,7 @@ class File(Entity):
         change = Change(description=description,
                         size=size,
                         entity=self,
-                        changeset=changeset)
+                        project=project)
         Session.add(change)
         Session.flush()
         change.set_contents(temp_contents_filepath)
@@ -429,11 +361,11 @@ class Change(Base):
     entity = relationship("File", backref=backref("changes", cascade="all"))
     entity_id = sa.Column(sa.Integer, sa.ForeignKey('entities.id'), nullable=False, index=True)
 
-    changeset = relationship("Changeset", backref=backref("changes", cascade="all"))
-    changeset_id = sa.Column(sa.Integer, sa.ForeignKey('changesets.id'), nullable=False, index=True)
+    project = relationship("Project", backref=backref("changes", cascade="all"))
+    project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
 
     # You can't change the same file multiple times in the same changeset... doesn't make sense
-    __table_args__ = (sa.UniqueConstraint('changeset_id', 'entity_id'), {})
+    __table_args__ = (sa.UniqueConstraint('project_id', 'entity_id'), {})
 
     _uploaders = {
         'file': fu.LocalUploader,

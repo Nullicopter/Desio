@@ -45,45 +45,14 @@ class TestProjects(TestController):
         project.update_activity()
         assert project.last_modified_date > current
 
-        assert project.get_changesets() == []
-        assert project.get_changesets(1) == None
-        assert project.get_changesets(5) == []
+        assert project.get_entities(u"/") == []
+        assert project.get_file(u"/foobrar") == None
+        assert project.get_changes(u"/blah") == []
 
-        current = project.last_modified_date
-        changeset = project.add_changeset(user, u"foobar")
-        self.flush()
-        assert project.last_modified_date > current
-        assert changeset
-
-        assert changeset.order_index == 1
-        assert changeset.user == user
-        assert changeset.description == u"foobar"
-        assert changeset.project == project
-        assert changeset.status == STATUS_OPEN
-        assert changeset.is_open
-
-        assert project.get_changesets() == [changeset]
-        assert project.get_changesets(1) == changeset
-        assert project.get_changesets(5) == [changeset]
-
-        assert self.throws_exception(lambda : project.add_changeset(user, u"blah")).code == FORBIDDEN
-        assert self.throws_exception(lambda : project.add_changeset(user, u"blah")
-                                     ).msg.startswith("Somebody is modifying project")
-        current = project.last_modified_date
-        changeset.complete()
-        self.flush()
-        assert project.last_modified_date > current
-        assert changeset.status == STATUS_COMPLETED
-        
-        changeset2 = project.add_changeset(user, u"newone")
-        self.flush()
-
-        assert project.get_changesets() == [changeset2, changeset]
-        assert project.get_changesets(1) == changeset2
-        assert project.get_changesets(5) == [changeset2, changeset]
-
-        assert changeset2.order_index - 1 == changeset.order_index
-
+        try:
+            project.get_file(u"/")
+        except Exception, e:
+            assert str(e).startswith("Only one complete path is supported")
 
         current = project.last_modified_date
         project.deactivate()
@@ -98,11 +67,10 @@ class TestProjects(TestController):
         """
         user = fh.create_user()
         project = fh.create_project(user=user, name=u"helloooo")
-        changeset = project.add_changeset(user, u"foobar")
         self.flush()
 
         filepath = self.mktempfile("foobar.jpg", "helloooooo")
-        change = changeset.add_change(u"/foobar.jpg", filepath, u"this is a new change in a changeset")
+        change = project.add_change(u"/foobar.jpg", filepath, u"this is a new change")
         self.flush()
     
     def test_membership(self):
