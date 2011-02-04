@@ -11,7 +11,9 @@ import hashlib
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
 from desio.model import STATUS_EXISTS, STATUS_REMOVED
-from desio.utils import file_uploaders as fu
+from desio.utils import file_uploaders as fu, image
+
+from collections import defaultdict as dd
 
 PROJECT_ROLE_ADMIN = u'admin'
 PROJECT_ROLE_READ = u'read'
@@ -347,7 +349,28 @@ class File(Entity):
         self.project.update_activity()
         return change
 
-class Change(Base):
+class Uploadable(object):
+    """
+    This is a base class so I can use uploading junk in the change extract too.
+    I do not care about the name. If you dont like it feel free to change.
+    """
+    
+    _uploaders = {
+        'file': fu.LocalUploader,
+        's3': fu.S3Uploader
+    }
+
+    @property
+    def uploader(self):
+        """
+        Get the proper uploader given the current configuration in ini files.
+        """
+        from pylons import config
+        files_storage = config['files_storage']
+        url = urlparse.urlsplit(files_storage)
+        return self._uploaders[url.scheme](files_storage)
+
+class Change(Base, Uploadable):
     """
     Every single change to a File through a changeset is also added to this table
     to query them later when the user needs to see the history of changes to a
@@ -373,21 +396,6 @@ class Change(Base):
     # You can't change the same file multiple times in the same changeset... doesn't make sense
     __table_args__ = (sa.UniqueConstraint('project_id', 'entity_id'), {})
 
-    _uploaders = {
-        'file': fu.LocalUploader,
-        's3': fu.S3Uploader
-    }
-
-    @property
-    def uploader(self):
-        """
-        Get the proper uploader given the current configuration in ini files.
-        """
-        from pylons import config
-        files_storage = config['files_storage']
-        url = urlparse.urlsplit(files_storage)
-        return self._uploaders[url.scheme](files_storage)
-    
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:
@@ -427,10 +435,13 @@ class Change(Base):
     def thumbnail_url(self):
         """
         Use name mangling to get the thumbnail url
+        
+        Note that this simply matches up with that in the corresponding ChangeExtract
+        object. Thumbnails are stored as change extracts, and they are stored with the
+        format <type>-<order_index>-<change_eid>.png
         """
         path = self._get_base_url_path()
-        ext = os.path.splitext(self.entity.name)[1]
-        return "/".join([path, "thumbnail-" + self.eid]) + ext
+        return "/".join([path, "thumbnail-0-" + self.eid]) + ChangeExtract.ext
     
     def add_comment(self, body, x=None, y=None, width=None, height=None):
         """
@@ -441,9 +452,31 @@ class Change(Base):
         """
         Upload the changed file to its location, generate a diff if it's not.
         """
-        self.uploader.set_contents(tmp_contents_filepath, self.url)
         
-class ChangeExtract(Base):
+        #doing this inline for now. At some point this will be split out and done async
+        self._gen_extracts(tmp_contents_filepath)
+        
+        self.uploader.set_contents(tmp_contents_filepath, self.url)
+    
+    def _gen_extracts(self, tmp_contents_filepath):
+        """
+        Will generate the file extracts for this change. The extracts include the thumbnail.
+        """
+        extracts = []
+        indices = dd(lambda: 0) #each type of file will have its own count
+        raw_extracts = image.extract(tmp_contents_filepath)
+        for e in raw_extracts:
+            
+            change_extract = ChangeExtract(change=self, extract_type=e.extract_type, order_index=indices[e.extract_type])
+            change_extract.set_contents(e.filename)
+            Session.add(change_extract)
+            extracts.append(change_extract)
+            
+            indices[e.extract_type] += 1
+        
+        return extracts
+    
+class ChangeExtract(Base, Uploadable):
     """
     Every file can have extra data attached to them, for example a .png
     could be exploded to multiple files. One specific page is identified
@@ -454,16 +487,55 @@ class ChangeExtract(Base):
     id = sa.Column(sa.Integer, primary_key=True)
 
     order_index = sa.Column(sa.Integer, nullable=False)
+    extract_type = sa.Column(sa.Unicode(64), nullable=False)
     description = sa.Column(sa.UnicodeText())
     
     change = relationship("Change", backref=backref("change_extracts", cascade="all"))
     change_id = sa.Column(sa.Integer, sa.ForeignKey('changes.id'), nullable=False, index=True)
+    
+    #right now, all extracts have a png type.
+    ext = '.png'
+    
+    def _get_base_url_path(self):
+        """
+        Base url for diff and change payloads. Files are organized in a tree like this:
 
+        files/  ORGANIZATION_EID   /   PROJECT_EID   /   FILE_EID   /
+        
+        Ben sez: feel free to move these. I didnt know what you had in mind for structure.
+        Note: this is quite a few queries to get a path :/
+        """
+        return "/".join(["files",
+                        self.change.entity.project.organization.eid,
+                        self.change.entity.project.eid,
+                        self.change.entity.eid])
+
+    @property
+    def url(self):
+        """
+        The url/path to the specific File change recorded in history.
+
+        Inside the specific file directory every change uses its eid and the
+        extension of the File that it is part of.
+
+        Note: if you change the extension of the file, all of the past
+        revisions will be lost since we rely on the ext to never change.
+        A different file extension requires a different file.
+        """
+        path = self._get_base_url_path()
+        return "/".join([path, "%s-%d-%s" % (self.extract_type, self.order_index, self.change.eid)]) + self.ext
+    
+    def set_contents(self, tmp_contents_filepath):
+        """
+        Url is optinal
+        """
+        self.uploader.set_contents(tmp_contents_filepath, self.url)
+    
     def add_comment(self, body, x=None, y=None, width=None, height=None):
         """
         Add a new comment to this extract
         """
-
+    
 class Comment(Base):
     __tablename__ = "comments"
     

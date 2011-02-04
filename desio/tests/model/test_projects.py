@@ -4,9 +4,19 @@ from desio.model import fixture_helpers as fh
 from desio.model import projects as p, STATUS_APPROVED, STATUS_PENDING, STATUS_COMPLETED, STATUS_OPEN, STATUS_INACTIVE
 from desio.model.projects import PROJECT_ROLE_READ, PROJECT_ROLE_WRITE, PROJECT_ROLE_ADMIN
 from desio.tests import *
+from desio.utils import image
 
 from pylons_common.lib.exceptions import *
+import os.path, shutil
 
+#the data dir is one up!
+datadir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+def file_path(f):
+    #copy cause our shit moves files.
+    p = os.path.join(datadir, f)
+    _, name = tempfile.mkstemp()
+    shutil.copyfile(p, name)
+    return name
 
 class TestProjects(TestController):
     def test_project_creation(self):
@@ -69,13 +79,41 @@ class TestProjects(TestController):
         project = fh.create_project(user=user, name=u"helloooo")
         self.flush()
 
-        filepath = self.mktempfile("foobar.jpg", "helloooooo")
-        change = project.add_change(u"/foobar.jpg", filepath, u"this is a new change")
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
 
-        assert project.get_changes(u"/foobar.jpg") == [change]
+        assert project.get_changes(u"/foobar.gif") == [change]
         assert change.url and change.diff_url and change.thumbnail_url
+    
+    def test_extracts(self):
+        """
+        Test basic changeset functionality
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+
+        filepath = file_path('headphones.eps')
+        change = project.add_change(u"/headphones.eps", filepath, u"this is a new change")
+        self.flush()
+        Session.refresh(change)
         
+        extracts = change.change_extracts
+        
+        assert len(extracts) == 2
+        foundthumb = False
+        for e in extracts:
+            if e.extract_type == image.EXTRACT_TYPE_THUMBNAIL:
+                foundthumb = True
+                assert e.url == change.thumbnail_url
+            else:
+                assert e.extract_type == image.EXTRACT_TYPE_FULL
+            
+            assert e.url
+            assert e.order_index == 0
+        assert foundthumb
+    
     def test_membership(self):
         """
         Test user connection BS

@@ -47,17 +47,16 @@ from magickwand import api
 import tempfile
 import os.path
 
-FILE_TYPE_THUMBNAIL = u'thumbnail'
-FILE_TYPE_CROPPED_THUMBNAIL = u'cropped_thumbnail'
-FILE_TYPE_FULL = u'full'
+EXTRACT_TYPE_THUMBNAIL = u'thumbnail'
+EXTRACT_TYPE_FULL = u'full'
 
 class ExtractedFile(object):
     def __init__(self, filename, type):
-        self.type = type
+        self.extract_type = type
         self.filename = filename
     
     def __repr__(self):
-        return 'ExtractedFile(%s, %s)' % (self.type, self.filename)
+        return 'ExtractedFile(%s, %s)' % (self.extract_type, self.filename)
 
 class Extractor(object):
     
@@ -81,13 +80,9 @@ class Extractor(object):
             #why is this returning an int on my machine? Supposed to be a file pointer.
             if isinstance(f, int):
                 f = open(name, 'wb')
-            
-            print f, name
         
         f.write(self.image.dump(self.dest_format))
         f.close()
-        
-        print 'extracted', type, name
         
         return ExtractedFile(name, type)
     
@@ -126,7 +121,7 @@ class Extractor(object):
         #print (dx, dy), cropsize, offset
         
         self.image.crop(cropsize, offset)
-        return [self._write_file(FILE_TYPE_THUMBNAIL)]
+        return [self._write_file(EXTRACT_TYPE_THUMBNAIL)]
     
     def extract(self, **kw):
         """
@@ -152,15 +147,15 @@ class SVGExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        print 'orig', self.image.size
+        #print 'orig', self.image.size
         #self.image.trim()
         #print 'post trim', self.image.size
         
         if density:
             self.image.resolution = (density, density)
-            print 'density change', self.image.size
+            #print 'density change', self.image.size
         
-        return [self._write_file(FILE_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
 
 class PostscriptExtractor(Extractor):
     """
@@ -175,15 +170,15 @@ class PostscriptExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        print 'orig', self.image.size
+        #print 'orig', self.image.size
         #self.image.trim()
         #print 'post trim', self.image.size
         
         if density:
             self.image.resolution = (density, density)
-            print 'density change', self.image.size
+            #print 'density change', self.image.size
         
-        return [self._write_file(FILE_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
 
 class PSDExtractor(Extractor):
     """
@@ -195,7 +190,7 @@ class PSDExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(FILE_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
 
 class PNGExtractor(Extractor):
     """

@@ -71,3 +71,6 @@ class project:
     class get_users:
         def output(self, org_users):
             return [project.attach_user().output(ou) for ou in org_users]
+
+class file:
+    class upload: pass

@@ -5,11 +5,28 @@
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
+    #drop{
+        border: 5px dotted #ddd;
+        background: #f5f5f5;
+        -moz-border-radius: 10px;
+        font-size: 22pt;
+        color: #999;
+        text-align: center;
+        padding: 30px 0;
+    }
     </style>
+    <script type="text/javascript">
+    new Q.ViewProjectPage({
+        dropzone: '#drop',
+        url: '${h.api_url('file', 'upload', project=c.project.eid)}'
+    }).readyrun();
+    </script>
 </%def>
 
 % if c.project.description:
     <p>${c.project.description}</p>
 % endif
 
-PROJECT STUFF HERE
+<div id="drop">
+    <p>Drop files here</p>
+</div>
