@@ -4,6 +4,10 @@
 from pylons_common.lib.utils import itemize
 from desio.api import CanReadOrg
 
+DATE_FORMAT = '%Y-%m-%d %H:%M:%SZ'
+def fdatetime(dt):
+    return dt.strftime(DATE_FORMAT)
+
 class error:
     class explode: pass
     class explode_no_auth: pass
@@ -73,4 +77,28 @@ class project:
             return [project.attach_user().output(ou) for ou in org_users]
 
 class file:
-    class upload: pass
+    class upload:
+        def output(self, f):
+            return file.get().output(f)
+    
+    class get: 
+        def output(self, f):
+            f, change = f
+            
+            out = itemize(f, 'eid', 'name', 'path', 'description')
+            out.update(itemize(change, 'created_date', 'size', 'url', 'thumbnail_url'))
+            out['change_description'] = change.description
+            out['version'] = change.eid
+            out['extracts'] = []
+            for ex in change.change_extracts:
+                edict = itemize(ex, 'order_index', 'extract_type', 'url', 'description')
+                edict['url'] = '/' + edict['url']
+                out['extracts'].append(edict)
+            
+            out['created_date'] = fdatetime(out['created_date'])
+            
+            out['url'] = '/'+out['url']
+            out['thumbnail_url'] = '/'+out['thumbnail_url']
+            
+            return out
+            

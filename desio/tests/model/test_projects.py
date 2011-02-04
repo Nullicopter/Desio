@@ -7,16 +7,7 @@ from desio.tests import *
 from desio.utils import image
 
 from pylons_common.lib.exceptions import *
-import os.path, shutil
-
-#the data dir is one up!
-datadir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-def file_path(f):
-    #copy cause our shit moves files.
-    p = os.path.join(datadir, f)
-    _, name = tempfile.mkstemp()
-    shutil.copyfile(p, name)
-    return name
+import os.path
 
 class TestProjects(TestController):
     def test_project_creation(self):

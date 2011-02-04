@@ -140,7 +140,7 @@ class Project(Base):
         path, name = os.path.split(filepath)
 
         if not name:
-            raise Exception("Only one complete path is supported: '%s' given" % (filepath,))
+            raise exceptions.AppException("Only one complete path is supported: '%s' given" % (filepath,), code=exception.NOT_FOUND)
 
         return self.get_entities(filepath, File.TYPE)
 
@@ -328,8 +328,25 @@ class File(Entity):
         q = Session.query(Change)
         q = q.filter_by(entity=self)
         q = q.filter_by(project=self.project)
+        q = q.order_by(sa.desc(Change.created_date))
         return q.all()
+    
+    def get_change(self, change_eid=None):
+        """
+        Fetch single change for this file.
+        """
+        q = Session.query(Change)
+        q = q.filter_by(entity=self)
+        q = q.filter_by(project=self.project)
         
+        #get HEAD if no change eid specified.
+        if change_eid:
+            q = q.filter_by(eid=change_eid)
+        else:
+            q = q.order_by(sa.desc(Change.created_date))
+        
+        return q.first()
+    
     def add_change(self, project, temp_contents_filepath, description):
         """
         Introduce a new change in the given changeset using the file stored
@@ -352,7 +369,7 @@ class File(Entity):
 class Uploadable(object):
     """
     This is a base class so I can use uploading junk in the change extract too.
-    I do not care about the name. If you dont like it feel free to change.
+    I do not care about the name. If you dont like it, feel free to change.
     """
     
     _uploaders = {

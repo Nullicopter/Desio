@@ -9,7 +9,7 @@ setup-app`) and provides the base testing objects.
 """
 from unittest import TestCase
 import tempfile
-import os
+import os, shutil
 
 from paste import fixture
 from paste.deploy import loadapp
@@ -36,6 +36,15 @@ from desio.lib.helpers import url_for, api_url
 SetupCommand('setup-app').run([pylons.test.pylonsapp.config['__file__']])
 
 environ = {}
+
+#the data dir is one up!
+datadir = os.path.join(os.path.dirname(__file__), 'data')
+def file_path(f):
+    #copy cause our shit moves files.
+    p = os.path.join(datadir, f)
+    _, name = tempfile.mkstemp()
+    shutil.copyfile(p, name)
+    return name
 
 def unjsonify(response, do_objectify=True):
     """

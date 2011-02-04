@@ -14,20 +14,27 @@ from pylons_common.lib.exceptions import *
 
 ID_PARAM = 'file'
 
-@enforce(garbage=bool)
+@enforce(path=unicode, version=unicode)
 @authorize(CanReadProject())
-def get(real_user, user, project, path):
-    p, name = os.path.split(path)
-    q = Session.query(projects.File)
-    q = q.filter_by(path=p)
-    q = q.filter_by(name=name)
-    return q.first()
+def get(real_user, user, project, path, version=None):
+    """
+    Get a file and the latest change. If a version is specified, return that change.
+    
+    :param version: a change eid
+    """
+    try:
+        f = project.get_file(path)
+    except AppException, e:
+        raise ClientException(e.msg, code=e.code, field='path')
+    
+    return f, f.get_change(version)
     
 
 @enforce(binbody=bool)
 @authorize(CanReadProject())
 def upload(real_user, user, project, **kw):
     """
+    File is binary in the request body.
     """
     from pylons import request
     print request.headers
@@ -51,9 +58,10 @@ def upload(real_user, user, project, **kw):
     
     #this is inefficient. Pylons supposedly already creates a tmp file. We are instead
     #reading the thing into memory. I'm lazy until this beomes an issue (prolly soon)
+    #V: please make this not suck
     f.write(request.environ['wsgi.input'].read())
     f.close()
     
-    #fileObj = project.add_change(os.path.join(path, fname), tmpname, u'')
+    change = project.add_change(os.path.join(path, fname), tmpname, u'')
     
-    return True
+    return change.entity, change
