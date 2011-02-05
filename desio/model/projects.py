@@ -388,14 +388,61 @@ class Uploadable(object):
         url = urlparse.urlsplit(files_storage)
         return self._uploaders[url.scheme](files_storage)
 
-class Change(Base, Uploadable):
+class Commentable(object):
+    """
+    Share the code to comment on a Change or ChangeExtract and use _comment_attribute
+    to indicate the field in the Comment that references back to the subclass.
+    """
+    _comment_attribute = None
+
+    def add_comment(self, user, body, x=None, y=None, width=None, height=None):
+        """
+        Add a new comment to this ChangeExtract.
+        """
+        comment = Comment(creator=user, body=body, x=x, y=y, width=width, height=height, **{self._comment_attribute: self})
+        Session.add(comment)
+        return comment
+
+    def get_comments(self, limit=None, offset=None, asc=True, with_position=False):
+        """
+        Get the comments associated with this change(_extract), since there could be many make
+        it possible to limit/offset and order the results through the call, to make
+        pagination easier.
+
+        if with_position is True returns only comments with position otherwise only
+        those that don't have a position.
+
+        They are returned separately because they are not really the same kind of comment
+        and can't/shouldn't be displayed together. 
+        """
+        q = Session.query(Comment)
+        q = q.filter_by(**{self._comment_attribute: self})
+        if with_position:
+            q = q.filter(Comment.x!=None)
+            q = q.filter(Comment.y!=None)
+        else:
+            q = q.filter_by(x=None)
+            q = q.filter_by(y=None)      
+        order_by = sa.desc(Comment.id)
+        if asc:
+            order_by = sa.asc(Comment.id)
+        q = q.order_by(order_by)
+        if limit is not None:
+            q = q.limit(limit)
+        if offset is not None:
+            q = q.offset(offset)
+        return q.all()
+
+    
+class Change(Base, Uploadable, Commentable):
     """
     Every single change to a File through a changeset is also added to this table
     to query them later when the user needs to see the history of changes to a
     specific file.
     """
     __tablename__ = "changes"
-    
+    _comment_attribute = "change"
+
     id = sa.Column(sa.Integer, primary_key=True)
     eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
     status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
@@ -460,12 +507,7 @@ class Change(Base, Uploadable):
         """
         path = self._get_base_url_path()
         return "/".join([path, "thumbnail-0-" + self.eid]) + ChangeExtract.ext
-    
-    def add_comment(self, body, x=None, y=None, width=None, height=None):
-        """
-        Add a new comment to this change.
-        """
-
+        
     def set_contents(self, tmp_contents_filepath):
         """
         Upload the changed file to its location, generate a diff if it's not.
@@ -494,13 +536,14 @@ class Change(Base, Uploadable):
         
         return extracts
     
-class ChangeExtract(Base, Uploadable):
+class ChangeExtract(Base, Uploadable, Commentable):
     """
     Every file can have extra data attached to them, for example a .png
     could be exploded to multiple files. One specific page is identified
     via Change.eid + FileExtra.order_index inside the original file.
     """
     __tablename__ = "change_extracts"
+    _comment_attribute = "change_extract"
     
     id = sa.Column(sa.Integer, primary_key=True)
 
@@ -548,11 +591,7 @@ class ChangeExtract(Base, Uploadable):
         Url is optinal
         """
         self.uploader.set_contents(tmp_contents_filepath, self.url)
-    
-    def add_comment(self, body, x=None, y=None, width=None, height=None):
-        """
-        Add a new comment to this extract
-        """
+
     
 class Comment(Base):
     __tablename__ = "comments"
@@ -565,15 +604,32 @@ class Comment(Base):
     width = sa.Column(sa.Integer)
     height = sa.Column(sa.Integer)
     
-    body = sa.Column(sa.UnicodeText())
+    body = sa.Column(sa.UnicodeText(), nullable=False)
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     edit_date = sa.Column(sa.DateTime, nullable=False, default=date.now, onupdate=date.now)
     
-    user = relationship("User", backref=backref("comments", cascade="all"))
-    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
+    creator = relationship("User", backref=backref("created_comments", cascade="all"))
+    creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
 
     change = relationship("Change", backref=backref("comments", cascade="all"))
-    change_id = sa.Column(sa.Integer, sa.ForeignKey('changes.id'), nullable=False, index=True)
+    change_id = sa.Column(sa.Integer, sa.ForeignKey('changes.id'), index=True)
 
     change_exctract = relationship("ChangeExtract", backref=backref("comments", cascade="all"))
-    change_exctract_id = sa.Column(sa.Integer, sa.ForeignKey('change_extracts.id'), nullable=False, index=True)
+    change_exctract_id = sa.Column(sa.Integer, sa.ForeignKey('change_extracts.id'), index=True)
+
+    @property
+    def position(self):
+        """
+        Return a 4-tuple with x, y, width, height that can be used to draw a rectangle.
+
+        If x or y are None it actually returns None because no rectangle can be drawn.
+
+        If width and height are None but not x, y it returns predefined width/height
+        """
+        if self.x is None or self.y is None:
+            return None
+
+        if self.width is None or self.height is None:
+            return (self.x, self.y, 100, 100)
+
+        return self.x, self.y, self.width, self.height
