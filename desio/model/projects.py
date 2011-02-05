@@ -1,6 +1,7 @@
 import os
 import mimetypes as mt
 import urlparse
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship, backref
@@ -96,6 +97,19 @@ class Project(Base):
         if creator:
             self.attach_user(creator, PROJECT_ROLE_ADMIN)
 
+    @property
+    def last_modified(self):
+        """
+        Return the most recent last_modified date, wether it is the project metadata change
+        or one of the entities in it.
+        """
+        last_changed_file = Session.query(sa.func.max(Entity.last_modified_date)).filter_by(project=self).first()[0]
+
+        if last_changed_file:
+            return max(self.last_modified_date, last_changed_file)
+        
+        return self.last_modified_date
+            
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.name, self.status, self.slug))
             
@@ -301,7 +315,7 @@ class Entity(Base):
         update the activity datetime on it.
         """
         self.last_modified_date = date.now()
-        self.project.update_activity()
+        #self.project.update_activity()
     
     def _create_parent_directories(self):
         """
