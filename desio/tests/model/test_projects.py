@@ -53,7 +53,9 @@ class TestProjects(TestController):
         try:
             project.get_file(u"/")
         except Exception, e:
-            assert str(e).startswith("Only one complete path is supported")
+            assert str(e).startswith("AppException: Only one complete path is supported")
+        else:
+            raise Exception("Why wasn't I raised?")
 
         current = project.last_modified_date
         project.deactivate()
@@ -76,7 +78,13 @@ class TestProjects(TestController):
 
         assert project.get_changes(u"/foobar.gif") == [change]
         assert change.url and change.diff_url and change.thumbnail_url
-    
+
+        filepath = file_path('ffcc00.gif')
+        change2 = project.add_change(u"/foobar.gif", filepath, u"this is a new new change")
+        self.flush()
+
+        assert project.get_changes(u"/foobar.gif") == [change2, change]
+
     def test_extracts(self):
         """
         Test basic changeset functionality
