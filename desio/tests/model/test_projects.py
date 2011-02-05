@@ -96,6 +96,10 @@ class TestProjects(TestController):
             assert entity.name # there can be no root.
             assert entity.path == u"/"
 
+        assert project.get_entities(u'/')[0].name == 'foobar2.gif'
+        assert project.get_entities(u'/', order_by_field='name')[0].name == 'main'
+        assert project.get_entities(u'/', order_by_field='name', desc=False)[0].name == 'foobar2.gif'
+            
     def test_changes(self):
         """
         Test basic changes functionality

@@ -116,7 +116,7 @@ class Project(Base):
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
     
-    def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS):
+    def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS, order_by_field=u'last_modified_date', desc=True):
         """
         Get all project entities that have the given path and the given name if any.
         And which status is STATUS_EXISTS.
@@ -142,9 +142,18 @@ class Project(Base):
             
         if only_type:
             q = q.filter_by(type=only_type)
+
         if name:
             q = q.filter_by(name=name)
             return q.first()
+
+        order_by_field = getattr(Entity, order_by_field, Entity.last_modified_date)
+
+        order_by = sa.asc(order_by_field)
+        if desc:
+            order_by = sa.desc(order_by_field)
+
+        q = q.order_by(order_by)
         return q.all()
 
     def get_file(self, filepath):
@@ -273,6 +282,9 @@ class Entity(Base):
     name = sa.Column(sa.UnicodeText(), nullable=False)
     
     description = sa.Column(sa.UnicodeText())
+    #: this is not the modified date of this object but of the entire set of changes
+    #: to give idea of activity
+    last_modified_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
 
     project = relationship("Project", backref=backref("entities", cascade="all"))
     project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
@@ -282,6 +294,14 @@ class Entity(Base):
 
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
+
+    def update_activity(self):
+        """
+        Whenever the project is changed, the code should also update the
+        update the activity datetime on it.
+        """
+        self.last_modified_date = date.now()
+        self.project.update_activity()
     
     def _create_parent_directories(self):
         """
@@ -331,7 +351,7 @@ class Entity(Base):
             return
         self.status = STATUS_REMOVED
         self.name = "%s-%s" % (self.eid, self.name)
-        self.project.update_activity()
+        self.update_activity()
 
     def undelete(self):
         """
@@ -342,7 +362,7 @@ class Entity(Base):
 
         self.status = STATUS_EXISTS
         self.name = self.name.split(u"-", 1)[1]
-        self.project.update_activity()
+        self.update_activity()
         
         
 class Directory(Entity):
@@ -413,7 +433,7 @@ class File(Entity):
         Session.add(change)
         Session.flush()
         change.set_contents(temp_contents_filepath)
-        self.project.update_activity()
+        self.update_activity()
         return change
 
 class Uploadable(object):
