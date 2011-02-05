@@ -61,6 +61,7 @@ class TestProjects(TestController):
         assert project.status == STATUS_INACTIVE
         assert project.name == "%s-%s" % (project.eid, u"helloooo")
         assert project.last_modified_date > current
+        assert project.last_modified == project.last_modified_date
 
     def test_filetree_creation_and_navigation(self):
         """
@@ -88,6 +89,20 @@ class TestProjects(TestController):
         assert project.get_entities(u"/main/project/arnold/foobar.gif") == None
         assert project.get_entities(u"/main/project/arnold/%s" % (entity.name), only_status=None).readable_name == u"foobar.gif"
 
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/foobar2.gif", filepath, u"this is a new change")
+        self.flush()
+
+        for entity in project.get_entities(u'/'):
+            assert entity.name # there can be no root.
+            assert entity.path == u"/"
+
+        assert project.get_entities(u'/')[0].name == 'foobar2.gif'
+        assert project.get_entities(u'/', order_by_field='name')[0].name == 'main'
+        assert project.get_entities(u'/', order_by_field='name', desc=False)[0].name == 'foobar2.gif'
+
+        assert project.last_modified > project.last_modified_date
+        
     def test_changes(self):
         """
         Test basic changes functionality
@@ -99,6 +114,7 @@ class TestProjects(TestController):
         filepath = file_path('ffcc00.gif')
         change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
+        assert change.version == 1
 
         assert project.get_changes(u"/foobar.gif") == [change]
         assert change.url and change.diff_url and change.thumbnail_url
@@ -106,8 +122,10 @@ class TestProjects(TestController):
         filepath = file_path('ffcc00.gif')
         change2 = project.add_change(user, u"/foobar.gif", filepath, u"this is a new new change")
         self.flush()
+        assert change2.version == 2
 
         assert project.get_changes(u"/foobar.gif") == [change2, change]
+
 
         comment = change.add_comment(user, u'foobar')
         comment1 = change.add_comment(user, u'foobar', 1, 2)

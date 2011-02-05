@@ -1,6 +1,7 @@
 import os
 import mimetypes as mt
 import urlparse
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship, backref
@@ -96,6 +97,19 @@ class Project(Base):
         if creator:
             self.attach_user(creator, PROJECT_ROLE_ADMIN)
 
+    @property
+    def last_modified(self):
+        """
+        Return the most recent last_modified date, wether it is the project metadata change
+        or one of the entities in it.
+        """
+        last_changed_file = Session.query(sa.func.max(Entity.last_modified_date)).filter_by(project=self).first()[0]
+
+        if last_changed_file:
+            return max(self.last_modified_date, last_changed_file)
+        
+        return self.last_modified_date
+            
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.name, self.status, self.slug))
             
@@ -116,7 +130,7 @@ class Project(Base):
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
     
-    def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS):
+    def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS, order_by_field=u'last_modified_date', desc=True):
         """
         Get all project entities that have the given path and the given name if any.
         And which status is STATUS_EXISTS.
@@ -142,11 +156,18 @@ class Project(Base):
             
         if only_type:
             q = q.filter_by(type=only_type)
+
         if name:
             q = q.filter_by(name=name)
             return q.first()
         
-        #order by updated date...
+        order_by_field = getattr(Entity, order_by_field, Entity.last_modified_date)
+
+        order_by = sa.asc(order_by_field)
+        if desc:
+            order_by = sa.desc(order_by_field)
+
+        q = q.order_by(order_by)
         return q.all()
 
     def get_file(self, filepath):
@@ -292,6 +313,9 @@ class Entity(Base):
     name = sa.Column(sa.UnicodeText(), nullable=False)
     
     description = sa.Column(sa.UnicodeText())
+    #: this is not the modified date of this object but of the entire set of changes
+    #: to give idea of activity
+    last_modified_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
 
     project = relationship("Project", backref=backref("entities", cascade="all"))
     project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
@@ -301,6 +325,14 @@ class Entity(Base):
 
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
+
+    def update_activity(self):
+        """
+        Whenever the project is changed, the code should also update the
+        update the activity datetime on it.
+        """
+        self.last_modified_date = date.now()
+        #self.project.update_activity()
     
     def _create_parent_directories(self):
         """
@@ -309,7 +341,14 @@ class Entity(Base):
         self.path is the path part of the full filepath already so name
         here is actually the name of the directory.
         """
-        segments = self.path.lstrip("/").split(u"/")
+        path = self.path.lstrip("/")
+
+        if not path:
+            # if path is '' then there's no parent to create because
+            # we are at root.
+            return
+
+        segments = path.split(u"/")
         current_path = u"/"
         for segment in segments:
 
@@ -343,7 +382,7 @@ class Entity(Base):
             return
         self.status = STATUS_REMOVED
         self.name = "%s-%s" % (self.eid, self.name)
-        self.project.update_activity()
+        self.update_activity()
 
     def undelete(self):
         """
@@ -354,7 +393,7 @@ class Entity(Base):
 
         self.status = STATUS_EXISTS
         self.name = self.name.split(u"-", 1)[1]
-        self.project.update_activity()
+        self.update_activity()
         
         
 class Directory(Entity):
@@ -389,7 +428,7 @@ class File(Entity):
         q = Session.query(Change)
         q = q.filter_by(entity=self)
         q = q.filter_by(project=self.project)
-        q = q.order_by(sa.desc(Change.created_date))
+        q = q.order_by(sa.desc(Change.version))
         return q.all()
     
     def get_change(self, change_eid=None):
@@ -404,7 +443,7 @@ class File(Entity):
         if change_eid:
             q = q.filter_by(eid=change_eid)
         else:
-            q = q.order_by(sa.desc(Change.created_date))
+            q = q.order_by(sa.desc(Change.version))
         
         return q.first()
     
@@ -425,7 +464,7 @@ class File(Entity):
         Session.add(change)
         Session.flush()
         change.set_contents(temp_contents_filepath)
-        self.project.update_activity()
+        self.update_activity()
         return change
 
 class Uploadable(object):
@@ -512,6 +551,7 @@ class Change(Base, Uploadable, Commentable):
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     size = sa.Column(sa.Integer(), nullable=False, default=0)
     diff_size = sa.Column(sa.Integer(), nullable=False, default=0)
+    version = sa.Column(sa.Integer(), nullable=False)
     
     entity = relationship("File", backref=backref("changes", cascade="all"))
     entity_id = sa.Column(sa.Integer, sa.ForeignKey('entities.id'), nullable=False, index=True)
@@ -521,7 +561,27 @@ class Change(Base, Uploadable, Commentable):
 
     creator = relationship("User", backref=backref("created_changes", cascade="all"))
     creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+
+    __table_args__ = (sa.UniqueConstraint('entity_id', 'project_id', 'version'), {})
     
+    def __init__(self, *args, **kwargs):
+        version = kwargs.get('version', None)
+        super(Change, self).__init__(*args, **kwargs)
+
+        if version is None:
+            version = self._get_next_version()
+
+        self.version = version
+
+    def _get_next_version(self):
+        """
+        Retrieve the next version for this change.
+        """
+        current_head = self.entity.get_change()
+        if current_head:
+            return current_head.version + 1
+        return 1
+        
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:
