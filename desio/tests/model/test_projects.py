@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from desio.model import fixture_helpers as fh
-from desio.model import projects as p, STATUS_APPROVED, STATUS_PENDING, STATUS_COMPLETED, STATUS_OPEN, STATUS_INACTIVE
+from desio.model import projects as p, STATUS_APPROVED, STATUS_PENDING, STATUS_COMPLETED, STATUS_OPEN, STATUS_INACTIVE, STATUS_REMOVED
 from desio.model.projects import PROJECT_ROLE_READ, PROJECT_ROLE_WRITE, PROJECT_ROLE_ADMIN
 from desio.tests import *
 from desio.utils import image
@@ -61,7 +61,33 @@ class TestProjects(TestController):
         assert project.status == STATUS_INACTIVE
         assert project.name == "%s-%s" % (project.eid, u"helloooo")
         assert project.last_modified_date > current
-        
+
+    def test_filetree_creation_and_navigation(self):
+        """
+        Test that on file creation the entire directory structure
+        is created and can be browsed.
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/main/project/arnold/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+
+        assert project.get_entities(u"/")[0].name == u"main"
+        assert project.get_entities(u"/main/")[0].name == u"project"
+        assert project.get_entities(u"/main/project/")[0].name == u"arnold"
+        assert project.get_entities(u"/main/project/arnold/")[0].name == u"foobar.gif"
+        assert project.get_entities(u"/main/project/arnold/foobar.gif").name == u"foobar.gif"
+        entity = project.get_entities(u"/main/project/arnold/foobar.gif")
+        entity.delete()
+        self.flush()
+        assert entity.status == STATUS_REMOVED
+        assert entity.name == "%s-%s" % (entity.eid, entity.readable_name)
+        assert project.get_entities(u"/main/project/arnold/foobar.gif") == None
+        assert project.get_entities(u"/main/project/arnold/%s" % (entity.name), only_status=None).readable_name == u"foobar.gif"
+
     def test_changes(self):
         """
         Test basic changes functionality

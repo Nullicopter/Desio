@@ -95,7 +95,10 @@ class Project(Base):
         creator = kwargs.get('creator')
         if creator:
             self.attach_user(creator, PROJECT_ROLE_ADMIN)
-    
+
+    def __repr__(self):
+        return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.name, self.status, self.slug))
+            
     def update_activity(self):
         """
         Whenever the project is changed, the code should also update the
@@ -113,19 +116,30 @@ class Project(Base):
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
     
-    def get_entities(self, filepath, only_type=None):
+    def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS):
         """
         Get all project entities that have the given path and the given name if any.
         And which status is STATUS_EXISTS.
 
         Optionally that are at the given path or deeper???.
-        Maybe I should re-introduce directories too, created when creating Files.
+
+        Note: It is VERY important that filepath ends with / when you want to
+        see a directory, otherwise it's interpreted as a filename.
+
+        /foo/bar/gaz <- is a file (returns 1 result)
+        /foo/bar/gaz/ <- is a directory (returns contents)
         """
-        path, name = os.path.split(filepath)
 
         q = Session.query(Entity)
-        q = q.filter_by(path=path)
         q = q.filter_by(project=self)
+        name = None
+        if filepath is not None:
+            path, name = os.path.split(filepath)
+            q = q.filter_by(path=path)
+
+        if only_status is not None:
+            q = q.filter_by(status=only_status)
+            
         if only_type:
             q = q.filter_by(type=only_type)
         if name:
@@ -158,7 +172,7 @@ class Project(Base):
                                project=self)
             Session.add(file_object)
 
-        return file_object.add_change(user, self, temp_contents_filepath, description)
+        return file_object.add_change(user, temp_contents_filepath, description)
     
     def get_changes(self, filepath):
         """
@@ -263,15 +277,67 @@ class Entity(Base):
     project = relationship("Project", backref=backref("entities", cascade="all"))
     project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
 
-    __table_args__ = (sa.UniqueConstraint('path', 'name', 'project_id'), {})
+    __table_args__ = (sa.UniqueConstraint('path', 'name', 'project_id', 'type'), {})
     __mapper_args__ = {'polymorphic_on': type}
 
-    def remove(self):
-        """
-        Remove the entity from the system.
-        """
-        self.status = STATUS_REMOVED
+    def __repr__(self):
+        return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
     
+    def _create_parent_directories(self):
+        """
+        Check if the parent directory exists and if it doesn't create it.
+
+        self.path is the path part of the full filepath already so name
+        here is actually the name of the directory.
+        """
+        segments = self.path.lstrip("/").split(u"/")
+        current_path = u"/"
+        for segment in segments:
+
+            q = Session.query(Directory)
+            q = q.filter_by(path=current_path)
+            q = q.filter_by(name=segment)
+            directory = q.first()
+
+            if not directory:
+                directory = Directory(path=current_path, name=segment, project=self.project)
+                Session.add(directory)
+
+            current_path = directory.child_path
+
+    @property
+    def readable_name(self):
+        """
+        We mangle the name upon delete to avoid multiple entities with the same
+        name. Using this we remove that mangling in order to render it to the
+        user.
+        """
+        if self.status == STATUS_REMOVED:
+            return self.name.split(u"-", 1)[1]
+        return self.name
+
+    def delete(self):
+        """
+        Delete an existing entity from the system.
+        """
+        if self.status == STATUS_REMOVED:
+            return
+        self.status = STATUS_REMOVED
+        self.name = "%s-%s" % (self.eid, self.name)
+        self.project.update_activity()
+
+    def undelete(self):
+        """
+        Undelete an entity that was previously deleted from the system.
+        """
+        if self.status == STATUS_EXISTS:
+            return
+
+        self.status = STATUS_EXISTS
+        self.name = self.name.split(u"-", 1)[1]
+        self.project.update_activity()
+        
+        
 class Directory(Entity):
     """
     A directory, mainly used to display directories and ease the querying.
@@ -282,6 +348,10 @@ class Directory(Entity):
     TYPE = u'd'
     __mapper_args__ = {'polymorphic_identity': TYPE}
 
+    @property
+    def child_path(self):
+        return os.path.join(self.path, self.name)
+    
 class File(Entity):
     """
     A File is the basic unit of each project
@@ -291,36 +361,8 @@ class File(Entity):
 
     def __init__(self, *args, **kwargs):
         super(File, self).__init__(*args, **kwargs)
-        self._create_parent_directory()
+        self._create_parent_directories()
         
-    def _create_parent_directory(self):
-        """
-        Check if the parent directory exists and if it doesn't create it.
-
-        self.path is the path part of the full filepath already so name
-        here is actually the name of the directory.
-        """
-        path, name = os.path.split(self.path)
-        q = Session.query(Directory)
-        q = q.filter_by(path=path)
-        q = q.filter_by(name=name)
-        directory = q.first()
-        if directory:
-            return
-
-        directory = Directory(path=path, name=name, project=self.project)
-        Session.add(directory)
-        
-    def remove(self):
-        """
-        Remove the file from the repository
-
-        XXX: Super HARD
-        """
-        change = self.add_change()
-        change.status = STATUS_REMOVED
-        self.project.update_activity()
-
     def get_changes(self):
         """
         Fetch change for this file.
@@ -347,7 +389,7 @@ class File(Entity):
         
         return q.first()
     
-    def add_change(self, user, project, temp_contents_filepath, description):
+    def add_change(self, user, temp_contents_filepath, description):
         """
         Introduce a new change in the given changeset using the file stored
         at temp_contents_filepath with the given description for the change.
@@ -359,7 +401,7 @@ class File(Entity):
         change = Change(description=description,
                         size=size,
                         entity=self,
-                        project=project,
+                        project=self.project,
                         creator=user)
         Session.add(change)
         Session.flush()
