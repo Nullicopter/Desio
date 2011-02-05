@@ -59,6 +59,6 @@ def upload(real_user, user, project, **kw):
     f.write(request.environ['wsgi.input'].read())
     f.close()
     
-    change = project.add_change(os.path.join(path, fname), tmpname, u'')
+    change = project.add_change(user, os.path.join(path, fname), tmpname, u'')
     
     return change.entity, change

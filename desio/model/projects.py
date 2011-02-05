@@ -144,7 +144,7 @@ class Project(Base):
 
         return self.get_entities(filepath, File.TYPE)
 
-    def add_change(self, filepath, temp_contents_filepath, description):
+    def add_change(self, user, filepath, temp_contents_filepath, description):
         """
         Check that file exists, if it does add a Change directly.
         If it doesn't exist, create the File and then add the change.
@@ -158,7 +158,7 @@ class Project(Base):
                                project=self)
             Session.add(file_object)
 
-        return file_object.add_change(self, temp_contents_filepath, description)
+        return file_object.add_change(user, self, temp_contents_filepath, description)
     
     def get_changes(self, filepath):
         """
@@ -347,7 +347,7 @@ class File(Entity):
         
         return q.first()
     
-    def add_change(self, project, temp_contents_filepath, description):
+    def add_change(self, user, project, temp_contents_filepath, description):
         """
         Introduce a new change in the given changeset using the file stored
         at temp_contents_filepath with the given description for the change.
@@ -359,7 +359,8 @@ class File(Entity):
         change = Change(description=description,
                         size=size,
                         entity=self,
-                        project=project)
+                        project=project,
+                        creator=user)
         Session.add(change)
         Session.flush()
         change.set_contents(temp_contents_filepath)
@@ -410,6 +411,9 @@ class Change(Base, Uploadable):
     project = relationship("Project", backref=backref("changes", cascade="all"))
     project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
 
+    creator = relationship("User", backref=backref("created_changes", cascade="all"))
+    creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:

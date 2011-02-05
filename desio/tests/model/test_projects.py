@@ -71,14 +71,14 @@ class TestProjects(TestController):
         self.flush()
 
         filepath = file_path('ffcc00.gif')
-        change = project.add_change(u"/foobar.gif", filepath, u"this is a new change")
+        change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
 
         assert project.get_changes(u"/foobar.gif") == [change]
         assert change.url and change.diff_url and change.thumbnail_url
 
         filepath = file_path('ffcc00.gif')
-        change2 = project.add_change(u"/foobar.gif", filepath, u"this is a new new change")
+        change2 = project.add_change(user, u"/foobar.gif", filepath, u"this is a new new change")
         self.flush()
 
         assert project.get_changes(u"/foobar.gif") == [change2, change]
@@ -92,7 +92,7 @@ class TestProjects(TestController):
         self.flush()
 
         filepath = file_path('headphones.eps')
-        change = project.add_change(u"/headphones.eps", filepath, u"this is a new change")
+        change = project.add_change(user, u"/headphones.eps", filepath, u"this is a new change")
         self.flush()
         Session.refresh(change)
         

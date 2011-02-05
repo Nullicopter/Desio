@@ -15,7 +15,7 @@ class TestFile(TestController):
         self.login(user)
 
         filepath = file_path('ffcc00.gif')
-        change = project.add_change(u"/foobar.gif", filepath, u"this is a new change")
+        change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
         
         r = self.client_async(api_url('file', 'get', project=project.eid), {'path': u"/foobar.gif"})
