@@ -88,6 +88,14 @@ class TestProjects(TestController):
         assert project.get_entities(u"/main/project/arnold/foobar.gif") == None
         assert project.get_entities(u"/main/project/arnold/%s" % (entity.name), only_status=None).readable_name == u"foobar.gif"
 
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/foobar2.gif", filepath, u"this is a new change")
+        self.flush()
+
+        for entity in project.get_entities(u'/'):
+            assert entity.name # there can be no root.
+            assert entity.path == u"/"
+        
     def test_changes(self):
         """
         Test basic changes functionality

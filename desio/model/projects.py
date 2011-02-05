@@ -290,7 +290,14 @@ class Entity(Base):
         self.path is the path part of the full filepath already so name
         here is actually the name of the directory.
         """
-        segments = self.path.lstrip("/").split(u"/")
+        path = self.path.lstrip("/")
+
+        if not path:
+            # if path is '' then there's no parent to create because
+            # we are at root.
+            return
+
+        segments = path.split(u"/")
         current_path = u"/"
         for segment in segments:
 
