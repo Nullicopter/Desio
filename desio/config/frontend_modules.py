@@ -67,7 +67,8 @@ JS = {
         'quaid/src/extension/notifications.js',
         'quaid/src/extension/editablefield.js',
         
-        'lib/base.js'
+        'lib/base.js',
+        'lib/util.js'
     ]),
     
     'ui': ('build/ui.js', [
@@ -80,7 +81,13 @@ JS = {
         'test/test_base.js',
     ]),
     
-    'project': ('build/modules/project.js', ['lib/modules/project.js']),
+    'project': ('build/modules/project.js', [
+        'lib/modules/project.js'
+    ]),
+    
+    'file': ('build/modules/file.js', [
+        'lib/modules/file.js'
+    ]),
     
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
     'controllers.admin': ('build/controllers/admin.js', [

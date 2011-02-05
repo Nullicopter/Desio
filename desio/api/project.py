@@ -5,11 +5,13 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     CanContributeToOrg, CanReadOrg
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
+import os.path
 
 import formencode
 import formencode.validators as fv
 
 from pylons_common.lib.exceptions import *
+from pylons_common.lib.utils import uuid
 
 ID_PARAM = 'project'
 
@@ -167,3 +169,93 @@ def set_user_role(real_user, user, project, u, role):
 def get_users(real_user, user, project, status=STATUS_APPROVED):
     
     return project.get_project_users(status=status)
+
+def _get_files_for_dir(project, dirobj):
+    if not dir: return None
+    
+    newpath = os.path.join(dirobj.path, dirobj.name)+'/'
+    dirfiles = project.get_entities(filepath=newpath, only_type=projects.File.TYPE)
+    d = (dirobj, [])
+    for f in dirfiles:
+        d[1].append(get_file_tuple(f))
+    return d
+
+@enforce(path=unicode)
+@authorize(CanWriteProject())
+def add_directory(real_user, user, project, path):
+    if not path:
+        raise ClientException('Specify a path and name', code=NOT_FOUND, field='path')
+    dir = project.add_directory(user, path)
+    print path, dir
+    
+    return _get_files_for_dir(project, dir)
+
+@enforce(path=unicode)
+@authorize(CanWriteProject())
+def get_directory(real_user, user, project, path):
+    """
+    returns
+    [(Directory(/), [
+        (File('bleh.png'), Change('latestversion')),
+    ]),
+    """
+    if not path:
+        raise ClientException('Specify a path and name', code=NOT_FOUND, field='path')
+    
+    if path[-1] != u'/': path = path + u'/'
+    
+    dir = project.get_entities(user, path[:-1], only_type=projects.Directory.TYPE)
+    
+    return _get_files_for_dir(project, dir)
+    
+@enforce(path=unicode)
+@authorize(CanReadProject())
+def get_structure(real_user, user, project, path=u'/'):
+    """
+    For a given path will get all the files, directories and files within
+    the top level directories.
+    
+    returns something like this:
+    [(Directory(/), [
+        (File('bleh.png'), Change('latestversion')),
+    ]),
+    (Directory(/mydir), [
+        (File('bleh2.png'), Change('latestversion')),
+    ]),]
+    """
+    
+    if not path:
+        raise ClientException('Path! Specify it.', code=NOT_FOUND, field='path')
+    
+    if path[-1] != u'/': path = path + u'/'
+    
+    def get_file_tuple(f):
+        return (f, f.get_change())
+    
+    entities = project.get_entities(filepath=path)
+    
+    res = []
+    cur_dir = None
+    cur_dir_files = []
+    for entity in entities:
+        if entity.type == projects.File.TYPE:
+            cur_dir_files.append(get_file_tuple(entity))
+        
+        #root dir is a special case...
+        elif entity.type == projects.Directory.TYPE and not entity.name:
+            cur_dir = entity
+        
+        #is directory
+        else:
+            res.append(_get_files_for_dir(project, entity))
+    
+    if not cur_dir:
+        if path[:-1]:
+            cur_dir = project.get_entities(filepath=path[:-1])
+        else:
+            #return fake dir for root
+            cur_dir = projects.Directory(path=u'/', name=u'', eid=uuid())
+    
+    res = [(cur_dir, cur_dir_files)] + res
+    return res
+    

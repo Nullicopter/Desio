@@ -1,1 +1,4 @@
 .hidden { display: none; }
+.clearl { clear: left; }
+.clearr { clear: right; }
+.clear { clear: both; }

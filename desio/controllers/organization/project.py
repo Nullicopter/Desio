@@ -3,6 +3,7 @@ from desio.lib.base import *
 from desio.lib import modules
 from desio.model import users, projects, STATUS_APPROVED
 from desio.api import authorize
+from desio.controllers.api import v1
 
 import formencode
 import formencode.validators as fv
@@ -46,10 +47,14 @@ class ProjectController(OrganizationBaseController):
     
     @has_project()
     @authorize(CanReadProjectRedirect())
-    def view(self, slug=None, path=None, project=None, **kw):
+    def view(self, slug=None, path=u'/', project=None, **kw):
         c.title = project.name
         
         logger.info('viewing %s/%s' % (slug, path))
+        
+        struc = api.project.get_structure(c.real_user, c.user, c.project, path)
+        c.structure = v1.project.get_structure().output(struc)
+        c.path = path
         
         return self.render('/organization/project/view.html')
     

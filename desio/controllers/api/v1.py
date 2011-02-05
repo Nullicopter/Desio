@@ -75,6 +75,33 @@ class project:
     class get_users:
         def output(self, org_users):
             return [project.attach_user().output(ou) for ou in org_users]
+    
+    class get_directory:
+        def get_dir(self, d):
+            return itemize(d, 'name', 'path', 'eid', 'description')
+        
+        def output(self, d):
+            d, files = d
+            dir = self.get_dir(d)
+            dir['files'] = [file.get().output(f) for f in files]
+            
+            import pprint
+            pp = pprint.PrettyPrinter(indent=4)
+            pp.pprint(dir)
+
+            return dir
+    
+    class add_directory:
+        def output(self, d):
+            return project.get_directory().output(d)
+    
+    class get_structure:
+        
+        def output(self, struc):
+            res = []
+            for d, files in struc:
+                res.append(project.get_directory().output((d, files)))
+            return res
 
 class file:
     class upload:

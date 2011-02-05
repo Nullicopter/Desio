@@ -28,7 +28,6 @@ def get(real_user, user, project, path, version=None):
         raise ClientException(e.msg, code=e.code, field='path')
     
     return f, f.get_change(version)
-    
 
 @enforce(binbody=bool)
 @authorize(CanReadProject())
@@ -47,6 +46,9 @@ def upload(real_user, user, project, **kw):
     ext = None
     if type:
         ext = mimetypes.guess_extension(type)
+        if not ext:
+            _, ext = os.path.splitext(fname)
+        ext = ext or ''
     
     f, tmpname = tempfile.mkstemp(ext)
     #why is this returning an int on my machine? Supposed to be a file pointer.

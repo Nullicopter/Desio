@@ -1,32 +1,142 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
-
+<%!
+    import simplejson as json
+%>
 <%def name="header()">
     ${parent.header()}
+    ${r.require('file')}
     <style type="text/css">
-    #drop{
-        border: 5px dotted #ddd;
-        background: #f5f5f5;
+    .files-container{position: relative;}
+    .files{min-height: 100px;}
+    .drop{
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0px;
+        opacity: .8;
+        border: 5px dotted #ccc;
+        background: #eee;
         -moz-border-radius: 10px;
         font-size: 22pt;
-        color: #999;
+        color: #777;
         text-align: center;
-        padding: 30px 0;
+        z-index: 20px;
     }
+    .file, .processing-file{
+        width: 310px;
+        margin: 5px 5px 5px 0;
+        position: relative;
+        float: left;
+        height: 232px;
+        overflow: hidden;
+    }
+    .file img, .processing-file img{
+        width: 310px;
+    }
+    .file .name-bar, .processing-file .name-bar{
+        height: 30px;
+        background: #000;
+        position: absolute;
+        bottom:0; left: 0;
+        width: 310px;
+        opacity: .4}
+    .file .name, .processing-file .name{
+        height: 30px;
+        color: #fff;
+        line-height: 30px;
+        font-weight: bold;
+        position: absolute;
+        bottom:0; left: 0;
+        padding-left: 8px;
+        }
+    
+    .processing-file .progress-container{
+        height: 30px;
+        width: 270px;
+        background: #fff;
+        -moz-border-radius: 10px;
+        line-height: 30px;
+        font-weight: bold;
+        position: absolute;
+        top:100px; left: 20px;
+    }
+    
+    .processing-file .progress-text{
+        position: absolute; top: 0; left: 0;
+        height: 30px; width: 270px;
+        line-height: 30px;
+        text-align: center;
+    }
+    .processing-file .progress{
+        position: absolute; top: 0; left: 0;
+        background: #ccc;
+        height: 30px;
+        -moz-border-radius: 10px;
+    }
+    
     </style>
     <script type="text/javascript">
     new Q.ViewProjectPage({
-        dropzone: '#drop',
-        url: '${h.api_url('file', 'upload', project=c.project.eid)}'
+        module: '#files-module',
+        previewImage: '/i/site/preview.png',
+        url: '${h.api_url('file', 'upload', project=c.project.eid)}',
+        directories: ${json.dumps(c.structure) | n},
+        path: '${c.path}'
     }).readyrun();
     </script>
 </%def>
+
+<div>
+    <a id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">Add Directory</a>
+</div>
 
 % if c.project.description:
     <p>${c.project.description}</p>
 % endif
 
-<div id="drop">
-    <p>Drop files here</p>
-</div>
+<div id="files-module"></div>
+
+<div style="clear: left"></div>
+
+<script id="root-template" class="jstemplate" type="text/template">
+    <div class="files-container">
+        <div class="files">
+        </div>
+        <div class="clearl"></div>
+    </div>
+</script>
+
+<script id="dir-template" class="jstemplate" type="text/template">
+    <h2>{{name}}</h2>
+    <div class="files-container">
+        <div class="files">
+        </div>
+        <div class="clearl"></div>
+    </div>
+</script>
+
+<script id="droptarget-template" class="jstemplate" type="text/template">
+    <div class="drop">
+        <p>Drop files here</p>
+    </div>
+</script>
+
+<script id="upload-template" class="jstemplate" type="text/template">
+    <div class="name-bar"></div>
+    <div class="name">{{name}} - {{size}}</div>
+    
+    <div class="progress-container">
+        <div class="progress" style="width: 100%"></div>
+        <div class="progress-text">100%</div>
+    </div>
+    <img src=""/>
+</script>
+
+<script id="file-template" class="jstemplate" type="text/template">
+    <div class="name-bar"></div>
+    <div class="name">{{name}} - {{size}}</div>
+    
+    <a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
+        <img src="{{thumbnail_url}}" />
+    </a>
+</script>

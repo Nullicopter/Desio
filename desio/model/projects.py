@@ -136,7 +136,7 @@ class Project(Base):
         if filepath is not None:
             path, name = os.path.split(filepath)
             q = q.filter_by(path=path)
-
+        
         if only_status is not None:
             q = q.filter_by(status=only_status)
             
@@ -145,6 +145,8 @@ class Project(Base):
         if name:
             q = q.filter_by(name=name)
             return q.first()
+        
+        #order by updated date...
         return q.all()
 
     def get_file(self, filepath):
@@ -173,6 +175,23 @@ class Project(Base):
             Session.add(file_object)
 
         return file_object.add_change(user, temp_contents_filepath, description)
+    
+    def add_directory(self, user, path):
+        """
+        Check if dir exists, if so return it. If not create dir.
+        """
+        dir_object = self.get_entities(path, only_type=Directory.TYPE)
+        
+        if dir_object:
+            return dir_object
+        
+        path, name = os.path.split(path)
+        dir_object = Directory(path=path,
+                           name=name,
+                           project=self)
+        Session.add(dir_object)
+
+        return dir_object
     
     def get_changes(self, filepath):
         """

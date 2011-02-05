@@ -123,6 +123,34 @@ class TestProject(TestController):
         
         self.flush();
     
+    def test_get_structure(self):
+        """
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"kadkoasdok")
+        self.flush()
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/stuff/things.gif", filepath, u"this is a new change")
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/stuff/cats/kitten.gif", filepath, u"this is a new change")
+        filepath = file_path('headphones.eps')
+        change = project.add_change(user, u"/stuff/headphones.eps", filepath, u"Mah headphones")
+        self.flush()
+        
+        s = api.project.get_structure(user, user, project, '/')
+        assert len(s) == 2
+        assert s[0][0].name == ''
+        assert s[0][0].path == '/'
+        
+        file, ch = s[0][1][0]
+        assert file.name == 'foobar.gif'
+        
+        s = api.project.get_structure(user, user, project, '/stuff/')
+        assert len(s) == 2
+    
     def test_membership(self):
         org_owner = fh.create_user()
         owner = fh.create_user()
