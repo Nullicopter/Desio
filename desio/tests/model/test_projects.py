@@ -52,8 +52,8 @@ class TestProjects(TestController):
 
         try:
             project.get_file(u"/")
-        except Exception, e:
-            assert str(e).startswith("Only one complete path is supported")
+        except AppException, e:
+            assert e.msg.startswith("Only one complete path is supported")
 
         current = project.last_modified_date
         project.deactivate()

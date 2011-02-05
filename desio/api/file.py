@@ -37,7 +37,6 @@ def upload(real_user, user, project, **kw):
     File is binary in the request body.
     """
     from pylons import request
-    print request.headers
     fname = request.headers.get('X-Up-Filename')
     type = request.headers.get('X-Up-Type')
     path = request.headers.get('X-Up-Path')
@@ -53,8 +52,6 @@ def upload(real_user, user, project, **kw):
     #why is this returning an int on my machine? Supposed to be a file pointer.
     if isinstance(f, int):
         f = open(tmpname, 'wb')
-    
-    print tmpname
     
     #this is inefficient. Pylons supposedly already creates a tmp file. We are instead
     #reading the thing into memory. I'm lazy until this beomes an issue (prolly soon)

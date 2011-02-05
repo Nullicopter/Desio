@@ -140,7 +140,7 @@ class Project(Base):
         path, name = os.path.split(filepath)
 
         if not name:
-            raise exceptions.AppException("Only one complete path is supported: '%s' given" % (filepath,), code=exception.NOT_FOUND)
+            raise exceptions.AppException("Only one complete path is supported: '%s' given" % (filepath,), code=exceptions.NOT_FOUND)
 
         return self.get_entities(filepath, File.TYPE)
 

@@ -38,7 +38,7 @@ SetupCommand('setup-app').run([pylons.test.pylonsapp.config['__file__']])
 environ = {}
 
 #the data dir is one up!
-datadir = os.path.join(os.path.dirname(__file__), 'data')
+datadir = os.path.join(os.path.dirname(__file__), 'test_data')
 def file_path(f):
     #copy cause our shit moves files.
     p = os.path.join(datadir, f)
