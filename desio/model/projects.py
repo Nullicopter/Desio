@@ -410,9 +410,6 @@ class Change(Base, Uploadable):
     project = relationship("Project", backref=backref("changes", cascade="all"))
     project_id = sa.Column(sa.Integer, sa.ForeignKey('projects.id'), nullable=False, index=True)
 
-    # You can't change the same file multiple times in the same changeset... doesn't make sense
-    __table_args__ = (sa.UniqueConstraint('project_id', 'entity_id'), {})
-
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:
