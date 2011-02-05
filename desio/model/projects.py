@@ -377,7 +377,7 @@ class File(Entity):
         q = Session.query(Change)
         q = q.filter_by(entity=self)
         q = q.filter_by(project=self.project)
-        q = q.order_by(sa.desc(Change.created_date))
+        q = q.order_by(sa.desc(Change.version))
         return q.all()
     
     def get_change(self, change_eid=None):
@@ -392,7 +392,7 @@ class File(Entity):
         if change_eid:
             q = q.filter_by(eid=change_eid)
         else:
-            q = q.order_by(sa.desc(Change.created_date))
+            q = q.order_by(sa.desc(Change.version))
         
         return q.first()
     
@@ -500,6 +500,7 @@ class Change(Base, Uploadable, Commentable):
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     size = sa.Column(sa.Integer(), nullable=False, default=0)
     diff_size = sa.Column(sa.Integer(), nullable=False, default=0)
+    version = sa.Column(sa.Integer(), nullable=False)
     
     entity = relationship("File", backref=backref("changes", cascade="all"))
     entity_id = sa.Column(sa.Integer, sa.ForeignKey('entities.id'), nullable=False, index=True)
@@ -509,7 +510,27 @@ class Change(Base, Uploadable, Commentable):
 
     creator = relationship("User", backref=backref("created_changes", cascade="all"))
     creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+
+    __table_args__ = (sa.UniqueConstraint('entity_id', 'project_id', 'version'), {})
     
+    def __init__(self, *args, **kwargs):
+        version = kwargs.get('version', None)
+        super(Change, self).__init__(*args, **kwargs)
+
+        if version is None:
+            version = self._get_next_version()
+
+        self.version = version
+
+    def _get_next_version(self):
+        """
+        Retrieve the next version for this change.
+        """
+        current_head = self.entity.get_change()
+        if current_head:
+            return current_head.version + 1
+        return 1
+        
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:
