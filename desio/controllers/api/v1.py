@@ -8,6 +8,33 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%SZ'
 def fdatetime(dt):
     return dt.strftime(DATE_FORMAT)
 
+def out_change_extract(extract):
+    edict = itemize(extract, 'order_index', 'extract_type', 'url', 'description')
+    edict['url'] = '/' + edict['url']
+    return edict
+
+def out_change(change, with_extracts=True):
+    out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version')              
+    out['change_description'] = change.description
+    out['change_eid'] = change.eid
+    out['version'] = change.version
+    out['created_date'] = fdatetime(out['created_date'])            
+    out['url'] = '/'+out['url']
+    out['thumbnail_url'] = '/'+out['thumbnail_url']
+
+    if with_extracts:
+        out['extracts'] = []
+        for ex in change.change_extracts:
+            out['extracts'].append(out_change_extract(ex))
+
+    return out
+
+def out_comment(comment):
+    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'in_reply_to_id', 'created_date')
+    out['created_date'] = fdatetime(out['created_date'])            
+    out['creator'] = user.get().output(comment.creator)
+    return out
+
 class error:
     class explode: pass
     class explode_no_auth: pass
@@ -100,6 +127,7 @@ class project:
             return res
 
 class file:
+
     class upload:
         def output(self, f):
             return file.get().output(f)
@@ -109,19 +137,37 @@ class file:
             f, change = f
             
             out = itemize(f, 'eid', 'name', 'path', 'description')
-            out.update(itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version'))
-            out['change_description'] = change.description
-            out['change_eid'] = change.eid
-            out['extracts'] = []
-            for ex in change.change_extracts:
-                edict = itemize(ex, 'order_index', 'extract_type', 'url', 'description')
-                edict['url'] = '/' + edict['url']
-                out['extracts'].append(edict)
-            
-            out['created_date'] = fdatetime(out['created_date'])
-            
-            out['url'] = '/'+out['url']
-            out['thumbnail_url'] = '/'+out['thumbnail_url']
-            
+            out.update(out_change(change))
+
             return out
             
+    class add_comment:
+        def output(self, c):
+            commentable, comment = c
+
+            foutput = None
+            if commentable._comment_attribute == 'change_extract':
+                out = out_change_extract(commentable)
+            elif commentable._comment_attribute == 'change':
+                out = out_change(commentable, with_extracts=False)
+
+            out['comment'] = out_comment(comment)
+
+            return out
+
+    class get_comments:
+        def output(self, c):
+            commentable, comments = c
+
+            foutput = None
+            if commentable._comment_attribute == 'change_extract':
+                out = out_change_extract(commentable)
+            elif commentable._comment_attribute == 'change':
+                out = out_change(commentable, with_extracts=False)
+
+            out['comments'] = []
+            for comment in comments:
+                # XXX TODO: This should be a graph not a simple list
+                out['comments'].append(out_comment(comment))
+
+            return out

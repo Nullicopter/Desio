@@ -14,7 +14,7 @@ from pylons_common.lib.exceptions import *
 
 ID_PARAM = 'file'
 
-@enforce(path=unicode, version=unicode)
+@enforce(path=unicode, version=int)
 @authorize(CanReadProject())
 def get(real_user, user, project, path, version=None):
     """
@@ -64,3 +64,28 @@ def upload(real_user, user, project, **kw):
     change = project.add_change(user, os.path.join(path, fname), tmpname, u'')
     
     return change.entity, change
+
+@enforce(body=unicode, x=int, y=int, width=int, height=int, change=projects.Change, extract=projects.ChangeExtract, in_reply_to=projects.Comment)
+@authorize(CanReadProject())
+def add_comment(real_user, user, project, body, change=None, extract=None, **kw):
+    """
+    Add a comment for either a change or an extract.
+    """
+
+    commentable = change or extract
+
+    comment = commentable.add_comment(user, body, **kw)
+
+    return commentable, comment
+
+@enforce(change=projects.Change, extract=projects.ChangeExtract)
+@authorize(CanReadProject())
+def get_comments(real_user, user, project, change=None, extract=None):
+    """
+    Get all comments related to the commentable object passed
+    """
+    commentable = change or extract
+
+    return commentable, commentable.get_comments()
+    
+    

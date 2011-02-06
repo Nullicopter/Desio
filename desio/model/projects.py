@@ -435,7 +435,7 @@ class File(Entity):
         q = q.order_by(sa.desc(Change.version))
         return q.all()
     
-    def get_change(self, change_eid=None):
+    def get_change(self, version=None):
         """
         Fetch single change for this file.
         """
@@ -444,8 +444,8 @@ class File(Entity):
         q = q.filter_by(project=self.project)
         
         #get HEAD if no change eid specified.
-        if change_eid:
-            q = q.filter_by(eid=change_eid)
+        if version:
+            q = q.filter_by(version=version)
         else:
             q = q.order_by(sa.desc(Change.version))
         
@@ -499,42 +499,21 @@ class Commentable(object):
     """
     _comment_attribute = None
 
-    def add_comment(self, user, body, x=None, y=None, width=None, height=None):
+    def add_comment(self, user, body, x=None, y=None, width=None, height=None, in_reply_to=None):
         """
         Add a new comment to this ChangeExtract.
         """
-        comment = Comment(creator=user, body=body, x=x, y=y, width=width, height=height, **{self._comment_attribute: self})
+        comment = Comment(creator=user, body=body, x=x, y=y, width=width, height=height, in_reply_to=in_reply_to, **{self._comment_attribute: self})
         Session.add(comment)
         return comment
 
-    def get_comments(self, limit=None, offset=None, asc=True, with_position=False):
+    def get_comments(self):
         """
-        Get the comments associated with this change(_extract), since there could be many make
-        it possible to limit/offset and order the results through the call, to make
-        pagination easier.
-
-        if with_position is True returns only comments with position otherwise only
-        those that don't have a position.
-
-        They are returned separately because they are not really the same kind of comment
-        and can't/shouldn't be displayed together. 
+        Get the comments associated with this change(_extract).
         """
         q = Session.query(Comment)
         q = q.filter_by(**{self._comment_attribute: self})
-        if with_position:
-            q = q.filter(Comment.x!=None)
-            q = q.filter(Comment.y!=None)
-        else:
-            q = q.filter_by(x=None)
-            q = q.filter_by(y=None)      
-        order_by = sa.desc(Comment.id)
-        if asc:
-            order_by = sa.asc(Comment.id)
-        q = q.order_by(order_by)
-        if limit is not None:
-            q = q.limit(limit)
-        if offset is not None:
-            q = q.offset(offset)
+        q = q.order_by(sa.asc(Comment.id))
         return q.all()
 
     
@@ -742,6 +721,9 @@ class Comment(Base):
     change_exctract = relationship("ChangeExtract", backref=backref("comments", cascade="all"))
     change_exctract_id = sa.Column(sa.Integer, sa.ForeignKey('change_extracts.id'), index=True)
 
+    in_reply_to = relationship("Comment", backref=backref("replies", cascade="all"), remote_side="Comment.id")
+    in_reply_to_id = sa.Column(sa.Integer, sa.ForeignKey('comments.id'), nullable=True, index=True)
+    
     @property
     def position(self):
         """
