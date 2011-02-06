@@ -81,7 +81,8 @@
         previewImage: '/i/site/preview.png',
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         directories: ${json.dumps(c.structure) | n},
-        path: '${c.path}'
+        path: '${c.path}',
+        showDropTargetOn: 'elemdrag'
     }).readyrun();
     </script>
 </%def>
@@ -107,7 +108,7 @@
 </script>
 
 <script id="dir-template" class="jstemplate" type="text/template">
-    <h2>{{name}}</h2>
+    <h2><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">{{name}}</a></h2>
     <div class="files-container">
         <div class="files">
         </div>
@@ -134,7 +135,7 @@
 
 <script id="file-template" class="jstemplate" type="text/template">
     <div class="name-bar"></div>
-    <div class="name">{{name}} - {{size}}</div>
+    <div class="name">{{name}} - v{{version}}</div>
     
     <a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
         <img src="{{thumbnail_url}}" />

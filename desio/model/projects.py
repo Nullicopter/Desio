@@ -326,6 +326,10 @@ class Entity(Base):
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
 
+    @property
+    def full_path(self):
+        return os.path.join(self.path, self.name)
+    
     def update_activity(self):
         """
         Whenever the project is changed, the code should also update the

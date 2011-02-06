@@ -48,11 +48,19 @@ class ProjectController(OrganizationBaseController):
     @has_project()
     @authorize(CanReadProjectRedirect())
     def view(self, slug=None, path=u'/', project=None, **kw):
-        c.title = project.name
         
-        logger.info('viewing %s/%s' % (slug, path))
+        print path
+        if not path: abort(404)
+        
+        if path[0] != u'/': path = u'/'+path
+        
+        c.title = project.name + (path != u'/' and path or '')
+        
+        logger.info('viewing %s%s' % (slug, path))
         
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
+        if not struc: abort(404)
+        
         c.structure = v1.project.get_structure().output(struc)
         c.path = path
         

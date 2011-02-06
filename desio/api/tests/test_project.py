@@ -150,6 +150,9 @@ class TestProject(TestController):
         
         s = api.project.get_structure(user, user, project, '/stuff/')
         assert len(s) == 2
+        
+        s = api.project.get_structure(user, user, project, '/notthere/')
+        assert s == None
     
     def test_membership(self):
         org_owner = fh.create_user()

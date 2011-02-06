@@ -78,16 +78,12 @@ class project:
     
     class get_directory:
         def get_dir(self, d):
-            return itemize(d, 'name', 'path', 'eid', 'description')
+            return itemize(d, 'name', 'path', 'eid', 'description', 'full_path')
         
         def output(self, d):
             d, files = d
             dir = self.get_dir(d)
             dir['files'] = [file.get().output(f) for f in files]
-            
-            import pprint
-            pp = pprint.PrettyPrinter(indent=4)
-            pp.pprint(dir)
 
             return dir
     
@@ -113,9 +109,9 @@ class file:
             f, change = f
             
             out = itemize(f, 'eid', 'name', 'path', 'description')
-            out.update(itemize(change, 'created_date', 'size', 'url', 'thumbnail_url'))
+            out.update(itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version'))
             out['change_description'] = change.description
-            out['version'] = change.eid
+            out['change_eid'] = change.eid
             out['extracts'] = []
             for ex in change.change_extracts:
                 edict = itemize(ex, 'order_index', 'extract_type', 'url', 'description')

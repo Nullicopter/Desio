@@ -25,7 +25,7 @@ Q.ViewProjectPage = Q.Page.extend({
         
         if(n){
             $.postJSON(l[0].href, {
-                path: (this.settings.path+'/'+n).replace('//', '/')
+                path: $.pathJoin(this.settings.path, n)
             }, function(data){
                 data = data.results;
                 $.log(data);

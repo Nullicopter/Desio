@@ -162,16 +162,6 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
         return true;
     },
     
-    // Preview images
-    /*previewNow: function(event) {		
-        bin = preview.result;
-        var img = document.createElement("img"); 
-        img.className = 'addedIMG';
-        img.file = file;   
-        img.src = bin;
-        document.getElementById(show).appendChild(img);
-    },*/
-    
     // Upload image files
 	upload: function(file) {
         
@@ -191,19 +181,6 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
             
             // The function that starts reading the file as a binary string
             reader.readAsDataURL(file);
-            
-            //preview
-            /*if(this.settings.preview){
-                var preview = new FileReader();
-                // Firefox 3.6, WebKit
-                if(preview.addEventListener) { 
-                    preview.addEventListener('loadend', this.previewNow, false);
-                // Chrome 7	
-                } else { 
-                    preview.onloadend = this.previewNow;
-                }
-                preview.readAsDataURL(file);
-            }*/
 		
 		}
         
@@ -475,11 +452,12 @@ Q.DirectoryView = Q.View.extend({
     },
     
     render: function() {
-        var n = this.model.get('name'), html;
-        if(n)
-            html = _.template($(this.dirTemplate).html(), {name: n});
+        $.log(this.settings);
+        var html;
+        if(this.model.get('full_path') != this.settings.path)
+            html = _.template($(this.dirTemplate).html(), this.model.attributes);
         else
-            html = _.template($(this.rootTemplate).html(), {});
+            html = _.template($(this.rootTemplate).html(), this.model.attributes);
         
         this.container.html(html);
         
@@ -497,6 +475,7 @@ Q.DirectoryView = Q.View.extend({
             
             elem.bind("dragenter",this.handleDrag);
             elem.bind("mouseenter",this.handleMouseleave)
+            //elem.bind("dragleave",this.handleMouseleave);
             //elem.bind("dragleave",function(e){$.log(e)})
         }
         
@@ -562,7 +541,6 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
         
         for(var i = 0; i < set.directories.length; i++){
             var attr = $.extend({}, set.directories[i]);
-            //attr.files = new Q.Files([]);
             attr.id = attr.eid;
             this.directories.add(new Q.Directory(attr));
         }
@@ -573,10 +551,10 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
         var files = m.get('files');
         m.set({files: new Q.Files([])});
         
-        var view = new Q.DirectoryView({model: m}, set);
+        var view = new Q.DirectoryView($.extend({}, set, {model: m}));
         this.container.append(view.render().el);
         
-        set.path = m.attributes.path + m.attributes.name;
+        set.path = $.pathJoin(m.attributes.path, m.attributes.name);
         set.files = m.get('files');
         view.target.UploadModule(set);
         

@@ -52,7 +52,7 @@ def make_map(config):
     #TODO, figure out way to not have to have two for trailing slash or not.
     map.connect('/project/{slug}', controller='organization/project', action='view', conditions=has_subdomain)
     map.connect('/project/{slug}/', controller='organization/project', action='view', conditions=has_subdomain)
-    map.connect('/project/{slug}/{path}', controller='organization/project', action='view', conditions=has_subdomain)
+    map.connect('/project/{slug}/{path:.*}', controller='organization/project', action='view', conditions=has_subdomain)
     
     map.connect('/psettings/{slug}', controller='organization/project', action='settings_index', conditions=has_subdomain)
     map.connect('/psettings/{slug}/general', controller='organization/project', action='settings_general', conditions=has_subdomain)

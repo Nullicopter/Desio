@@ -4,6 +4,14 @@
 
 (function($){
 
+$.extend($, {
+    pathJoin: function(){
+        var delim = '/';
+        var s = Array.prototype.join.call(arguments, delim);
+        return s.replace(new RegExp(delim+delim, 'gi'), delim);
+    }
+});
+
 $.fn.scrollshow = function(options){
 
     try{

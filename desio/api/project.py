@@ -173,6 +173,9 @@ def get_users(real_user, user, project, status=STATUS_APPROVED):
 def _get_files_for_dir(project, dirobj):
     if not dir: return None
     
+    def get_file_tuple(f):
+        return (f, f.get_change())
+    
     newpath = os.path.join(dirobj.path, dirobj.name)+'/'
     dirfiles = project.get_entities(filepath=newpath, only_type=projects.File.TYPE)
     d = (dirobj, [])
