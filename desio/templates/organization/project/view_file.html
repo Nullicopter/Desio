@@ -1,0 +1,56 @@
+<%inherit file="base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="f" file="/forms.html"/>
+<%!
+    import simplejson as json
+%>
+<%def name="header()">
+    ${parent.header()}
+    ${r.require('file')}
+    <style type="text/css">
+    
+    #tabs{
+        height: 30px;
+    }
+    #tabs .tab{
+        width: 36px; height: 30px; background: #f3f3f3;
+        float: right;
+        margin-left: 3px;
+        color: #666;
+        font-weight: bold;
+        line-height: 34px;
+        text-align: center;
+        font-size: 9pt;
+        cursor: pointer;
+    }
+    #tabs .tab.selected{
+        color: #f0f0f0;
+        background: #ccc;
+    }
+    </style>
+    
+    <script type="text/javascript">
+    new Q.ViewFilePage({
+        url: '${h.api_url('file', 'upload', project=c.project.eid)}',
+        versions: ${json.dumps(c.file) | n},
+        path: '${c.path}',
+        showDropTargetOn: 'elemdrag'//'bodydrag'
+    }).readyrun();
+    </script>
+</%def>
+
+<div id="tabs"></div>
+
+<script id="tab-template" class="jstemplate" type="text/template">
+    <span class="tab-text">v{{version}}</span>
+</script>
+
+<script id="file-template" class="jstemplate" type="text/template">
+    <div class="name-bar"></div>
+    <div class="name">{{name}} - v{{version}}</div>
+    
+    ##<a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
+    <a href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}{{full_path}}">
+        <img src="{{thumbnail_url}}" />
+    </a>
+</script>

@@ -14,18 +14,28 @@ from pylons_common.lib.exceptions import *
 
 ID_PARAM = 'file'
 
-@enforce(path=unicode, version=int)
+@enforce(path=unicode, version=unicode)
 @authorize(CanReadProject())
 def get(real_user, user, project, path, version=None):
     """
     Get a file and the latest change. If a version is specified, return that change.
     
-    :param version: a change eid
+    :param version: a change version number or 'all'. if None, will return HEAD
     """
     try:
         f = project.get_file(path)
     except AppException, e:
         raise ClientException(e.msg, code=e.code, field='path')
+    
+    #if they want all, give them all changes plus the file in each
+    if version == 'all':
+        changes = f.get_changes()
+        return [(f, ch) for ch in changes]
+    elif version:
+        try:
+            version = int(version)
+        except ValueError, e:
+            raise ClientException('Version must be an int, "all" or empty', code=INVALID, field='version')
     
     return f, f.get_change(version)
 

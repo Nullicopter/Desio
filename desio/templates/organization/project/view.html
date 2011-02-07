@@ -14,14 +14,20 @@
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0px;
         opacity: .8;
-        border: 5px dotted #ccc;
+        border: 5px dotted #ddd;
         background: #eee;
         -moz-border-radius: 10px;
         font-size: 22pt;
-        color: #777;
+        color: #888;
         text-align: center;
         z-index: 20px;
     }
+    
+    .drop.over{
+        color: #666;
+        border: 5px dotted #ccc;
+    }
+    
     .file, .processing-file{
         width: 310px;
         margin: 5px 5px 5px 0;
@@ -82,7 +88,7 @@
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         directories: ${json.dumps(c.structure) | n},
         path: '${c.path}',
-        showDropTargetOn: 'elemdrag'
+        showDropTargetOn: 'bodydrag'//'elemdrag'
     }).readyrun();
     </script>
 </%def>
@@ -137,7 +143,8 @@
     <div class="name-bar"></div>
     <div class="name">{{name}} - v{{version}}</div>
     
-    <a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
+    ##<a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
+    <a href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}{{full_path}}">
         <img src="{{thumbnail_url}}" />
     </a>
 </script>

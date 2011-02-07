@@ -260,5 +260,7 @@ def get_structure(real_user, user, project, path=u'/'):
             cur_dir = projects.Directory(path=u'/', name=u'', eid=uuid())
     
     res = [(cur_dir, cur_dir_files)] + res
+    if not cur_dir_files and not cur_dir: return None
+    
     return res
     

@@ -35,6 +35,9 @@ def out_comment(comment):
     out['creator'] = user.get().output(comment.creator)
     return out
 
+def out_directory(directory):
+    return itemize(directory, 'name', 'path', 'eid', 'description', 'full_path')
+
 class error:
     class explode: pass
     class explode_no_auth: pass
@@ -104,14 +107,11 @@ class project:
             return [project.attach_user().output(ou) for ou in org_users]
     
     class get_directory:
-        def get_dir(self, d):
-            return itemize(d, 'name', 'path', 'eid', 'description', 'full_path')
         
         def output(self, d):
             d, files = d
-            dir = self.get_dir(d)
+            dir = out_directory(d)
             dir['files'] = [file.get().output(f) for f in files]
-
             return dir
     
     class add_directory:
@@ -132,14 +132,18 @@ class file:
         def output(self, f):
             return file.get().output(f)
     
-    class get: 
-        def output(self, f):
-            f, change = f
-            
-            out = itemize(f, 'eid', 'name', 'path', 'description')
+    class get:
+        def get_file(self, filenchange):
+            f, change = filenchange
+            out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
             out.update(out_change(change))
-
             return out
+        
+        def output(self, files):
+            if isinstance(files, list):
+                return [self.get_file(f) for f in files]
+            return self.get_file(files)
+            
             
     class add_comment:
         def output(self, c):

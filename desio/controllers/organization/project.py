@@ -52,11 +52,36 @@ class ProjectController(OrganizationBaseController):
         print path
         if not path: abort(404)
         
-        if path[0] != u'/': path = u'/'+path
+        if path[0] != u'/': path = u'/'+path #add pre slash
+        if len(path) > 1 and path[-1] == '/': path = path[:-1] #remove trailing slash
         
+        view_dir = True
+        entity = None
+        if path != '/':
+            entity = project.get_entities(path)
+            if not entity: abort(404)
+            
+            view_dir = entity.type == projects.Directory.TYPE
+        
+        if view_dir:
+            return self._view_directory(entity, project, path)
+        else:
+            return self._view_file(entity, project, path)
+    
+    def _view_file(self, entity, project, path):
         c.title = project.name + (path != u'/' and path or '')
         
-        logger.info('viewing %s%s' % (slug, path))
+        logger.info('viewing FILE %s %s' % (path, entity))
+        
+        file = api.file.get(c.real_user, c.user, project, path, version='all')
+        c.file = v1.file.get().output(file)
+        
+        c.path = path
+        
+        return self.render('/organization/project/view_file.html')
+    
+    def _view_directory(self, entity, project, path):
+        c.title = project.name + (path != u'/' and path or '')
         
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
         if not struc: abort(404)

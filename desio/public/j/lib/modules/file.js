@@ -5,15 +5,23 @@ Q.File = Backbone.Model.extend({
     type: 'file'
 });
 
+Q.FileVersion = Q.File.extend({
+    type: 'version'
+});
+
 Q.ProcessingFile = Q.File.extend({
     type: 'processingFile'
 });
 
 Q.Files = Backbone.Collection.extend({
-    model: Q.Files,
+    model: Q.File,
     initialize: function(models, settings){
         this.settings = settings;
     }
+});
+
+Q.FileVersions = Q.Files.extend({
+    model: Q.FileVersion
 });
 
 Q.Directory = Backbone.Model.extend({});
@@ -50,6 +58,7 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
                     Q.error('Read error.');
             }
         },
+        forcedName: null, //if you always want an uploaded file to be a certain name, set this to that name
         method: 'POST',
         url: '',
         path: '/' //the file's path sent up in a header
@@ -105,7 +114,7 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
             fupload.addEventListener('progress', self.wrap(self.onLoadProgress, [id]), false);
             
             //we just send this as a binary wad in the request payload.
-            xhr.setRequestHeader('X-Up-Filename', file.name);
+            xhr.setRequestHeader('X-Up-Filename', self.settings.forcedName || file.name);
             xhr.setRequestHeader('X-Up-Size', file.size);
             xhr.setRequestHeader('X-Up-Type', file.type);
             xhr.setRequestHeader('X-Up-Path', self.settings.path);
@@ -378,7 +387,7 @@ Q.DirectoryView = Q.View.extend({
             showDropTargetOn: 'bodydrag' //or elemdrag
         };
         this._super(container, $.extend({}, defs, settings));
-        _.bindAll(this, "render", 'handleDrag', 'handleMouseleave', 'addFile', 'hideDropTarget', 'updateVersion');
+        _.bindAll(this, "render", 'handleDrag', 'addFile', 'updateVersion', 'handleTargetEnter', 'handleTargetLeave', 'hideTarget');
         
         this.model.view = this;
         
@@ -386,6 +395,7 @@ Q.DirectoryView = Q.View.extend({
         this.files.bind('add', this.addFile);
         this.files.bind('change:progress', this.updateProgress);
         this.files.bind('change:version', this.updateVersion);
+        
     },
     
     addFile: function(m){
@@ -433,13 +443,19 @@ Q.DirectoryView = Q.View.extend({
         if(event.type == "dragenter" && this.target)
             this.target.show();
     },
-    handleMouseleave: function(){
-        if(this.files.length)
-            setTimeout(this.hideDropTarget, 200);
+    
+    hideTarget: function(){
+        this.target.hide();
     },
     
-    hideDropTarget: function(){
-        this.target.hide();
+    handleTargetEnter: function(){
+        this.target.addClass('over');
+    },
+    handleTargetLeave: function(){
+        if(this.files.length)
+            setTimeout(this.hideTarget, 200);
+        else
+            this.target.removeClass('over');
     },
     
     _createDropTarget: function(){
@@ -470,13 +486,12 @@ Q.DirectoryView = Q.View.extend({
             if(this.files.length == 0) this.target.show();
             else this.target.hide();
             
-            var elem = this.container;
-            if(this.settings.showDropTargetOn == 'bodydrop') elem = $('body');
+            var elem = this.target;
+            if(this.settings.showDropTargetOn == 'bodydrag') elem = $(document);
             
-            elem.bind("dragenter",this.handleDrag);
-            elem.bind("mouseenter",this.handleMouseleave)
-            //elem.bind("dragleave",this.handleMouseleave);
-            //elem.bind("dragleave",function(e){$.log(e)})
+            this.container.bind("dragenter",this.handleDrag);
+            this.target.bind("dragenter",this.handleTargetEnter);
+            this.target.bind("dragleave",this.handleTargetLeave);
         }
         
         return this;
