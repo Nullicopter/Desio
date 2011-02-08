@@ -88,4 +88,3 @@ def get_comments(real_user, user, project, change=None, extract=None):
 
     return commentable, commentable.get_comments()
     
-    
