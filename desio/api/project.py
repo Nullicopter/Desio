@@ -263,4 +263,16 @@ def get_structure(real_user, user, project, path=u'/'):
     if not cur_dir_files and not cur_dir: return None
     
     return res
-    
+
+@enforce()
+@authorize(CanReadProject())
+def get_directories(real_user, user, project):
+    """
+    Get all directories in the project and returns them.
+
+    The serializer for this call returns the directories in a tree.
+    Look at v1 api for more details.
+    """
+    directories = project.get_entities(only_type=projects.Directory.TYPE)
+    return project, directories
+

@@ -113,7 +113,15 @@ class project:
             dir = out_directory(d)
             dir['files'] = [file.get().output(f) for f in files]
             return dir
-    
+
+    class get_directories:
+        def output(self, d):
+            p, directories = d
+            tree = build_tree(directories)
+            out = project().get().output(p)
+            out['directories'] = tree
+            return out
+        
     class add_directory:
         def output(self, d):
             return project.get_directory().output(d)
@@ -175,3 +183,22 @@ class file:
                 out['comments'].append(out_comment(comment))
 
             return out
+        
+def build_tree(directories):
+    directories.sort(key=lambda d: d.path)
+    # we need a root object to have a single point from which
+    # we can retrieve all the children directories.
+    root = {'children': []}
+    lookup = {u"/": root}
+    # these are sorted by path, so everything fits inside the "/"
+    # and I'll add then to the quick_path_lookup as I add them
+    # to speedup node lookup and make it O(1) at the expense of
+    # 2x memory usage, who cares right now...
+    for directory in directories:
+        outdir = project.get_directory().get_dir(directory)
+        outdir['children'] = []
+        lookup[directory.path]['children'].append(outdir)
+        lookup[directory.full_path] = outdir
+
+    del lookup
+    return root['children']

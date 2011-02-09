@@ -129,7 +129,7 @@ class Project(Base):
         self.status = STATUS_INACTIVE
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
-    
+
     def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS, order_by_field=u'last_modified_date', desc=True):
         """
         Get all project entities that have the given path and the given name if any.
@@ -365,7 +365,7 @@ class Entity(Base):
                 directory = Directory(path=current_path, name=segment, project=self.project)
                 Session.add(directory)
 
-            current_path = directory.child_path
+            current_path = directory.full_path
 
     @property
     def readable_name(self):
@@ -409,10 +409,6 @@ class Directory(Entity):
     """
     TYPE = u'd'
     __mapper_args__ = {'polymorphic_identity': TYPE}
-
-    @property
-    def child_path(self):
-        return os.path.join(self.path, self.name)
     
 class File(Entity):
     """

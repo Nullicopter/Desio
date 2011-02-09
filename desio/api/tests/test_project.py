@@ -211,3 +211,32 @@ class TestProject(TestController):
         assert ex.code == NOT_FOUND
         ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, project, read, None))
         assert 'role' in ex.error_dict
+
+    def test_get_directory_tree(self):
+        """
+        Test the generation of a directory tree.
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+        self.login(user)
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/this/is/a/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/this/is/a/foobar/too/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+
+        r = self.client_async(api_url('project', 'get_directories', project=project.eid), {})
+
+        assert r.results.eid == project.eid
+        tree = r.results.directories
+        assert tree[0].full_path == u"/this"
+        assert tree[0].children[0].full_path == u"/this/is"
+        assert tree[0].children[0].children[0].full_path == u"/this/is/a"
+        assert tree[0].children[0].children[0].children[0].full_path == u"/this/is/a/foobar"
+        assert tree[0].children[0].children[0].children[0].children[0].full_path == u"/this/is/a/foobar/too"
+
+
