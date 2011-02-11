@@ -130,9 +130,11 @@ class TestProjects(TestController):
         comment = change.add_comment(user, u'foobar')
         comment1 = change.add_comment(user, u'foobar', 1, 2)
         comment2 = change.add_comment(user, u'foobar', 1, 2, 3, 4)
+        comment3 = change.add_comment(user, u'foobar', 1, 2, 3, 4)
+        comment3.delete()
         self.flush()
         assert change.get_comments() == [comment, comment1, comment2]
-                
+        
     def test_extracts(self):
         """
         Test basic changeset functionality

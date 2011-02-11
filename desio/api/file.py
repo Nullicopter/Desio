@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanContributeToOrg, CanReadOrg
+                    CanContributeToOrg, CanReadOrg, MustOwn, Or
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 
@@ -90,6 +90,16 @@ def add_comment(real_user, user, project, body, change=None, extract=None, **kw)
     comment = commentable.add_comment(user, body, **kw)
 
     return commentable, comment
+
+@enforce(comment=projects.Comment)
+@authorize( Or( MustOwn('comment'), CanAdminProject() ))
+def remove_comment(real_user, user, project, comment):
+    """
+    Remove a comment.
+    """
+    comment.delete()
+    
+    return True
 
 @enforce(change=projects.Change, extract=projects.ChangeExtract)
 @authorize(CanReadProject())

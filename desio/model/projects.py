@@ -508,6 +508,7 @@ class Commentable(object):
         Get the comments associated with this change(_extract).
         """
         q = Session.query(Comment)
+        q = q.filter_by(status=STATUS_EXISTS)
         q = q.filter_by(**{self._comment_attribute: self})
         q = q.order_by(sa.asc(Comment.id))
         return q.all()
@@ -709,6 +710,8 @@ class Comment(Base):
     
     id = sa.Column(sa.Integer, primary_key=True)
     eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
+    
+    status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
 
     x = sa.Column(sa.Integer)
     y = sa.Column(sa.Integer)
@@ -744,6 +747,12 @@ class Comment(Base):
             return None
 
         if self.width is None or self.height is None:
-            return (self.x, self.y, 100, 100)
+            return (self.x, self.y, 50, 50)
 
         return self.x, self.y, self.width, self.height
+    
+    def delete(self):
+        """
+        Soft deletes a comment.
+        """
+        self.status = STATUS_REMOVED

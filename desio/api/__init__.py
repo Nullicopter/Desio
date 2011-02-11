@@ -65,10 +65,13 @@ def authorize(*filters):
             #get rid of self from the decorated object
             if 'self' in dargs:
                 del dargs['self']
-                
-            for filter in filters:
-                filter.check(**dargs)
             
+            res = True
+            for filter in filters:
+                res = res and filter.check(**dargs)
+            
+            if not res:
+                raise ClientException('Authorization Error', code=FORBIDDEN)
             
             return fn(**kwargs)
             
@@ -131,7 +134,6 @@ class HasObjRole(IsLoggedIn):
             raise ClientException('No %s specified' % (self.param), NOT_FOUND, field=self.param)
         
         role = obj.get_role(user, status=STATUS_APPROVED)
-        
         if not role or role not in self.roles:
             raise ClientException('CANNOT(!)', FORBIDDEN, field=self.param)
         
@@ -246,6 +248,28 @@ class MustOwnIfPresent(IsLoggedIn):
             real_user.must_own(*mo_obj_list)
         
         return True
+
+class Or(object):
+    
+    def __init__(self, *filters):
+        self.filters = filters
+    
+    def check(self, real_user, user, **kwargs):
+        
+        ok = False
+        error = CompoundException('Autorization Errors!', code=FORBIDDEN)
+        
+        for f in self.filters:
+            try:
+                res = f.check(real_user, user, **kwargs)
+                ok = ok or res
+            except (ClientException, CompoundException), e:
+                error.add(e)
+        
+        if not ok and error.has_exceptions:
+            raise error
+        
+        return ok
 
 class ConvertDate(fv.FancyValidator):
     def _to_python(self, value, state):

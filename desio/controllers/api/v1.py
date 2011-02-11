@@ -31,7 +31,7 @@ def out_change(change, with_extracts=True):
     return out
 
 def out_comment(comment):
-    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'created_date')
+    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'created_date', 'status')
     out['created_date'] = fdatetime(out['created_date'])
     out['in_reply_to'] = comment.in_reply_to and comment.in_reply_to.eid or None
     out['creator'] = user.get().output(comment.creator)
@@ -137,7 +137,9 @@ class project:
             return res
 
 class file:
-
+    
+    class remove_comment: pass
+    
     class upload:
         def output(self, f):
             return file.get().output(f)

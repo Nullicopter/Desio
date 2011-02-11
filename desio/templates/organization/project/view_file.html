@@ -57,6 +57,10 @@
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         versions: ${json.dumps(c.file) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
+        commentUrls:{
+            'create': '${h.api_url('file', 'add_comment', project=c.project.eid)}',
+            'delete': '${h.api_url('file', 'remove_comment', project=c.project.eid)}'
+        },
         path: '${c.path}',
         showDropTargetOn: 'elemdrag'//'bodydrag'
     }).readyrun();

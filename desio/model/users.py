@@ -367,6 +367,8 @@ class User(Base):
             return False
         if hasattr(thing, 'user_id'):
             return self.id == thing.user_id
+        if hasattr(thing, 'creator_id'):
+            return self.id == thing.creator_id
         elif isinstance(thing, list):
             for item in thing:
                 if not self.owns(item):

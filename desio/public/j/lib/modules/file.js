@@ -24,12 +24,54 @@ Q.FileVersions = Q.Files.extend({
 Q.Directory = Q.Model.extend({});
 Q.Directories = Q.Collection.extend({});
 
-Q.Annotation = Q.Model.extend({});
-Q.Annotations = Q.Collection.extend({
-    model: Q.Annotation,
+/***
+ *
+ * Comments. How do they work?
+ *
+ * Initial load of page: 
+ * - Place all comments in Q.Comments with {save: false}
+ * - Each root level comment will have a Q.Comment created. 
+ * - Each comment can have replies, so the Q.Comment will place its replies in
+ *   a Q.Comments object, etc.
+ *
+ * Add a reply to a comment
+ * - have the reply form pull the parent comment id and put it in a hidden field in the form
+ * - on submit, call comments.get(id), get parent comment
+ * - call comment.get('replies').add({..new reply..})
+ * 
+ * Adding a comment
+ * - call comments.add({..new reply..}, {save: true}); //the save: true is default
+ * - the Q.Comments overrides _add, it will call model.save()
+ *
+ * Removing a comment
+ * - find the comment and call destroy() on it
+ *
+ * Fetching new comments for a version
+ * - ???
+ **/
+Q.Comment = Q.Model.extend({
+    init: function(attr){
+        
+        var com = new Q.Comments([]);
+        this.set({replies: com}, {silent: true});
+        com.add(attr.replies, {save:false});
+    }
+});
+
+Q.Comments = Q.Collection.extend({
+    model: Q.Comment,
     
     fetch: function(changeEid){
         //this expects a url to be passed in 
+    },
+    
+    _add: function(m, options){
+        options = options || {};
+        $.log('wtf', m, options);
+        var model = this._super.call(this, m, options);
+        
+        if(options.save != false)
+            model.save();
     }
 });
 

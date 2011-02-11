@@ -128,6 +128,7 @@ Q.ViewFilePage = Q.Page.extend({
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
+        this.comments = new Q.Comments([]);
         
         //do setup and binding here
         this.selectedVersion.bind('change:version', this.viewVersion);
@@ -143,6 +144,13 @@ Q.ViewFilePage = Q.Page.extend({
             this.versions.add(this.settings.versions[i]);
         }
         this.selectedVersion.set({version: this.settings.versions[0].version});
+        
+        this.comments.add(this.settings.comments, {
+            save: false,
+            urls: this.settings.commentUrls
+        });
+        
+        $.log(this.comments);
     },
     
     addVersion: function(m){

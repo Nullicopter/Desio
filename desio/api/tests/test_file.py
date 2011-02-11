@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from desio import api
-from desio.model import users, fixture_helpers as fh
+from desio.model import users, fixture_helpers as fh, projects, STATUS_APPROVED
 from desio.tests import *
 
 from pylons_common.lib.exceptions import *
@@ -29,11 +29,15 @@ class TestFile(TestController):
     
     def test_comments(self):
         
+        rando = fh.create_user()
         user = fh.create_user()
+        guy_in_project = fh.create_user()
         project = fh.create_project(user=user, name=u"helloooo")
         self.flush()
-        self.login(user)
-
+        
+        project.organization.attach_user(guy_in_project, status=STATUS_APPROVED)
+        assert api.project.attach_user(user, user, project, guy_in_project, projects.PROJECT_ROLE_WRITE)
+        
         filepath = file_path('ffcc00.gif')
         change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
@@ -71,3 +75,20 @@ class TestFile(TestController):
         assert comments[0] == comment
         assert comments[1] == reply
         assert comments[0].replies[0] == reply
+        
+        _, guyscomment = api.file.add_comment(guy_in_project, guy_in_project, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _, guyscomment1 = api.file.add_comment(guy_in_project, guy_in_project, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        self.flush()
+        
+        ex = self.throws_exception(lambda: api.file.remove_comment(guy_in_project, guy_in_project, project, comment.eid)).code == FORBIDDEN
+        ex = self.throws_exception(lambda: api.file.remove_comment(rando, rando, project, guyscomment.eid)).code == FORBIDDEN
+        
+        _, comments = api.file.get_comments(user, user, project.eid, change=change.eid)
+        assert len(comments) == 4
+        
+        assert api.file.remove_comment(user, user, project, guyscomment.eid)
+        assert api.file.remove_comment(guy_in_project, guy_in_project, project, guyscomment1.eid)
+        self.flush()
+        
+        _, comments = api.file.get_comments(user, user, project.eid, change=change.eid)
+        assert len(comments) == 2

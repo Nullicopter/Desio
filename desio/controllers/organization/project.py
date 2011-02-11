@@ -71,6 +71,8 @@ class ProjectController(OrganizationBaseController):
     def _view_file(self, entity, project, path):
         c.title = project.name + (path != u'/' and path or '')
         
+        c.project = project
+        
         logger.info('viewing FILE %s %s' % (path, entity))
         
         file = api.file.get(c.real_user, c.user, project, path, version='all')
