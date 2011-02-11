@@ -24,17 +24,95 @@ Q.TabView = Q.View.extend({
     
     clickTab: function(){
         this.settings.selectedVersion.set({version: this.model.get('version')});
+    }
+});
+
+Q.ImageViewer = Q.View.extend('ImageViewer', {
+    template: '#image-template',
+    className: 'image',
+    
+    n: {
+        previous: '.previous-button',
+        next: '.next-button',
+        topBar: '.top-bar',
+        title: '.top-bar .text',
+        images: '.image-container'
     },
     
-    render: function(){
-        this.container.html(_.template($(this.template).html(), this.model.attributes));
-        return this;
+    init: function(){
+        //gets selectedVersion model in the settings.
+        _.bindAll(this, 'changeVersion');
+        this._super.apply(this, arguments);
+        
+        //this will store all the image views. Lazy loaded.
+        this.views = {};
+        this.currentVersion = null;
+        
+        this.settings.selectedVersion.bind('change:version', this.changeVersion)
+    },
+    
+    changeVersion: function(m){
+        var ver = m.get('version');
+        if(ver == this.currentVersion) return;
+        
+        var model = null;
+        for(var i = 0; i < this.model.models.length; i++)
+            if(this.model.models[i].get('version') == ver)
+                model = this.model.models[i];
+        
+        if(!model) return;
+        
+        this.n.images.html('');
+        
+        var images = [];
+        if(ver in this.views)
+            images = this.views[ver];
+        else{
+            var extr = model.get('extracts');
+            
+            //if we didnt find any proper extracts, use the real file url
+            for(var i = 0; i < extr.length; i++)
+                if(extr[i].extract_type != "thumbnail")
+                    images.push(new Q.ImageView({
+                        model: new Backbone.Model(extr[i])
+                    }).render());
+            
+            
+            if(images.length == 0){
+                images.push(new Q.ImageView({
+                    model: new Backbone.Model(model.attributes)
+                }).render());
+            }
+        }
+        
+        if(images.length == 1)
+            this.n.topBar.hide();
+        else
+            this.n.topBar.show();
+        
+        for(var i = 0; i < images.length; i++){
+            $.log(images[i].model);
+            this.n.images.append(images[i].container);
+        }
+        
+    }
+});
+
+Q.ImageView = Q.View.extend({
+    template: '#image-template',
+    className: 'image',
+    
+    init: function(){
+        //model is a generic backbone model with a file extract in it
+        //_.bindAll(this, 'changeVersion');
+        this._super.apply(this, arguments);
     }
 });
 
 Q.ViewFilePage = Q.Page.extend({
     n: {
-        tabs: '#tabs'
+        tabs: '#tabs',
+        pageImageViewer: '#inpage-image-viewer'
     },
     events:{
     },
@@ -55,6 +133,10 @@ Q.ViewFilePage = Q.Page.extend({
         this.selectedVersion.bind('change:version', this.viewVersion);
         this.versions.bind('add', this.addVersion);
         
+        this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
+            model: this.versions,
+            selectedVersion: this.selectedVersion
+        });
         
         //add the versions to the model
         for(var i = 0; i < this.settings.versions.length; i++){

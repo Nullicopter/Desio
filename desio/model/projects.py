@@ -670,7 +670,18 @@ class ChangeExtract(Base, Uploadable, Commentable):
                         self.change.entity.project.organization.eid,
                         self.change.entity.project.eid,
                         self.change.entity.eid])
-
+    
+    def add_comment(self, user, body, **kw):
+        """
+        Add a new comment to this ChangeExtract.
+        """
+        comment = super(ChangeExtract, self).add_comment(user, body, **kw)
+        
+        #we need to set this so we can pull all comments for a specific change
+        comment.change = self.change
+        
+        return comment
+    
     @property
     def url(self):
         """
@@ -714,8 +725,8 @@ class Comment(Base):
     change = relationship("Change", backref=backref("comments", cascade="all"))
     change_id = sa.Column(sa.Integer, sa.ForeignKey('changes.id'), index=True)
 
-    change_exctract = relationship("ChangeExtract", backref=backref("comments", cascade="all"))
-    change_exctract_id = sa.Column(sa.Integer, sa.ForeignKey('change_extracts.id'), index=True)
+    change_extract = relationship("ChangeExtract", backref=backref("comments", cascade="all"))
+    change_extract_id = sa.Column(sa.Integer, sa.ForeignKey('change_extracts.id'), index=True)
 
     in_reply_to = relationship("Comment", backref=backref("replies", cascade="all"), remote_side="Comment.id")
     in_reply_to_id = sa.Column(sa.Integer, sa.ForeignKey('comments.id'), nullable=True, index=True)

@@ -27,12 +27,36 @@
         color: #f0f0f0;
         background: #ccc;
     }
+    
+    
+    .image-viewer .top-bar{
+        height: 35px;
+        background: #333;
+        color: #fff;
+    }
+    .image-viewer .top-bar .next-button{float: right; color: #fff}
+    .image-viewer .top-bar .previous-button{float: left; color: #fff}
+    
+    .image-viewer .top-bar .text{text-align: center; font-weight: bold; line-height: 35px;}
+    
+    .image-viewer .image{
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 15px 0;
+        width: 960px;
+        text-align: center;
+    }
+    .image-viewer .image img{
+        max-width: 930px
+    }
+    
     </style>
     
     <script type="text/javascript">
     new Q.ViewFilePage({
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         versions: ${json.dumps(c.file) | n},
+        comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
         showDropTargetOn: 'elemdrag'//'bodydrag'
     }).readyrun();
@@ -41,16 +65,23 @@
 
 <div id="tabs"></div>
 
+<div id="inpage-image-viewer">
+    <div class="image-viewer">
+        <div class="top-bar">
+            <a href="#" class="previous-button">prev</a>
+            <a href="#" class="next-button">next</a>
+            <div class="text">Page 1</div>
+        </div>
+        <div class="image-container">
+            
+        </div>
+    </div>
+</div>
+
 <script id="tab-template" class="jstemplate" type="text/template">
     <span class="tab-text">v{{version}}</span>
 </script>
 
-<script id="file-template" class="jstemplate" type="text/template">
-    <div class="name-bar"></div>
-    <div class="name">{{name}} - v{{version}}</div>
-    
-    ##<a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
-    <a href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}{{full_path}}">
-        <img src="{{thumbnail_url}}" />
-    </a>
+<script id="image-template" class="jstemplate" type="text/template">
+    <img src="{{url}}" />
 </script>

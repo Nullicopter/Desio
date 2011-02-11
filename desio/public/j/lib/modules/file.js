@@ -1,7 +1,7 @@
 
 ;(function($){
 
-Q.File = Backbone.Model.extend({
+Q.File = Q.Model.extend({
     type: 'file'
 });
 
@@ -13,19 +13,25 @@ Q.ProcessingFile = Q.File.extend({
     type: 'processingFile'
 });
 
-Q.Files = Backbone.Collection.extend({
-    model: Q.File,
-    initialize: function(models, settings){
-        this.settings = settings;
-    }
+Q.Files = Q.Collection.extend({
+    model: Q.File
 });
 
 Q.FileVersions = Q.Files.extend({
     model: Q.FileVersion
 });
 
-Q.Directory = Backbone.Model.extend({});
-Q.Directories = Backbone.Collection.extend({});
+Q.Directory = Q.Model.extend({});
+Q.Directories = Q.Collection.extend({});
+
+Q.Annotation = Q.Model.extend({});
+Q.Annotations = Q.Collection.extend({
+    model: Q.Annotation,
+    
+    fetch: function(changeEid){
+        //this expects a url to be passed in 
+    }
+});
 
 Q.FileUploader = Q.Module.extend('FileUploader', {
 
@@ -556,6 +562,7 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
         
         for(var i = 0; i < set.directories.length; i++){
             var attr = $.extend({}, set.directories[i]);
+            $.log(attr);
             attr.id = attr.eid;
             this.directories.add(new Q.Directory(attr));
         }

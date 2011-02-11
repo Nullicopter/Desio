@@ -1,6 +1,7 @@
 """
 """
 
+from collections import defaultdict as dd
 from pylons_common.lib.utils import itemize
 from desio.api import CanReadOrg
 
@@ -30,8 +31,9 @@ def out_change(change, with_extracts=True):
     return out
 
 def out_comment(comment):
-    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'in_reply_to_id', 'created_date')
-    out['created_date'] = fdatetime(out['created_date'])            
+    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'created_date')
+    out['created_date'] = fdatetime(out['created_date'])
+    out['in_reply_to'] = comment.in_reply_to and comment.in_reply_to.eid or None
     out['creator'] = user.get().output(comment.creator)
     return out
 
@@ -176,12 +178,22 @@ class file:
                 out = out_change_extract(commentable)
             elif commentable._comment_attribute == 'change':
                 out = out_change(commentable, with_extracts=False)
-
-            out['comments'] = []
+            
+            children = dd(lambda: [])
+            
             for comment in comments:
-                # XXX TODO: This should be a graph not a simple list
-                out['comments'].append(out_comment(comment))
-
+                children[comment.in_reply_to_id].append(comment)
+            
+            def get_comments(parent):
+                res = []
+                for comment in children[parent]:
+                    c = out_comment(comment)
+                    c['replies'] = get_comments(comment.id)
+                    res.append(c)
+                return res
+            
+            out['comments'] = get_comments(None)
+            
             return out
         
 def build_tree(directories):

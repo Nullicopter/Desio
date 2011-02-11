@@ -76,6 +76,12 @@ class ProjectController(OrganizationBaseController):
         file = api.file.get(c.real_user, c.user, project, path, version='all')
         c.file = v1.file.get().output(file)
         
+        #we could pass in the current version
+        file, head_change = file[0]
+        
+        comments = api.file.get_comments(c.real_user, c.user, project, change=head_change)
+        c.comments = v1.file.get_comments().output(comments)
+        
         c.path = path
         
         return self.render('/organization/project/view_file.html')

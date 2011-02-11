@@ -83,6 +83,9 @@ def add_comment(real_user, user, project, body, change=None, extract=None, **kw)
     """
 
     commentable = change or extract
+    
+    if not commentable:
+        raise ClientException('please specify a change eid or an extract id', code=INCOMPLETE, field='change')
 
     comment = commentable.add_comment(user, body, **kw)
 

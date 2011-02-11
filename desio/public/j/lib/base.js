@@ -14,6 +14,44 @@ _.templateSettings = {
   interpolate : /\{\{(.+?)\}\}/g
 };
 
+//TODO: put this in quaid
+Q.View.prototype.renderTemplate = function(attributes){
+    this.container.html(_.template($(this.template).html(), attributes));
+    return this;
+};
+Q.View.prototype.render = function(){
+    return this.renderTemplate(this.model.attributes);
+}
+
+var _Collection = Class.extend(Backbone.Collection.prototype);
+Q.Collection = _Collection.extend({
+    _ctor: function(models, settings){
+        
+        //call backbone's constructor
+        Backbone.Collection.call(this, models, settings);
+        
+        this.settings = settings;
+        
+        // call the quaid constructor
+        if ( $.isFunction(this.init) )
+            this.init.call(this, models, settings);
+    }
+});
+
+var _Model = Class.extend(Backbone.Model.prototype);
+Q.Model = _Model.extend({
+    _ctor: function(attributes){
+        
+        //call backbone's constructor
+        Backbone.Model.call(this, attributes);
+        
+        // call the quaid constructor
+        if ( $.isFunction(this.init) )
+            this.init.call(this, attributes);
+    }
+});
+
+//end stuff to put in quaid
 
 Q.defaultValidationOptions = {
     errorPlacement: function(error, element) {
