@@ -50,6 +50,11 @@ Q.Directories = Q.Collection.extend({});
  * - ???
  **/
 Q.Comment = Q.Model.extend({
+    urls: {
+        'create': '/api/v1/file/add_comment',
+        'delete': '/api/v1/file/remove_comment'
+    },
+    
     init: function(attr){
         
         var com = new Q.Comments([]);

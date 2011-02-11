@@ -2,7 +2,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanContributeToOrg, CanReadOrg
+                    CanContributeToOrg, CanReadOrg, Exists, Or
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 import os.path
@@ -119,15 +119,10 @@ def get(real_user, user, organization, project=None):
 ### User connection stuff
 
 @enforce(u=users.User, role=unicode, status=unicode)
-@authorize(CanAdminProject())
+@authorize(CanAdminProject(), Exists('project', 'u'))
 def attach_user(real_user, user, project, u, role=users.ORGANIZATION_ROLE_USER):#, status=STATUS_APPROVED): #maybe later
 
     params = validate(RoleStatusForm, role=role, status=STATUS_APPROVED)
-    
-    if not project:
-        raise ClientException('Project not found', NOT_FOUND, field='project')
-    if not u:
-        raise ClientException('User not found', NOT_FOUND, field='u')
     
     pu = project.get_project_user(u, status=None)
     if pu:
@@ -155,12 +150,10 @@ def remove_user(real_user, user, project, u):
     return project.remove_user(u)
 
 @enforce(u=users.User, role=unicode)
-@authorize(CanAdminProject())
+@authorize(CanAdminProject(), Exists('u'))
 def set_user_role(real_user, user, project, u, role):
     if role not in ROLES:
         raise ClientException('Role must be one of %s' % ROLES, field='role')
-    if not u:
-        raise ClientException('Need a user!', field='u', code=INVALID)
     
     return project.set_role(u, role)
 
@@ -184,17 +177,16 @@ def _get_files_for_dir(project, dirobj):
     return d
 
 @enforce(path=unicode)
-@authorize(CanWriteProject())
+@authorize(CanWriteProject(), Exists('path'))
 def add_directory(real_user, user, project, path):
-    if not path:
-        raise ClientException('Specify a path and name', code=NOT_FOUND, field='path')
+    
     dir = project.add_directory(user, path)
     print path, dir
     
     return _get_files_for_dir(project, dir)
 
 @enforce(path=unicode)
-@authorize(CanWriteProject())
+@authorize(CanWriteProject(), Exists('path'))
 def get_directory(real_user, user, project, path):
     """
     returns
@@ -202,8 +194,6 @@ def get_directory(real_user, user, project, path):
         (File('bleh.png'), Change('latestversion')),
     ]),
     """
-    if not path:
-        raise ClientException('Specify a path and name', code=NOT_FOUND, field='path')
     
     if path[-1] != u'/': path = path + u'/'
     
@@ -212,7 +202,7 @@ def get_directory(real_user, user, project, path):
     return _get_files_for_dir(project, dir)
     
 @enforce(path=unicode)
-@authorize(CanReadProject())
+@authorize(CanReadProject(), Exists('path'))
 def get_structure(real_user, user, project, path=u'/'):
     """
     For a given path will get all the files, directories and files within
@@ -226,9 +216,6 @@ def get_structure(real_user, user, project, path=u'/'):
         (File('bleh2.png'), Change('latestversion')),
     ]),]
     """
-    
-    if not path:
-        raise ClientException('Path! Specify it.', code=NOT_FOUND, field='path')
     
     if path[-1] != u'/': path = path + u'/'
     

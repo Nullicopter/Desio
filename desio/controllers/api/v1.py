@@ -209,7 +209,7 @@ def build_tree(directories):
     # to speedup node lookup and make it O(1) at the expense of
     # 2x memory usage, who cares right now...
     for directory in directories:
-        outdir = project.get_directory().get_dir(directory)
+        outdir = out_directory(directory)
         outdir['children'] = []
         lookup[directory.path]['children'].append(outdir)
         lookup[directory.full_path] = outdir

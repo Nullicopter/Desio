@@ -42,16 +42,16 @@ class TestFile(TestController):
         
         extract = change.change_extracts[0]
         
-        _, c1 = api.file.add_comment(user, user, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
-        _, c2 = api.file.add_comment(user, user, project.eid, 'My comment 2!', extract=extract.id)
-        _, c3 = api.file.add_comment(user, user, project.eid, 'My comment 3!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _, c1 = api.file.add_comment(user, user, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _, c2 = api.file.add_comment(user, user, 'My comment 2!', extract=extract.id)
+        _, c3 = api.file.add_comment(user, user, 'My comment 3!', extract=extract.id, x=23, y=345, width=10, height=20)
         self.flush()
         
-        _, r1 = api.file.add_comment(user, user, project.eid, 'My reply2!', change=change.eid, in_reply_to=c1.eid)
-        _, r2 = api.file.add_comment(user, user, project.eid, 'My reply!', change=change.eid, in_reply_to=c2.eid)
+        _, r1 = api.file.add_comment(user, user, 'My reply2!', change=change.eid, in_reply_to=c1.eid)
+        _, r2 = api.file.add_comment(user, user, 'My reply!', change=change.eid, in_reply_to=c2.eid)
         self.flush()
         
-        r = self.client_async(api_url('file', 'get_comments', project=project.eid, change=change.eid), {})
+        r = self.client_async(api_url('file', 'get_comments', change=change.eid), {})
         
         r = r.results
         assert r.comments

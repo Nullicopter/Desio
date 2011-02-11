@@ -44,7 +44,7 @@ class TestFile(TestController):
         
         extract = change.change_extracts[0]
         
-        _extract, comment = api.file.add_comment(user, user, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _extract, comment = api.file.add_comment(user, user, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
         self.flush()
         
         assert _extract == extract
@@ -58,7 +58,7 @@ class TestFile(TestController):
         assert comment.width == 10
         assert comment.height == 20
         
-        _, reply = api.file.add_comment(user, user, project.eid, 'My reply!', change=change.eid, in_reply_to=comment.eid)
+        _, reply = api.file.add_comment(user, user, 'My reply!', change=change.eid, in_reply_to=comment.eid)
         self.flush()
         
         assert reply
@@ -68,7 +68,7 @@ class TestFile(TestController):
         assert comment.replies
         assert len(comment.replies) == 1
         
-        _change, comments = api.file.get_comments(user, user, project.eid, change=change.eid)
+        _change, comments = api.file.get_comments(user, user, change=change.eid)
         
         assert change == _change
         assert len(comments) == 2
@@ -76,19 +76,22 @@ class TestFile(TestController):
         assert comments[1] == reply
         assert comments[0].replies[0] == reply
         
-        _, guyscomment = api.file.add_comment(guy_in_project, guy_in_project, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
-        _, guyscomment1 = api.file.add_comment(guy_in_project, guy_in_project, project.eid, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _, guyscomment = api.file.add_comment(guy_in_project, guy_in_project, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
+        _, guyscomment1 = api.file.add_comment(guy_in_project, guy_in_project, 'My comment!', extract=extract.id, x=23, y=345, width=10, height=20)
         self.flush()
         
-        ex = self.throws_exception(lambda: api.file.remove_comment(guy_in_project, guy_in_project, project, comment.eid)).code == FORBIDDEN
-        ex = self.throws_exception(lambda: api.file.remove_comment(rando, rando, project, guyscomment.eid)).code == FORBIDDEN
+        ex = self.throws_exception(lambda: api.file.remove_comment(guy_in_project, guy_in_project, comment.eid)).code == FORBIDDEN
+        ex = self.throws_exception(lambda: api.file.remove_comment(rando, rando, guyscomment.eid)).code == FORBIDDEN
         
-        _, comments = api.file.get_comments(user, user, project.eid, change=change.eid)
+        _, comments = api.file.get_comments(user, user, change=change.eid)
         assert len(comments) == 4
         
-        assert api.file.remove_comment(user, user, project, guyscomment.eid)
-        assert api.file.remove_comment(guy_in_project, guy_in_project, project, guyscomment1.eid)
+        assert api.file.remove_comment(user, user, guyscomment.eid)
+        assert api.file.remove_comment(guy_in_project, guy_in_project, guyscomment1.eid)
         self.flush()
         
-        _, comments = api.file.get_comments(user, user, project.eid, change=change.eid)
+        _, comments = api.file.get_comments(user, user, change=change.eid)
         assert len(comments) == 2
+        
+        ex = self.throws_exception(lambda: api.file.get_comments(user, user))
+        assert ex.exceptions[0].code == NOT_FOUND

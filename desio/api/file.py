@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanContributeToOrg, CanReadOrg, MustOwn, Or
+                    CanContributeToOrg, CanReadOrg, MustOwn, Or, Exists
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 
@@ -76,38 +76,31 @@ def upload(real_user, user, project, **kw):
     return change.entity, change
 
 @enforce(body=unicode, x=int, y=int, width=int, height=int, change=projects.Change, extract=projects.ChangeExtract, in_reply_to=projects.Comment)
-@authorize(CanReadProject())
-def add_comment(real_user, user, project, body, change=None, extract=None, **kw):
+@authorize(Or(Exists('change'), Exists('extract')), CanReadProject(get_from=['change', 'extract']))
+def add_comment(real_user, user, body, change=None, extract=None, **kw):
     """
     Add a comment for either a change or an extract.
     """
 
     commentable = change or extract
-    
-    if not commentable:
-        raise ClientException('please specify a change eid or an extract id', code=INCOMPLETE, field='change')
-
-    comment = commentable.add_comment(user, body, **kw)
-
-    return commentable, comment
+    return commentable, commentable.add_comment(user, body, **kw)
 
 @enforce(comment=projects.Comment)
-@authorize( Or( MustOwn('comment'), CanAdminProject() ))
-def remove_comment(real_user, user, project, comment):
+@authorize(Exists('comment'), Or( MustOwn('comment'), CanAdminProject(get_from='comment') ))
+def remove_comment(real_user, user, comment):
     """
     Remove a comment.
     """
-    comment.delete()
     
+    comment.delete()
     return True
 
 @enforce(change=projects.Change, extract=projects.ChangeExtract)
-@authorize(CanReadProject())
-def get_comments(real_user, user, project, change=None, extract=None):
+@authorize(Or(Exists('change'), Exists('extract')), CanReadProject(get_from=['change', 'extract']))
+def get_comments(real_user, user, change=None, extract=None):
     """
     Get all comments related to the commentable object passed
     """
     commentable = change or extract
-
     return commentable, commentable.get_comments()
     

@@ -78,6 +78,20 @@ def authorize(*filters):
         return new
     return decorator
 
+class Exists(object):
+    def __init__(self, *params):
+        self.params = params
+    
+    def check(self, real_user, user, **kwargs):
+        
+        for p in self.params:
+            if kwargs.get(p) is not None:
+                continue
+            else:
+                raise ClientException('Not Found', code=NOT_FOUND, field=p)
+        
+        return True
+
 class IsNotLoggedIn(object):
     
     def check(self, real_user, user, **kwargs):
@@ -120,19 +134,55 @@ ORGANIZATION_ROLE_CREATOR = 'creator'
 ORGANIZATION_ROLE_USER = ROLE_USER
 
 class HasObjRole(IsLoggedIn):
-    def __init__(self, roles, param=None):
+    def __init__(self, roles, param=None, get_from=None):
+        """
+        Will check to see if the user has a role specified in roles for thie object
+        
+        It needs to find the object. It does this in two ways. You specify a param.
+        It will look in the arguments passed to the decorated function for a param
+        named whatever you pass to param in this ctor. If that fails, you can
+        specify get_from, which is the string name of another object that will be in
+        check()'s kwargs. This object must have a property of whatever is passed to param
+        in this ctor.
+        
+        Example:
+        
+        @authorize(HasObjRole(['admin'], param='project', get_from='comment'))
+        def comment_fn(real_user, user, comment)
+            #blah
+        
+        HasObjRole.check() will try to get the role from:
+        
+        comment.project.get_role(user)
+        """
         self.param = param
         self.roles = roles
+        self.get_from = None
+        if get_from:
+            self.get_from = isinstance(get_from, (list, tuple)) and get_from or [get_from]
     
     def check(self, real_user, user, **kwargs):
         super(HasObjRole, self).check(real_user, user, **kwargs)
         
-        #assume admins are not special. They can pretend and get the user's behaviors
-        #otherwise we could short circuit here with a check to is admin
+        #complicated looking...
+        
+        #can we get it from the param itself?
         obj = kwargs.get(self.param)
+        if not obj and self.get_from:
+            
+            for fr in self.get_from:
+                #no. can we get it from another kwarg?
+                from_obj = kwargs.get(fr)
+                if from_obj and hasattr(from_obj, self.param):
+                    obj = getattr(from_obj, self.param)
+                
+                if obj: break
+        
         if not obj:
             raise ClientException('No %s specified' % (self.param), NOT_FOUND, field=self.param)
         
+        #assume admins are not special. They can pretend and get the user's behaviors
+        #otherwise we could short circuit here with a check to is admin
         role = obj.get_role(user, status=STATUS_APPROVED)
         if not role or role not in self.roles:
             raise ClientException('CANNOT(!)', FORBIDDEN, field=self.param)
@@ -143,10 +193,10 @@ class CanReadOrg(HasObjRole):
     """
     They can read all the projects they have access to. They can see org activity, etc.
     """
-    def __init__(self, param='organization'):
+    def __init__(self, param='organization', **kw):
         super(CanReadOrg, self).__init__(
             [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
-            param=param)
+            param=param, **kw)
     
     def check(self, real_user, user, **kwargs):
         if real_user.is_admin(): return True
@@ -157,18 +207,18 @@ class CanContributeToOrg(HasObjRole):
     """
     They can create and modify projects and membership in projects.
     """
-    def __init__(self, param='organization'):
+    def __init__(self, param='organization', **kw):
         super(CanContributeToOrg, self).__init__(
             [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
-            param=param)
+            param=param, **kw)
 
 class CanAdminOrg(HasObjRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
     """
-    def __init__(self, param='organization'):
-        super(CanAdminOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], param=param)
+    def __init__(self, param='organization', **kw):
+        super(CanAdminOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], param=param, **kw)
 
 ##
 ### Project auth decorators
@@ -178,10 +228,10 @@ class CanReadProject(HasObjRole):
     """
     They can read all the projects they have access to. They can see org activity, etc.
     """
-    def __init__(self, param='project'):
+    def __init__(self, param='project', **kw):
         super(CanReadProject, self).__init__(
             [projects.PROJECT_ROLE_READ, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
-            param=param)
+            param=param, **kw)
     
     def check(self, real_user, user, **kwargs):
         if real_user.is_admin(): return True
@@ -192,18 +242,18 @@ class CanWriteProject(HasObjRole):
     """
     They can create and modify projects and membership in projects.
     """
-    def __init__(self, param='project'):
+    def __init__(self, param='project', **kw):
         super(CanWriteProject, self).__init__(
             [projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
-            param=param)
+            param=param, **kw)
 
 class CanAdminProject(HasObjRole):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
     """
-    def __init__(self, param='project'):
-        super(CanAdminProject, self).__init__([projects.PROJECT_ROLE_ADMIN], param=param)
+    def __init__(self, param='project', **kw):
+        super(CanAdminProject, self).__init__([projects.PROJECT_ROLE_ADMIN], param=param, **kw)
 
 class MustOwn(IsLoggedIn):
     

@@ -63,21 +63,21 @@ class UtilsController(BaseController):
         extract2 = change2.change_extracts[0]
         print change2.change_extracts
         
-        _, c1 = api.file.add_comment(admin, admin, p1, 'This is on version one', extract=extract1.id, x=40, y=50, width=50, height=50)
-        _, c1 = api.file.add_comment(kyle, kyle, p1, 'I dont know what to do about that', extract=extract1.id, x=100, y=75, width=50, height=50)
+        _, c1 = api.file.add_comment(admin, admin, 'This is on version one', extract=extract1.id, x=40, y=50, width=50, height=50)
+        _, c1 = api.file.add_comment(kyle, kyle, 'I dont know what to do about that', extract=extract1.id, x=100, y=75, width=50, height=50)
         
         # have admin, kyle, jim and joe
-        _, c1 = api.file.add_comment(admin, admin, p1, 'I think we should put blue in here.', extract=extract2.id, x=40, y=50, width=50, height=50)
-        _, c2 = api.file.add_comment(kyle, kyle, p1, 'I dont like this thing', extract=extract2.id, x=200, y=300, width=50, height=50)
-        _, c3 = api.file.add_comment(jim, jim, p1, 'Yeah, I see what you\'re doing there!', extract=extract2.id, x=250, y=100, width=40, height=50)
-        _, c4 = api.file.add_comment(joe, joe, p1, 'This comment has no coordinates', extract=extract2.id)
+        _, c1 = api.file.add_comment(admin, admin, 'I think we should put blue in here.', extract=extract2.id, x=40, y=50, width=50, height=50)
+        _, c2 = api.file.add_comment(kyle, kyle, 'I dont like this thing', extract=extract2.id, x=200, y=300, width=50, height=50)
+        _, c3 = api.file.add_comment(jim, jim, 'Yeah, I see what you\'re doing there!', extract=extract2.id, x=250, y=100, width=40, height=50)
+        _, c4 = api.file.add_comment(joe, joe, 'This comment has no coordinates', extract=extract2.id)
         self.flush()
         
-        api.file.add_comment(kyle, kyle, p1, 'Nah, I like red better.', change=change2.eid, in_reply_to=c1.eid)
-        api.file.add_comment(joe, joe, p1, 'How about green?', change=change2.eid, in_reply_to=c1.eid)
-        api.file.add_comment(kyle, kyle, p1, 'My reply i asdio oiajsdoi oasod  asdj io oaisd io asod oasodj oajs doi jaiosdio aoisd oiasdio aiosd oijasdio aiodiojsddp  aosd!', change=change2.eid, in_reply_to=c2.eid)
+        api.file.add_comment(kyle, kyle, 'Nah, I like red better.', change=change2.eid, in_reply_to=c1.eid)
+        api.file.add_comment(joe, joe, 'How about green?', change=change2.eid, in_reply_to=c1.eid)
+        api.file.add_comment(kyle, kyle, 'My reply i asdio oiajsdoi oasod  asdj io oaisd io asod oasodj oajs doi jaiosdio aoisd oiasdio aiosd oijasdio aiodiojsddp  aosd!', change=change2.eid, in_reply_to=c2.eid)
         
-        api.file.add_comment(jim, jim, p1, 'But it has a reply', change=change2.eid, in_reply_to=c4.eid)
+        api.file.add_comment(jim, jim, 'But it has a reply', change=change2.eid, in_reply_to=c4.eid)
         
         self.commit()
         

@@ -658,6 +658,10 @@ class ChangeExtract(Base, Uploadable, Commentable):
     #right now, all extracts have a png type.
     ext = '.png'
     
+    @property
+    def project(self):
+        return self.change.project
+    
     def _get_base_url_path(self):
         """
         Base url for diff and change payloads. Files are organized in a tree like this:
@@ -733,6 +737,10 @@ class Comment(Base):
 
     in_reply_to = relationship("Comment", backref=backref("replies", cascade="all"), remote_side="Comment.id")
     in_reply_to_id = sa.Column(sa.Integer, sa.ForeignKey('comments.id'), nullable=True, index=True)
+    
+    @property
+    def project(self):
+        return self.change.project
     
     @property
     def position(self):

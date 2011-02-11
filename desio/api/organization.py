@@ -2,7 +2,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     INVALID, NOT_FOUND, FORBIDDEN, abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanReadOrg, CanAdminOrg, \
-                    CanContributeToOrg
+                    CanContributeToOrg, Exists, Or
 
 from desio.model import users, Session, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
@@ -138,15 +138,10 @@ def is_unique(subdomain):
     return True
 
 @enforce(u=users.User, role=unicode, status=unicode)
-@authorize(IsLoggedIn())
+@authorize(IsLoggedIn(), Exists('organization', 'u'))
 def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
 
     params = validate(RoleStatusForm, role=role, status=status)
-    
-    if not organization:
-        raise ClientException('Organization not found', NOT_FOUND, field='organization')
-    if not u:
-        raise ClientException('User not found', NOT_FOUND, field='u')
     
     orgu = organization.get_organization_user(u, status=None)
     if orgu:
@@ -169,23 +164,19 @@ def remove_user(real_user, user, organization, u):
     return organization.remove_user(u)
 
 @enforce(u=users.User, role=unicode)
-@authorize(CanAdminOrg())
+@authorize(CanAdminOrg(), Exists('u'))
 def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED):
     if status not in [STATUS_APPROVED, STATUS_REJECTED]:
         raise ClientException('Invalid status', field='status', code=INVALID)
-    if not u:
-        raise ClientException('Need a user!', field='u', code=INVALID)
     
     #returns false when user/org connection not found
     return bool(organization.set_user_status(u, status))
 
 @enforce(u=users.User, role=unicode)
-@authorize(CanAdminOrg())
+@authorize(CanAdminOrg(), Exists('u'))
 def set_user_role(real_user, user, organization, u, role):
     if role not in users.ORGANIZATION_ROLES:
         raise ClientException('Role must be one of %s' % users.ORGANIZATION_ROLES, field='role')
-    if not u:
-        raise ClientException('Need a user!', field='u', code=INVALID)
     
     return organization.set_role(u, role)
 

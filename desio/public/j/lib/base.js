@@ -61,7 +61,11 @@ Q.Model = _Model.extend({
      * Default it sets nothing returning an empty object.
      */
     parse: function(data){
-        return {}
+        data = data.results || data;
+        if(data.eid)
+            return {id: data.eid, eid: data.eid};
+        
+        return {};
     },
     
     /**
@@ -75,13 +79,13 @@ Q.Model = _Model.extend({
      * Called by Backbone.sync. grabs a url from this.settings.urls based on the method
      */
     url: function(method) {
-        if(!this.settings.urls || !this.settings.urls[method])
+        if(!this.urls || !this.urls[method])
             $.error("Place a url map in the settings of your model! " + this + " needs a url for " + method);
         else{
-            var url = this.settings.urls[method];
+            var url = this.urls[method];
             return $.isFunction(url) ? url() : url;
         }
-        throw new Error('asd');
+        throw new Error('Place a url map in the settings of your model!');
     },
     
     /**
@@ -92,13 +96,11 @@ Q.Model = _Model.extend({
     }
 });
 
-Q.Model.defaults = {
-    methods: {
-        create: 'POST',
-        read: 'GET',
-        update: 'POST',
-        'delete': 'POST'
-    }
+Q.Model.methods = {
+    create: 'POST',
+    read: 'GET',
+    update: 'POST',
+    'delete': 'POST'
 };
 
 //end stuff to put in quaid
@@ -111,7 +113,7 @@ Backbone.sync = function(method, model, success, error) {
     // Default JSON-request options.
     var params = {
         url: model.url(method),
-        type: model.httpMethod(method),
+        type: Q.Model.methods(method),
         data: modelJSON,
         dataType: 'json',
         success: success,
