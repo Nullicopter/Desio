@@ -1,4 +1,4 @@
-import os
+import os, sys
 import urlparse
 import shutil
 
@@ -17,8 +17,11 @@ class LocalUploader(object):
         """
         final_filepath = os.path.join(self.base_path, to_filepath)
         final_directory, final_filename = os.path.split(final_filepath)
-        try: os.makedirs(final_directory)
-        except: pass
+        try:
+            os.makedirs(final_directory)
+        except: 
+            print sys.exc_info()
+        
         shutil.move(from_filepath, final_filepath)
 
 class S3Uploader(object):

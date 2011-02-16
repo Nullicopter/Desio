@@ -23,7 +23,7 @@ Q.TabView = Q.View.extend({
     },
     
     clickTab: function(){
-        this.settings.selectedVersion.set({version: this.model.get('version')});
+        this.settings.selectedVersion.set(_.clone(this.model.attributes));
     }
 });
 
@@ -128,6 +128,7 @@ Q.ViewFilePage = Q.Page.extend({
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
+        
         this.comments = new Q.Comments([]);
         
         //do setup and binding here
@@ -143,8 +144,9 @@ Q.ViewFilePage = Q.Page.extend({
         for(var i = 0; i < this.settings.versions.length; i++){
             this.versions.add(this.settings.versions[i]);
         }
-        this.selectedVersion.set({version: this.settings.versions[0].version});
+        this.selectedVersion.set(this.settings.versions[0]);
         
+        this.comments.setCurrentVersion(this.selectedVersion);
         this.comments.add(this.settings.comments, {
             save: false,
             urls: this.settings.commentUrls
@@ -162,6 +164,7 @@ Q.ViewFilePage = Q.Page.extend({
     },
     
     viewVersion: function(m){
+        //m.version is a FileVersion model
         var version = m.get('version');
         $.log('View version', version);
     }

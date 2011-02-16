@@ -1,4 +1,4 @@
-import os
+import os, os.path
 import mimetypes as mt
 import urlparse
 from datetime import datetime
@@ -11,8 +11,8 @@ import hashlib
 
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
-from desio.model import STATUS_EXISTS, STATUS_REMOVED
-from desio.utils import file_uploaders as fu, image
+from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush
+from desio.utils import file_uploaders as fu, image, is_testing
 
 from collections import defaultdict as dd
 
@@ -614,28 +614,36 @@ class Change(Base, Uploadable, Commentable):
         Upload the changed file to its location, generate a diff if it's not.
         """
         
-        #doing this inline for now. At some point this will be split out and done async
-        self._gen_extracts(tmp_contents_filepath)
-        
         self.uploader.set_contents(tmp_contents_filepath, self.url)
+        
+        #doing this inline for now. At some point this will be split out and done async
+        self._gen_extracts(self.url)
     
     def _gen_extracts(self, tmp_contents_filepath):
         """
         Will generate the file extracts for this change. The extracts include the thumbnail.
-        """
-        extracts = []
-        indices = dd(lambda: 0) #each type of file will have its own count
-        raw_extracts = image.extract(tmp_contents_filepath)
-        for e in raw_extracts:
-            
-            change_extract = ChangeExtract(change=self, extract_type=e.extract_type, order_index=indices[e.extract_type])
-            change_extract.set_contents(e.filename)
-            Session.add(change_extract)
-            extracts.append(change_extract)
-            
-            indices[e.extract_type] += 1
         
-        return extracts
+        This will eventually be async.
+        """
+        
+        #this is really ghetto.
+        if not is_testing():
+            import subprocess
+            commit()
+            proj_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            cmd = [
+                'python',
+                os.path.join(proj_root, 'desio', 'backend', 'run_extract.py'),
+                os.path.join(proj_root, 'development.ini'),
+                self.eid,
+                os.path.join(self.uploader.base_path, tmp_contents_filepath)
+            ]
+            subprocess.call(cmd)
+        else:
+            #not running this as an external process so we dont have to commit.
+            from desio.backend import run_extract
+            print 'Generating extracts for testing env'
+            run_extract.gen_extracts(self, os.path.join(self.uploader.base_path, tmp_contents_filepath))
     
 class ChangeExtract(Base, Uploadable, Commentable):
     """

@@ -109,7 +109,7 @@ class Extractor(object):
                 sz = (sx, int(ratioy))
             else:
                 sz = (int(ratiox), sy)
-            #print 'resize', sz
+            print 'resize', sz
             self.image.resize(sz, blur=1.0)
         
         dx = sz[0] - sx
@@ -118,7 +118,7 @@ class Extractor(object):
         cropsize = (min(x, sx), min(y, sy))
         offset = (dx >= 0 and dx/2 or 0, dy >= 0 and dy/2 or 0)
         
-        #print (dx, dy), cropsize, offset
+        print (dx, dy), cropsize, offset
         
         self.image.crop(cropsize, offset)
         return [self._write_file(EXTRACT_TYPE_THUMBNAIL)]
@@ -221,16 +221,22 @@ def extract(filename, out_filename=None, **kw):
     :param filename: the input filename
     :param out_filename: output filename. if blank, will use temp files.
     """
-    img = Image(filename)
+    try:
+        img = Image(filename)
+    except:
+        import sys
+        print sys.exc_info()
+        raise
+    
     extractor_class = EXTRACTORS.get(img.format)
     
     if extractor_class:
         extractor = extractor_class(img, out_filename)
         ext = extractor.extract(**kw)
-        del img
+        img.destroy()
         return ext
     
-    del img
+    img.destroy()
     raise Exception('Wrong format: %s' % img.format)
 
 if __name__ == '__main__':

@@ -23,7 +23,9 @@ Q.View.prototype.render = function(){
     return this.renderTemplate(this.model.attributes);
 }
 
-var _Collection = Class.extend(Backbone.Collection.prototype);
+// using call as a hack so the resulting objects are of type Backbone.Collection
+// making it so isinstance still works.
+var _Collection = Class.extend.call(Backbone.Collection, Backbone.Collection.prototype);
 Q.Collection = _Collection.extend({
     _ctor: function(models, settings){
         
@@ -35,10 +37,31 @@ Q.Collection = _Collection.extend({
         // call the quaid constructor
         if ( $.isFunction(this.init) )
             this.init.call(this, models, settings);
+    },
+    
+    removeAll: function(){
+        var models = _.clone(this.models);
+        for(var i = 0; i < models.length; i++)
+            this.remove(models[i]);
+    },
+    
+    /**
+     * Called by Backbone.sync. grabs a url from this.settings.urls based on the method
+     */
+    url: function(method) {
+        if(!this.urls || !this.urls[method])
+            $.error("Place a url map in the settings of your model! " + this + " needs a url for " + method);
+        else{
+            var url = this.urls[method];
+            return $.isFunction(url) ? url() : url;
+        }
+        throw new Error('Place a url map in the settings of your model!');
     }
 });
 
-var _Model = Class.extend(Backbone.Model.prototype);
+// using call as a hack so the resulting objects are of type Backbone.Model
+// making it so isinstance still works.
+var _Model = Class.extend.call(Backbone.Model, Backbone.Model.prototype);
 Q.Model = _Model.extend({
     
     _ctor: function(attributes, settings){
@@ -107,13 +130,12 @@ Q.Model.methods = {
 
 //backbone sync override
 Backbone.sync = function(method, model, success, error) {
-    var modelJSON = (method === 'create' || method === 'update') ?
-                     model.toJSON() : null;
+    var modelJSON = model.toJSON(method);
     
     // Default JSON-request options.
     var params = {
         url: model.url(method),
-        type: Q.Model.methods(method),
+        type: Q.Model.methods[method],
         data: modelJSON,
         dataType: 'json',
         success: success,

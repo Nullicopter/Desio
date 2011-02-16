@@ -7,10 +7,12 @@ from desio.api import CanReadOrg
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%SZ'
 def fdatetime(dt):
-    return dt.strftime(DATE_FORMAT)
+    if dt:
+        return dt.strftime(DATE_FORMAT)
+    return None
 
 def out_change_extract(extract):
-    edict = itemize(extract, 'order_index', 'extract_type', 'url', 'description')
+    edict = itemize(extract, 'id', 'order_index', 'extract_type', 'url', 'description')
     edict['url'] = '/' + edict['url']
     return edict
 
@@ -161,15 +163,17 @@ class file:
         def output(self, c):
             commentable, comment = c
 
-            foutput = None
-            if commentable._comment_attribute == 'change_extract':
-                out = out_change_extract(commentable)
-            elif commentable._comment_attribute == 'change':
-                out = out_change(commentable, with_extracts=False)
+            #foutput = None
+            #if commentable._comment_attribute == 'change_extract':
+            #    out = out_change_extract(commentable)
+            #elif commentable._comment_attribute == 'change':
+            #    out = out_change(commentable, with_extracts=False)
 
-            out['comment'] = out_comment(comment)
+            #out['comment'] = out_comment(comment)
 
-            return out
+            #return out
+            
+            return out_comment(comment)
 
     class get_comments:
         def output(self, c):

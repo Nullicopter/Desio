@@ -5,6 +5,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
                     CanContributeToOrg, CanReadOrg, MustOwn, Or, Exists
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio import utils
 import sqlalchemy as sa
 
 import formencode
@@ -46,13 +47,13 @@ def upload(real_user, user, project, **kw):
     File is binary in the request body.
     """
     from pylons import request
-    fname = request.headers.get('X-Up-Filename')
-    type = request.headers.get('X-Up-Type')
-    path = request.headers.get('X-Up-Path')
-    description = request.headers.get('X-Up-Description')
+    fname = utils.to_unicode(request.headers.get('X-Up-Filename'))
+    type = utils.to_unicode(request.headers.get('X-Up-Type'))
+    path = utils.to_unicode(request.headers.get('X-Up-Path'))
+    description = utils.to_unicode(request.headers.get('X-Up-Description'))
     
     if not fname or not type or not path: return None
-
+    
     ext = None
     if type:
         ext = mimetypes.guess_extension(type)
@@ -76,18 +77,18 @@ def upload(real_user, user, project, **kw):
     return change.entity, change
 
 @enforce(body=unicode, x=int, y=int, width=int, height=int, change=projects.Change, extract=projects.ChangeExtract, in_reply_to=projects.Comment)
-@authorize(Or(Exists('change'), Exists('extract')), CanReadProject(get_from=['change', 'extract']))
-def add_comment(real_user, user, body, change=None, extract=None, **kw):
+@authorize(Or(Exists('change'), Exists('extract'), Exists('in_reply_to')), CanReadProject(get_from=['change', 'extract', 'in_reply_to']))
+def add_comment(real_user, user, body, change=None, extract=None, in_reply_to=None, **kw):
     """
     Add a comment for either a change or an extract.
     """
 
-    commentable = change or extract
-    return commentable, commentable.add_comment(user, body, **kw)
+    commentable = change or extract or in_reply_to.change
+    return commentable, commentable.add_comment(user, body, in_reply_to=in_reply_to, **kw)
 
 @enforce(comment=projects.Comment)
 @authorize(Exists('comment'), Or( MustOwn('comment'), CanAdminProject(get_from='comment') ))
-def remove_comment(real_user, user, comment):
+def remove_comment(real_user, user, comment, **kw):
     """
     Remove a comment.
     """

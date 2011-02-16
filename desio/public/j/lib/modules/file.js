@@ -33,21 +33,31 @@ Q.Directories = Q.Collection.extend({});
  * - Each root level comment will have a Q.Comment created. 
  * - Each comment can have replies, so the Q.Comment will place its replies in
  *   a Q.Comments object, etc.
+ * - View binds to comments collection add event.
+ *   - Adds a root level comment on add,
+ *   - binds to replies add event
+ *   - then cycles through replies and adds them too.
  *
  * Add a reply to a comment
  * - have the reply form pull the parent comment id and put it in a hidden field in the form
  * - on submit, call comments.get(id), get parent comment
  * - call comment.get('replies').add({..new reply..})
+ * - parent comment is bound to comment.replies.add event. creates a new reply view when one is
+ *   added
  * 
  * Adding a comment
  * - call comments.add({..new reply..}, {save: true}); //the save: true is default
  * - the Q.Comments overrides _add, it will call model.save()
+ * - same as initial page load...
  *
  * Removing a comment
  * - find the comment and call destroy() on it
+ * - each comment view is bound to the comment model's destroy event. on destroy, remove the elem.
  *
  * Fetching new comments for a version
- * - ???
+ * - Something binds to a version change model. When the version changes,
+ *   the binding obj gets the change eid from the model and calls
+ *   Q.Comments.fetchForVersion(eid)
  **/
 Q.Comment = Q.Model.extend({
     urls: {
@@ -55,28 +65,125 @@ Q.Comment = Q.Model.extend({
         'delete': '/api/v1/file/remove_comment'
     },
     
-    init: function(attr){
+    init: function(){
         
         var com = new Q.Comments([]);
+        com.parent = this;
+        var replies = this.get('replies');
         this.set({replies: com}, {silent: true});
-        com.add(attr.replies, {save:false});
+        
+        if(replies)
+            com.add(replies, {save:false});
+    },
+    
+    toJSON: function(method){
+        if(method == 'delete'){
+            return {
+                comment: this.get('eid')
+            }
+        }
+        return this._super(method);
+    },
+    
+    parse: function(data){
+        $.log('Parsing comment success', data.results);
+        data.results.id = data.results.eid;
+        return data.results;
     }
 });
 
 Q.Comments = Q.Collection.extend({
+    urls: {
+        'read': '/api/v1/file/get_comments'
+    },
+    
     model: Q.Comment,
     
-    fetch: function(changeEid){
-        //this expects a url to be passed in 
+    init: function(models, settings){
+        this._super.apply(this, arguments);
+        _.bindAll(this, 'fetchForVersion');
+    },
+    
+    setCurrentVersion: function(currentVersion){
+        //this is a backbone model
+        if(currentVersion){
+            this.version = currentVersion;
+            this.version.bind('change:change_eid', this.fetchForVersion);
+        }
     },
     
     _add: function(m, options){
         options = options || {};
-        $.log('wtf', m, options);
+        //$.log('Adding comment', model.isNew() ? 'NEW' : 'NOT new', m, options);
         var model = this._super.call(this, m, options);
         
-        if(options.save != false)
-            model.save();
+        $.log('Adding comment', model.isNew() ? 'NEW' : 'NOT new', m, options);
+        
+        if(model.isNew()){
+            //is this a reply?
+            if(this.parent)
+                model.set({in_reply_to: this.parent.get('eid')});
+            
+            //is this a new comment on the file itself?
+            if(!model.get('extract') && !model.get('change') && this.version)
+                model.set({change: this.version.get('change_eid')});
+            
+            if(options.save != false && options.silent != true)
+                model.save();
+        }
+    },
+    
+    toJSON: function(){
+        return {
+            change: this.version.get('change_eid')
+        };
+    },
+    
+    parse: function(data){
+        if(data && data.results && data.results.comments)
+            return data.results.comments;
+        $.warn('Bad data on comment fetch?', data);
+        return [];
+    },
+    
+    fetchForVersion: function(fileVersion){
+        //give me a fileversion model object
+        
+        var neweid = fileVersion.get('change_eid');
+        
+        $.log('Attempting to fetch comments for version', fileVersion.get('version'), neweid);
+        
+        //we could cache the comments, but whatev for now
+        //var oldeid = null;
+        //if(this.version)
+        //    oldeid = this.version.get('change_eid');
+        //if(oldeid)
+        //    this.versions[oldeid] = _.clone()
+        
+        //this calls toJSON,
+        //then on success calls parse,
+        //with the result of parse(), calls reset.
+        this.fetch();
+    },
+    
+    /**
+     * provide either a change or an extract
+     * position is: [x, y, width, height]
+     */
+    addComment: function(body, extract, position){
+        var com = {};
+        if(position && position.length == 4) com = {
+                x: position[0],
+                y: position[1],
+                width: position[2],
+                height: position[3]
+            };
+        
+        com.body = body;
+        com.extract = extract;
+        
+        $.log('Adding new comment: ', com, position);
+        this.add(com);
     }
 });
 
@@ -309,6 +416,10 @@ Q.UploadModule = Q.FileUploader.extend('UploadModule', {
             loaded: 0
         };
         m = new Q.ProcessingFile(m);
+        if(m.type != 'processingFile'){
+            $.error('Processing file must have different type', m);
+            throw new Error('Processing file must have type processingFile not '+ m.type);
+        }
         this.files.add(m);
         
         return true;
@@ -411,8 +522,7 @@ Q.ProcessingFileView = Q.FileView.extend({
         this._super();
         
         $.log(this.model.get('src'));
-        var img = document.createElement("img"); 
-        img.className = 'meh';
+        var img = document.createElement("img");
         img.file = this.model.get('file');   
         img.src = this.model.get('src');
         

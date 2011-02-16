@@ -1,6 +1,7 @@
 """The application's model objects"""
 import datetime
 from desio.model.meta import Session, Base
+from desio import utils
 
 STATUS_APPROVED = u'approved'
 STATUS_REJECTED = u'rejected'
@@ -17,3 +18,14 @@ def init_model(engine):
     
     from psycopg2 import extensions
     extensions.register_type(extensions.UNICODE)
+
+def commit():
+    """wrapper fn"""
+    if utils.is_testing():
+        Session.flush()
+    else:
+        Session.commit()
+
+def flush():
+    """Wrapper fn"""
+    Session.flush()
