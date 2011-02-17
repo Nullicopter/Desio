@@ -178,7 +178,15 @@ class PostscriptExtractor(Extractor):
             self.image.resolution = (density, density)
             #print 'density change', self.image.size
         
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+        self.image.iterator_reset()
+        images = []
+        l = True
+        while l:
+            images.append(self._write_file(EXTRACT_TYPE_FULL))
+            l = self.image.iterator_next()
+        self.image.iterator_reset()
+        
+        return images + self.thumbnail()
 
 class PSDExtractor(Extractor):
     """
@@ -228,6 +236,7 @@ def extract(filename, out_filename=None, **kw):
         print sys.exc_info()
         raise
     
+    print img.format
     extractor_class = EXTRACTORS.get(img.format)
     
     if extractor_class:

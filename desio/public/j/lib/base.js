@@ -38,6 +38,7 @@ Q.Collection = _Collection.extend({
         if ( $.isFunction(this.init) )
             this.init.call(this, models, settings);
     },
+    init: function(){},
     
     removeAll: function(){
         var models = _.clone(this.models);
@@ -75,6 +76,8 @@ Q.Model = _Model.extend({
         if ( $.isFunction(this.init) )
             this.init.call(this, attributes, this.settings);
     },
+    
+    init: function(){},
     
     /**
      * Upon create, update, read, this is called with the server's response.
