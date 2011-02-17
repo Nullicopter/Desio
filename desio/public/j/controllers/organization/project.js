@@ -32,9 +32,6 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     className: 'image',
     
     n: {
-        previous: '.previous-button',
-        next: '.next-button',
-        topBar: '.top-bar',
         title: '.top-bar .text',
         images: '.image-container'
     },
@@ -74,7 +71,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
             for(var i = 0; i < extr.length; i++)
                 if(extr[i].extract_type != "thumbnail")
                     images.push(new Q.ImageView({
-                        model: new Backbone.Model(extr[i])
+                        model: new Backbone.Model(extr[i]),
+                        comments: this.settings.comments
                     }).render());
             
             
@@ -84,11 +82,6 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                 }).render());
             }
         }
-        
-        if(images.length == 1)
-            this.n.topBar.hide();
-        else
-            this.n.topBar.show();
         
         for(var i = 0; i < images.length; i++){
             $.log(images[i].model);
@@ -104,9 +97,117 @@ Q.ImageView = Q.View.extend({
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        //_.bindAll(this, 'changeVersion');
+        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper');
         this._super.apply(this, arguments);
+        
+        $.log('ImageView settings', this.settings, this.model);
+    },
+    
+    onChange: function(c){
+        if(this.newCommentView)
+            this.newCommentView.hide();
+        
+        //$.log('onChange', c.x, c.y, c.x2, c.y2, c.w, c.h, c);
+    },
+    
+    onSelect: function(c){
+        $.log('onSelect', c, 'elem', this.cropper, this.cropper.trackerElem);
+        if(c.w && c.h && this.newCommentView){
+            this.newCommentView.show(this.cropper.trackerElem);
+        }
+    },
+    
+    onRelease: function(){
+        if(this.newCommentView)
+            this.newCommentView.hide();
+        $.log('onRelease');
+    },
+    
+    setCropper: function(cropperApi){
+        this.cropper = cropperApi;
+        this.newCommentView.setCropper(cropperApi);
+    },
+    
+    render: function(){
+        if(this.cropper)
+            this.cropper.destory();
+        
+        this._super();
+        
+        this.newCommentView = new Q.ImageNewCommentView({
+            model: this.model.clone(),
+            comments: this.settings.comments
+        });
+        
+        var img = this.$('img').Jcrop({
+            onChange: this.onChange,
+            onSelect: this.onSelect,
+            onRelease: this.onRelease,
+            onLoad: this.setCropper,
+            //cornerHandles: false,
+            //sideHandles: false,
+            allowMove: false,
+            keySupport: false,
+            allowResize: false
+        });
+        
+        this.container.append(this.newCommentView.render().el);
+        this.newCommentView.hide();
+        
+        return this;
     }
+});
+
+Q.ImageNewCommentView = Q.PopupView.extend({
+    template: '#image-comment-template',
+    className: 'new-image-comment',
+    
+    init: function(container, settings){
+        //model is a generic backbone model with a file extract in it
+        var defs = {
+            model: new Q.Model({}),
+            comments: null //need the list of comments to add to....
+        };
+        this._super(container, $.extend({}, defs, settings));
+        this.model = this.model || this.settings.model;
+        
+        _.bindAll(this, 'onSubmit');
+    },
+    
+    setupForm: function(){
+        this.form = this.$('form').Form({
+            onSubmit: this.onSubmit
+        });
+    },
+    
+    onSubmit: function(){
+        var pos = this.cropper.tellSelect();
+        pos = [pos.x, pos.y, pos.w, pos.h];
+        $.log('submit', this.form.val('body'), this.model.id, pos);
+        
+        this.settings.comments.addComment(this.form.val('body'), this.model.id, pos);
+        
+        return false;
+    },
+    
+    setCropper: function(cropperApi){
+        this.cropper = cropperApi;
+    },
+    
+    show: function(){
+        this._super.apply(this, arguments);
+        
+        this.form.focusFirst();
+    },
+    
+    render: function(){
+        this._super();
+        
+        this.setupForm();
+        
+        return this;
+    }
+    
 });
 
 Q.ViewFilePage = Q.Page.extend({
@@ -137,7 +238,8 @@ Q.ViewFilePage = Q.Page.extend({
         
         this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
             model: this.versions,
-            selectedVersion: this.selectedVersion
+            selectedVersion: this.selectedVersion,
+            comments: this.comments
         });
         
         //add the versions to the model

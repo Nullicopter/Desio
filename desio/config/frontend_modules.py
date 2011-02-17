@@ -68,7 +68,8 @@ JS = {
         'quaid/src/extension/editablefield.js',
         
         'lib/base.js',
-        'lib/util.js'
+        'lib/util.js',
+        'lib/views.js'
     ]),
     
     'ui': ('build/ui.js', [
@@ -87,6 +88,10 @@ JS = {
     
     'file': ('build/modules/file.js', [
         'lib/modules/file.js'
+    ]),
+    
+    'image': ('build/modules/image.js', [
+        'include/jquery.jcrop.js',
     ]),
     
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
@@ -132,6 +137,10 @@ CSS = {
         "jqueryui/jquery.ui.datepicker.css",
         "jqueryui/jquery.ui.progressbar.css",
         "jqueryui/jquery.ui.theme.css",
+    ]),
+    
+    'image': ('build/image.css', [
+        'modules/image.css',
     ]),
     
     'test': ('build/modules/test.css', [

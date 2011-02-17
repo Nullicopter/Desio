@@ -6,7 +6,7 @@
 %>
 <%def name="header()">
     ${parent.header()}
-    ${r.require('file')}
+    ${r.require('file', 'image')}
     <style type="text/css">
     
     #tabs{
@@ -50,6 +50,23 @@
         max-width: 930px
     }
     
+    /****/
+    .image .jcrop-holder{
+        margin: 0 auto;
+    }
+    .image{position: relative;}
+    
+    /****/
+    .new-image-comment{
+        width: 250px;
+        background: #eee;
+        border: 2px solid #ccc;
+        position: absolute;
+        padding: 20px;
+        z-index: 5;
+    }
+    .new-image-comment p{margin-top: 0;}
+    .new-image-comment textarea{width: 240px;}
     </style>
     
     <script type="text/javascript">
@@ -67,11 +84,6 @@
 
 <div id="inpage-image-viewer">
     <div class="image-viewer">
-        <div class="top-bar">
-            <a href="#" class="previous-button">prev</a>
-            <a href="#" class="next-button">next</a>
-            <div class="text">Page 1</div>
-        </div>
         <div class="image-container">
             
         </div>
@@ -84,4 +96,12 @@
 
 <script id="image-template" class="jstemplate" type="text/template">
     <img src="{{url}}" />
+</script>
+
+<script id="image-comment-template" class="jstemplate" type="text/template">
+    <form method="post">
+        <p>Enter a comment</p>
+        ${f.textarea('body', id=None)}
+        ${f.submit('Add Comment')}
+    </form>
 </script>
