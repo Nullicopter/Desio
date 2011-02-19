@@ -28,7 +28,7 @@
         background: #ccc;
     }
     
-    
+    /*****/
     .image-viewer .top-bar{
         height: 35px;
         background: #333;
@@ -43,11 +43,11 @@
         background: #fff;
         border: 1px solid #ccc;
         padding: 15px 0;
-        width: 960px;
+        /*width: 960px;*/
         text-align: center;
     }
     .image-viewer .image img{
-        max-width: 930px
+        max-width: 800px
     }
     
     /****/
@@ -58,12 +58,15 @@
     
     /****/
     .new-image-comment{
+        width: 294px;
+        position: absolute;
+        z-index: 1000;
+    }
+    .new-image-comment .comment-container{
         width: 250px;
         background: #eee;
         border: 2px solid #ccc;
-        position: absolute;
         padding: 20px;
-        z-index: 5;
     }
     .new-image-comment p{margin-top: 0;}
     .new-image-comment textarea{width: 240px;}
@@ -72,12 +75,29 @@
     <script type="text/javascript">
     new Q.ViewFilePage({
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
-        versions: ${json.dumps(c.file) | n},
+        versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
+        boxWidth: 800,
         showDropTargetOn: 'elemdrag'//'bodydrag'
     }).readyrun();
     </script>
+</%def>
+
+<%def name="sidepanel()">
+    % if c.file.description:
+        <p id="description">${c.file.description}</p>
+    % endif
+    <ul id="file-links">
+        <li><a href="#">Download</a></li>
+        <li><a href="#">Share this file</a></li>
+    </ul>
+    
+    <h3>Comments <a id="add-comment-link" href="#">add</a></h3>
+    
+    <div id="comments">
+        
+    </div>
 </%def>
 
 <div id="tabs"></div>
@@ -99,9 +119,11 @@
 </script>
 
 <script id="image-comment-template" class="jstemplate" type="text/template">
-    <form method="post">
-        <p>Enter a comment</p>
-        ${f.textarea('body', id=None)}
-        ${f.submit('Add Comment')}
-    </form>
+    <div class="comment-container">
+        <form method="post">
+            <p>Enter a comment</p>
+            <div>${f.textarea('body', id=None)}</div>
+            ${f.submit('Add Comment')}
+        </form>
+    </div>
 </script>

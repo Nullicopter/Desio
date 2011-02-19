@@ -38,7 +38,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     
     init: function(){
         //gets selectedVersion model in the settings.
-        _.bindAll(this, 'changeVersion');
+        _.bindAll(this, 'changeVersion', 'docClick');
         this._super.apply(this, arguments);
         
         //this will store all the image views. Lazy loaded.
@@ -46,6 +46,18 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         this.currentVersion = null;
         
         this.settings.selectedVersion.bind('change:version', this.changeVersion)
+        
+        $(document).mousedown(this.docClick);
+    },
+    
+    docClick: function(e){
+        $.log('document click', this.currentVersion, this.views);
+        
+        if(this.currentVersion && this.currentVersion in this.views){
+            var v = this.views[this.currentVersion];
+            for(var i = 0; i < v.length; i++)
+                v[i].release(e);
+        }
     },
     
     changeVersion: function(m){
@@ -59,7 +71,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         
         if(!model) return;
         
-        this.n.images.html('');
+        this.n.images.children().remove();
         
         var images = [];
         if(ver in this.views)
@@ -72,7 +84,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                 if(extr[i].extract_type != "thumbnail")
                     images.push(new Q.ImageView({
                         model: new Backbone.Model(extr[i]),
-                        comments: this.settings.comments
+                        comments: this.settings.comments,
+                        boxWidth: this.settings.boxWidth
                     }).render());
             
             
@@ -81,6 +94,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                     model: new Backbone.Model(model.attributes)
                 }).render());
             }
+            
+            this.views[ver] = images;
         }
         
         for(var i = 0; i < images.length; i++){
@@ -88,6 +103,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
             this.n.images.append(images[i].container);
         }
         
+        this.currentVersion = ver;
     }
 });
 
@@ -111,7 +127,7 @@ Q.ImageView = Q.View.extend({
     },
     
     onSelect: function(c){
-        $.log('onSelect', c, 'elem', this.cropper, this.cropper.trackerElem);
+        $.log('onSelect', c, this.settings.boxWidth, 'elem', this.cropper, this.cropper.trackerElem);
         if(c.w && c.h && this.newCommentView){
             this.newCommentView.show(this.cropper.trackerElem);
         }
@@ -120,7 +136,6 @@ Q.ImageView = Q.View.extend({
     onRelease: function(){
         if(this.newCommentView)
             this.newCommentView.hide();
-        $.log('onRelease');
     },
     
     setCropper: function(cropperApi){
@@ -128,7 +143,13 @@ Q.ImageView = Q.View.extend({
         this.newCommentView.setCropper(cropperApi);
     },
     
+    release: function(){
+        if(this.cropper)
+            this.cropper.release();
+    },
+    
     render: function(){
+        $.log('render', this.settings.boxWidth);
         if(this.cropper)
             this.cropper.destory();
         
@@ -148,10 +169,11 @@ Q.ImageView = Q.View.extend({
             //sideHandles: false,
             allowMove: false,
             keySupport: false,
-            allowResize: false
+            allowResize: false,
+            boxWidth: this.settings.boxWidth
         });
         
-        this.container.append(this.newCommentView.render().el);
+        this.newCommentView.render();
         this.newCommentView.hide();
         
         return this;
@@ -171,13 +193,31 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         this._super(container, $.extend({}, defs, settings));
         this.model = this.model || this.settings.model;
         
-        _.bindAll(this, 'onSubmit');
+        _.bindAll(this, 'onSubmit', 'parseKey');
     },
     
     setupForm: function(){
         this.form = this.$('form').Form({
-            onSubmit: this.onSubmit
+            validationOptions:{
+                submitHandler: this.onSubmit,
+                rules: {body: 'required'},
+                messages: {body: 'Message please'}
+            }
         });
+        
+        var b = this.form.getElement('body');
+        b.keypress(this.parseKey);
+        
+    },
+    
+    parseKey: function(e){
+        var shift_down = e.shiftKey;
+        switch(e.keyCode){
+            case 13:
+                this.form.submit();
+                return false;
+        }
+        return true;
     },
     
     onSubmit: function(){
@@ -187,16 +227,16 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         
         this.settings.comments.addComment(this.form.val('body'), this.model.id, pos);
         
+        this.cropper.release();
+        
         return false;
     },
     
-    setCropper: function(cropperApi){
-        this.cropper = cropperApi;
-    },
-    
+    setCropper: function(cropperApi){this.cropper = cropperApi;},
     show: function(){
         this._super.apply(this, arguments);
         
+        this.form.reset();
         this.form.focusFirst();
     },
     
@@ -239,7 +279,8 @@ Q.ViewFilePage = Q.Page.extend({
         this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
             model: this.versions,
             selectedVersion: this.selectedVersion,
-            comments: this.comments
+            comments: this.comments,
+            boxWidth: this.settings.boxWidth
         });
         
         //add the versions to the model

@@ -39,10 +39,20 @@ class ProjectController(OrganizationBaseController):
     """
     """
     
+    def _split_path_components(self, project, obj):
+        com = [project.name]
+        
+        if obj:
+            com += [p for p in obj.path.split('/') if p] + [obj.name]
+        
+        return com
+    
     @authorize(CanContributeToOrgRedirect())
     def new(self, **kw):
         c.title = 'New Project'
         c.project_user_module_params = modules.project.project_user_module(c.real_user, c.user, c.organization)
+        c.projects = api.project.get(c.real_user, c.user, c.organization)
+        
         return self.render('/organization/project/new.html')
     
     @has_project()
@@ -63,23 +73,27 @@ class ProjectController(OrganizationBaseController):
             
             view_dir = entity.type == projects.Directory.TYPE
         
+        c.projects = api.project.get(c.real_user, c.user, c.organization)
+        c.path_components = self._split_path_components(project, entity)
+        c.title = c.path_components[-1]
+        
         if view_dir:
-            return self._view_directory(entity, project, path)
+            return self._view_directory(entity, project, path, c.path_components)
         else:
-            return self._view_file(entity, project, path)
+            return self._view_file(entity, project, path, c.path_components)
     
-    def _view_file(self, entity, project, path):
-        c.title = project.name + (path != u'/' and path or '')
+    def _view_file(self, entity, project, path, path_components):
         
         c.project = project
+        c.sidepanel_tab = c.title
         
         logger.info('viewing FILE %s %s' % (path, entity))
         
         file = api.file.get(c.real_user, c.user, project, path, version='all')
-        c.file = v1.file.get().output(file)
+        c.file_dict = v1.file.get().output(file)
         
         #we could pass in the current version
-        file, head_change = file[0]
+        c.file, head_change = file[0]
         
         comments = api.file.get_comments(c.real_user, c.user, change=head_change)
         c.comments = v1.file.get_comments().output(comments)
@@ -88,8 +102,7 @@ class ProjectController(OrganizationBaseController):
         
         return self.render('/organization/project/view_file.html')
     
-    def _view_directory(self, entity, project, path):
-        c.title = project.name + (path != u'/' and path or '')
+    def _view_directory(self, entity, project, path, path_components):
         
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
         if not struc: abort(404)

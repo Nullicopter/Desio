@@ -103,10 +103,12 @@ JS = {
         'controllers/organization/create.js'
     ]),
     'controllers.organization.settings': ('build/controllers/organization.settings.js', [
-        'controllers/organization/settings.js'
+        'controllers/organization/settings.js',
+        'controllers/organization/base.js'
     ]),
     'controllers.organization.project': ('build/controllers/organization.project.js', [
-        'controllers/organization/project.js'
+        'controllers/organization/project.js',
+        'controllers/organization/base.js'
     ])
 }
 
@@ -151,5 +153,9 @@ CSS = {
     
     'controllers.admin': ('build/controllers/admin.css', [
         'controllers/admin.css'
+    ]),
+        
+    'controllers.organization': ('build/controllers/organization.css', [
+        'controllers/organization.css'
     ])
 }

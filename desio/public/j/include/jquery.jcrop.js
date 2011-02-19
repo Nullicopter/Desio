@@ -30,7 +30,7 @@
 
 (function($) {
 
-$.Jcrop = function(obj,opt)
+$.Jcrop = function(obj,opt, imageObj)
 {
 	// Initialization {{{
 
@@ -113,7 +113,7 @@ $.Jcrop = function(obj,opt)
 	$img.height($origimg.height());
 	$origimg.after($img).hide();
 
-	presize($img,options.boxWidth,options.boxHeight);
+	presize($img, imageObj, options.boxWidth,options.boxHeight);
 
 	var boundx = $img.width(),
 		boundy = $img.height(),
@@ -901,21 +901,21 @@ $.Jcrop = function(obj,opt)
 		};
 	};
 	/*}}}*/
-	function presize($obj,w,h)/*{{{*/
+	function presize($obj, iobj, w, h)/*{{{*/
 	{
-		var nw = $obj.width(), nh = $obj.height();
+		var nw = iobj.width, nh = iobj.height;
 		if ((nw > w) && w > 0)
 		{
 			nw = w;
-			nh = (w/$obj.width()) * $obj.height();
+			nh = (w/iobj.width) * iobj.height;
 		}
 		if ((nh > h) && h > 0)
 		{
 			nh = h;
-			nw = (h/$obj.height()) * $obj.width();
+			nw = (h/iobj.height) * iobj.width;
 		}
-		xscale = $obj.width() / nw;
-		yscale = $obj.height() / nh;
+		xscale = iobj.width / nw;
+		yscale = iobj.height / nh;
 		$obj.width(nw).height(nh);
 	};
 	/*}}}*/
@@ -1176,7 +1176,7 @@ $.fn.Jcrop = function(options)/*{{{*/
 	{
 		var loadsrc = options.useImg || from.src;
 		var img = new Image();
-		img.onload = function() { $.Jcrop(from,options); };
+		img.onload = function() { $.Jcrop(from,options, img); };
 		img.src = loadsrc;
 	};
 	/*}}}*/

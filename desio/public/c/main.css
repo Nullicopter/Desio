@@ -23,6 +23,7 @@ img{border: none;}
 #header-inner, #page-inner, #footer-inner{
     width: 960px;
     margin: 0 auto;
+    position: relative;
 }
 
 #header-right{float: right;}

@@ -1,11 +1,63 @@
 <%inherit file="/base.html"/>
 <%namespace name="r" file="/require.html"/>
+<%namespace name="com" file="/common.html"/>
+
+<%def name="header()">
+    ${parent.header()}
+    <style type="text/css">
+    </style>
+</%def>
 
 <%def name="js_includes()">
     ${parent.js_includes()}
     ${r.require('controllers.organization')}
 </%def>
 
-<div id="org-${c.organization.subdomain}">
-${next.body()}
+<%def name="project_sidepanel()">
+    % if c.projects:
+        % for p in c.projects:
+            <div><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></div>
+        % endfor
+        
+        <div><a href="${h.url_for(controller='organization/project', action='new')}">New</a></div>
+    % else:
+        <p>
+            No projects
+            % if c.is_org_creator:
+                <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
+            % endif
+        </p>
+    % endif
+</%def>
+
+<%def name="sidepanel()">
+</%def>
+
+<div class="organization" id="org-${c.organization.subdomain}">
+    <div id="sidepanel">
+        <%
+        tab_def = [
+            ('Projects', '#', True)
+        ]
+        if c.sidepanel_tab:
+            tab_def.append((c.sidepanel_tab, '#'))
+        %>
+        ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs')}
+        
+        <div id="sidepanels">
+            <div class="sidepanel">
+                ${self.project_sidepanel()}
+            </div>
+            
+            % if c.sidepanel_tab:
+                <div class="sidepanel">
+                    ${self.sidepanel()}
+                </div>
+            % endif
+        </div>
+    </div>
+    
+    <div id="content">
+        ${next.body()}
+    </div>
 </div>
