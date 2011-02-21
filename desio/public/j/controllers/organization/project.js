@@ -38,6 +38,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     
     init: function(){
         //gets selectedVersion model in the settings.
+        //gets selectedComment in settings
         _.bindAll(this, 'changeVersion', 'docClick');
         this._super.apply(this, arguments);
         
@@ -85,7 +86,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                     images.push(new Q.ImageView({
                         model: new Backbone.Model(extr[i]),
                         comments: this.settings.comments,
-                        boxWidth: this.settings.boxWidth
+                        boxWidth: this.settings.boxWidth,
+                        selectedComment: this.settings.selectedComment
                     }).render());
             
             
@@ -113,10 +115,12 @@ Q.ImageView = Q.View.extend({
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper');
+        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment');
         this._super.apply(this, arguments);
         
         $.log('ImageView settings', this.settings, this.model);
+        
+        this.settings.selectedComment.bind('change:comment', this.changeComment);
     },
     
     onChange: function(c){
@@ -124,6 +128,20 @@ Q.ImageView = Q.View.extend({
             this.newCommentView.hide();
         
         //$.log('onChange', c.x, c.y, c.x2, c.y2, c.w, c.h, c);
+    },
+    changeComment: function(m){
+        m = m.get();
+        
+        if(m && this.model.get('id') == m.get('extract_id') && m.hasPosition()){
+            this.hidePopups();
+            var pos = m.get('position');
+            this.cropper.animateTo([pos[0], pos[1], pos[2]+pos[0], pos[3]+pos[1]]);
+        }
+    },
+    
+    hidePopups: function(){
+        if(this.newCommentView)
+            this.newCommentView.hide();
     },
     
     onSelect: function(c){
@@ -134,8 +152,12 @@ Q.ImageView = Q.View.extend({
     },
     
     onRelease: function(){
-        if(this.newCommentView)
-            this.newCommentView.hide();
+        this.hidePopups();
+        this.settings.selectedComment.set(null);
+    },
+    
+    onStart: function(){
+        this.settings.selectedComment.set(null);
     },
     
     setCropper: function(cropperApi){
@@ -165,6 +187,7 @@ Q.ImageView = Q.View.extend({
             onSelect: this.onSelect,
             onRelease: this.onRelease,
             onLoad: this.setCropper,
+            onStart: this.onStart,
             //cornerHandles: false,
             //sideHandles: false,
             allowMove: false,
@@ -177,6 +200,33 @@ Q.ImageView = Q.View.extend({
         this.newCommentView.hide();
         
         return this;
+    }
+});
+
+Q.CommentForm = Q.Form.extend('CommentForm', {
+    init: function(con, set){
+        var defs = {
+            validationOptions:{
+                rules: {body: 'required'},
+                messages: {body: 'Message please'}
+            }
+        };
+        this._super(con, $.extend(true, {}, defs, set));
+        
+        _.bindAll(this, 'parseKey');
+        
+        var b = this.getElement('body');
+        b.keypress(this.parseKey);
+    },
+    
+    parseKey: function(e){
+        var shift_down = e.shiftKey;
+        switch(e.keyCode){
+            case 13:
+                this.form.submit();
+                return false;
+        }
+        return true;
     }
 });
 
@@ -193,31 +243,15 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         this._super(container, $.extend({}, defs, settings));
         this.model = this.model || this.settings.model;
         
-        _.bindAll(this, 'onSubmit', 'parseKey');
+        _.bindAll(this, 'onSubmit');
     },
     
     setupForm: function(){
-        this.form = this.$('form').Form({
+        this.form = this.$('form').CommentForm({
             validationOptions:{
-                submitHandler: this.onSubmit,
-                rules: {body: 'required'},
-                messages: {body: 'Message please'}
+                submitHandler: this.onSubmit
             }
         });
-        
-        var b = this.form.getElement('body');
-        b.keypress(this.parseKey);
-        
-    },
-    
-    parseKey: function(e){
-        var shift_down = e.shiftKey;
-        switch(e.keyCode){
-            case 13:
-                this.form.submit();
-                return false;
-        }
-        return true;
     },
     
     onSubmit: function(){
@@ -250,12 +284,149 @@ Q.ImageNewCommentView = Q.PopupView.extend({
     
 });
 
+Q.CommentView = Q.View.extend({
+    tagName: 'div',
+    className: 'comment',
+    template: '#comment-template',
+    
+    init: function(container, settings){
+        /**
+         * Will get in settings:
+         * model: Q.Comment()
+         * selectedComment: 
+         */
+        $.log(settings);
+        this._super(container, settings);
+        _.bindAll(this, 'onAddReply', 'onSelectComment');
+        
+        if(this.model.get('position')){
+            this.container.addClass('position');
+            this.container.mousedown(function(e){
+                e.stopPropagation();
+            });
+        }
+        
+        this.model.bind('add', this.onAddReply);
+        this.settings.selectedComment.bind('change:comment', this.onSelectComment)
+    },
+    
+    onSelectComment: function(m){
+        m = m.get();
+        if(m && m.get('eid') == this.model.get('eid'))
+            this.container.addClass('selected');
+        else
+            this.container.removeClass('selected');
+    },
+    
+    onAddReply: function(m){
+        if(this.replies){
+            this.replies.show();
+            $.log('Adding reply in onAddReply', m);
+            var com = new Q.CommentView({
+                model: m,
+                selectedComment: this.settings.selectedComment
+            });
+            this.replies.append(com.render().el);
+        }
+        else
+            $.log('NOT Adding reply as no replies yet...', m);
+    },
+    
+    render: function(){
+        this.container[0].id = this.model.get('eid');
+        var d = {
+            time: $.relativeDateStr($.parseDate(this.model.get('created_date'))),
+            creator: this.model.get('creator').name,
+            body: this.model.get('body')
+        };
+        this.renderTemplate(d);
+        
+        this.replies = this.$('.replies').hide();
+        var repl = this.model.get('replies');
+        
+        for(var i = 0; i < repl.length; i++){
+            $.log('Adding reply in render', repl.models[i]);
+            this.onAddReply(repl.models[i]);
+        }
+        
+        return this;
+    }
+});
+
+Q.CommentsView = Q.View.extend('CommentsView', {
+    
+    events:{
+        'click .comment': 'onClickComment'
+    },
+    
+    init: function(container, settings){
+        /**
+         * Will get in settings:
+         * model: Q.Comments()
+         * selectedComment: 
+         */
+        
+        this._super(container, settings);
+        _.bindAll(this, 'onAddComment', 'onNewComment', 'onRemoveComment');
+        
+        var loader = this.loader = this.container.Loader();
+        
+        this.model.bind('newcomment', this.onNewComment);
+        this.model.bind('add', this.onAddComment);
+        this.model.bind('remove', this.onRemoveComment);
+        
+        this.model.bind('request:start', function(){
+            $.log('start loading');
+            loader.startLoading();
+        });
+        this.model.bind('request:end', function(){
+            $.log('stop loading');
+            loader.stopLoading()
+        });
+    },
+    
+    render: function(){return this;},
+    
+    onClickComment: function(e){
+        var targ = $(e.target);
+        if(!targ.is('.comment')) targ = targ.parents('.comment');
+        var id = targ[0].id;
+        
+        var m = this.model.get(id);
+        
+        if(m && m.hasPosition())
+            this.settings.selectedComment.set(m);
+    },
+    onNewComment: function(m){
+        this.onAddComment(m);
+        this.settings.selectedComment.set(m);
+    },
+    
+    onAddComment: function(m){
+        if(!m.isNew()){
+            var view = new Q.CommentView({
+                model: m,
+                selectedComment: this.settings.selectedComment
+            });
+            this.container.append(view.render().el);
+        }
+    },
+    
+    onRemoveComment: function(m){
+    }
+});
+
 Q.ViewFilePage = Q.Page.extend({
     n: {
         tabs: '#tabs',
-        pageImageViewer: '#inpage-image-viewer'
+        pageImageViewer: '#inpage-image-viewer',
+        comments: '#comments',
+        commentForm: '#add-comment form',
+        addComment: '#add-comment'
     },
     events:{
+        'click #add-comment-link': 'addCommentClick',
+        'click #add-comment .cancel': 'addCommentCancel'
     },
     run: function(){
         
@@ -265,12 +436,25 @@ Q.ViewFilePage = Q.Page.extend({
          */
         var self = this;
         this._super.apply(this, arguments);
-        _.bindAll(this, 'viewVersion', 'addVersion');
+        _.bindAll(this, 'viewVersion', 'addVersion', 'onSubmitCommentForm');
+        
+        this.n.addComment.hide();
+        this.commentForm = this.n.commentForm.CommentForm({
+            validationOptions:{
+                submitHandler: this.onSubmitCommentForm
+            }
+        });
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
+        this.selectedComment = new Q.SingleSelectionModel('comment');
         
         this.comments = new Q.Comments([]);
+        
+        this.commentsView = this.n.comments.CommentsView({
+            model: this.comments,
+            selectedComment: this.selectedComment
+        });
         
         //do setup and binding here
         this.selectedVersion.bind('change:version', this.viewVersion);
@@ -279,6 +463,7 @@ Q.ViewFilePage = Q.Page.extend({
         this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
             model: this.versions,
             selectedVersion: this.selectedVersion,
+            selectedComment: this.selectedComment,
             comments: this.comments,
             boxWidth: this.settings.boxWidth
         });
@@ -297,6 +482,28 @@ Q.ViewFilePage = Q.Page.extend({
         
         $.log(this.comments);
     },
+    
+    /// these functions should prolly be in a separate view
+    addCommentCancel: function(){
+        this.n.addComment.hide();
+        this.commentForm.reset();
+        return false;
+    },
+    addCommentClick: function(){
+        if(this.n.addComment.is(':visible'))
+            this.addCommentCancel();
+        else{
+            this.n.addComment.show();
+            this.commentForm.focusFirst();
+        }
+        return false;
+    },
+    onSubmitCommentForm: function(){
+        this.comments.addComment(this.commentForm.val('body'));
+        this.addCommentCancel();
+        return false;
+    },
+    ////
     
     addVersion: function(m){
         $.log('add version', m);

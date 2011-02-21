@@ -89,6 +89,27 @@ Q.Comment = Q.Model.extend({
         $.log('Parsing comment success', data.results);
         data.results.id = data.results.eid;
         return data.results;
+    },
+    
+    hasPosition: function(){
+        return this.get('position') ? true : false;
+    }
+});
+
+Q.SingleSelectionModel = Q.Model.extend({
+    init: function(key){
+        this._super({});
+        this.key = key;
+    },
+    
+    get: function(){
+        return this._super(this.key);
+    },
+    
+    set: function(m){
+        var d = {};
+        d[this.key] = m;
+        return this._super(d);
     }
 });
 
@@ -113,6 +134,7 @@ Q.Comments = Q.Collection.extend({
     },
     
     _add: function(m, options){
+        var self = this;
         options = options || {};
         //$.log('Adding comment', model.isNew() ? 'NEW' : 'NOT new', m, options);
         var model = this._super.call(this, m, options);
@@ -128,8 +150,13 @@ Q.Comments = Q.Collection.extend({
             if(!model.get('extract') && !model.get('change') && this.version)
                 model.set({change: this.version.get('change_eid')});
             
-            if(options.save != false && options.silent != true)
-                model.save();
+            if(options.save != false && options.silent != true){
+                model.save({}, {
+                    success: function(data){
+                        self.trigger('newcomment', model);
+                    }
+                });
+            }
         }
     },
     
@@ -171,6 +198,8 @@ Q.Comments = Q.Collection.extend({
      * position is: [x, y, width, height]
      */
     addComment: function(body, extract, position){
+        var self = this;
+        
         var com = {};
         if(position && position.length == 4) com = {
                 x: position[0],

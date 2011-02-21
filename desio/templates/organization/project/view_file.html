@@ -70,6 +70,46 @@
     }
     .new-image-comment p{margin-top: 0;}
     .new-image-comment textarea{width: 240px;}
+    
+    /**comments**/
+    
+    #comments>.comment{
+        border-bottom: 1px solid #ccc;
+    }
+    #comments .comment{
+        padding: 8px 10px;
+    }
+    #comments .comment.selected{
+        background: #fff;
+    }
+    #comments .comment .time{
+        float: right;
+        font-weight: bold;
+        color: #666;
+        font-size: 9pt;
+        line-height: 25px;
+        height: 25px;
+    }
+    #comments .comment .creator{
+        line-height: 25px;
+        height: 25px;
+    }
+    #comments .comment .creator>span{
+        font-weight: bold;
+    }
+    #comments .comment.position{
+        cursor: pointer;
+    }
+    #comments .comment.position .creator{
+        padding-left: 24px;
+        background: transparent url(${h.static_url('i', 'icons/selection.png')}) 0 3px no-repeat;
+    }
+    #comments .comment .body{
+        margin-top: 5px;
+    }
+    #comments .comment .replies{
+        padding-left: 10px;
+    }
     </style>
     
     <script type="text/javascript">
@@ -93,10 +133,19 @@
         <li><a href="#">Share this file</a></li>
     </ul>
     
-    <h3>Comments <a id="add-comment-link" href="#">add</a></h3>
+    <h3>Comments</h3>
     
     <div id="comments">
         
+    </div>
+    
+    <div><a id="add-comment-link" href="#">add a comment</a></div>
+    <div id="add-comment">
+        <form method="post">
+            <p>Enter your comment</p>
+            <div>${f.textarea('body', id=None)}</div>
+            ${f.submit('Add Comment')} <a href="#" class="cancel">cancel</a>
+        </form>
     </div>
 </%def>
 
@@ -127,3 +176,13 @@
         </form>
     </div>
 </script>
+
+<script id="comment-template" class="jstemplate" type="text/template">
+    <div class="time">{{time}}</div>
+    <div class="creator"><span>{{creator}}</span> says</div>
+    <div class="body">{{body}}</div>
+    <div class="replies"></div>
+</script>
+
+<div class="clear"></div>
+

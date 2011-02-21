@@ -33,10 +33,13 @@ def out_change(change, with_extracts=True):
     return out
 
 def out_comment(comment):
-    out  = itemize(comment, 'id', 'eid', 'body', 'position', 'created_date', 'status')
+    out  = itemize(comment, 'eid', 'body', 'position', 'created_date', 'status')
     out['created_date'] = fdatetime(out['created_date'])
     out['in_reply_to'] = comment.in_reply_to and comment.in_reply_to.eid or None
     out['creator'] = user.get().output(comment.creator)
+    out['id'] = out['eid']
+    out['change'] = comment.change.eid
+    out['extract_id'] = comment.change_extract_id
     return out
 
 def out_directory(directory):

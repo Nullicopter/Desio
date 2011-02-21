@@ -94,6 +94,7 @@ $.Jcrop = function(obj,opt, imageObj)
 		minSize:			[ 0, 0 ],
 
 		// Callbacks / Event Handlers
+        onStart: function() { },
 		onChange: function() { },
 		onSelect: function() { },
         onRelease: function() { },
@@ -947,6 +948,7 @@ $.Jcrop = function(obj,opt, imageObj)
 	{
 		if (options.disabled) return false;
 		if (!options.allowSelect) return false;
+        options.onStart();
 		btndown = true;
 		docOffset = getPos($img);
 		Selection.disableHandles();
