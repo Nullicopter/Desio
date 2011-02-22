@@ -197,13 +197,17 @@ Q.ImageView = Q.View.extend({
             this.hidePopups();
             var pos = m.get('position');
             this.pins.hide();
-            this.cropper.animateTo([pos[0], pos[1], pos[2]+pos[0], pos[3]+pos[1]]);
+            this.cropper.setSelect([pos[0], pos[1], pos[2]+pos[0], pos[3]+pos[1]]);
+            
+            this.popupCommentView.show(this.cropper.trackerElem, m);
         }
     },
     
     hidePopups: function(){
         if(this.newCommentView)
             this.newCommentView.hide();
+        if(this.popupCommentView)
+            this.popupCommentView.hide();
     },
     
     onAddComment: function(m){
@@ -277,6 +281,10 @@ Q.ImageView = Q.View.extend({
             model: this.model.clone(),
             comments: this.settings.comments
         });
+        this.popupCommentView = new Q.PopupCommentView({
+            model: this.model,
+            replyForm: window.replyForm
+        });
         
         var img = this.$('img').Jcrop({
             onChange: this.onChange,
@@ -294,6 +302,8 @@ Q.ImageView = Q.View.extend({
         
         this.newCommentView.render();
         this.newCommentView.hide();
+        this.popupCommentView.render();
+        this.popupCommentView.hide();
         
         this.pins = this.$('.pins');
         
@@ -359,7 +369,7 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         
         this.settings.comments.addComment(this.form.val('body'), this.model.id, pos);
         
-        this.cropper.release();
+        //this.cropper.release();
         
         return false;
     },
@@ -387,13 +397,16 @@ Q.CommentView = Q.View.extend({
     className: 'comment',
     template: '#comment-template',
     
+    events: {
+        'click .reply-link': 'onClickReply'
+    },
+    
     init: function(container, settings){
         /**
          * Will get in settings:
          * model: Q.Comment()
          * selectedComment: 
          */
-        $.log(settings);
         this._super(container, settings);
         _.bindAll(this, 'onAddReply', 'onSelectComment');
         
@@ -404,8 +417,12 @@ Q.CommentView = Q.View.extend({
             });
         }
         
-        this.model.bind('add', this.onAddReply);
-        this.settings.selectedComment.bind('change:comment', this.onSelectComment)
+        var replies = this.model.get('replies');
+        replies.bind('add', this.onAddReply);
+        replies.bind('newcomment', this.onAddReply);
+        
+        if(this.settings.selectedComment)
+            this.settings.selectedComment.bind('change:comment', this.onSelectComment)
     },
     
     onSelectComment: function(m){
@@ -416,8 +433,20 @@ Q.CommentView = Q.View.extend({
             this.container.removeClass('selected');
     },
     
+    onClickReply: function(){
+        var elem = this.$('#'+this.settings.replyForm.container[0].id);
+        this.settings.replyForm.model = this.model.get('replies');
+        if(elem.length && this.settings.replyForm.container.is(':visible'))
+            this.settings.replyForm.hide();
+        else{
+            this.settings.replyForm.container.insertAfter(this.$('.reply-link'));
+            this.settings.replyForm.show();
+        }
+        return false;
+    },
+    
     onAddReply: function(m){
-        if(this.replies){
+        if(this.replies && !m.isNew()){
             this.replies.show();
             $.log('Adding reply in onAddReply', m);
             var com = new Q.CommentView({
@@ -447,7 +476,32 @@ Q.CommentView = Q.View.extend({
             this.onAddReply(repl.models[i]);
         }
         
+        if(!this.settings.replyForm)
+            this.$('.reply-link').remove();
         return this;
+    }
+});
+
+Q.PopupCommentView = Q.PopupView.extend({
+    template: '#popup-comment-template',
+    className: 'popup-comment-view',
+    tagName: 'div',
+    
+    init: function(container, settings){
+        //model is a comment
+        this._super(container, settings);
+        
+        //_.bindAll(this, 'onSubmit');
+    },
+    
+    show: function(referenceElem, comment){
+        var com = new Q.CommentView({
+            model: comment,
+            replyForm: this.settings.replyForm
+        });
+        this.container.find('.comment-container').html(com.render().el);
+        
+        this._super(referenceElem);
     }
 });
 
@@ -487,7 +541,9 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     
     onClickComment: function(e){
         var targ = $(e.target);
-        if(!targ.is('.comment')) targ = targ.parents('.comment');
+        if(targ.is('a')) return true;
+        
+        if(!targ.is('#comments>.comment')) targ = targ.parents('#comments>.comment');
         var id = targ[0].id;
         
         var m = this.model.get(id);
@@ -497,14 +553,16 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     },
     onNewComment: function(m){
         this.onAddComment(m);
-        this.settings.selectedComment.set(m);
+        if(m && m.hasPosition())
+            this.settings.selectedComment.set(m);
     },
     
     onAddComment: function(m){
         if(!m.isNew()){
             var view = new Q.CommentView({
                 model: m,
-                selectedComment: this.settings.selectedComment
+                selectedComment: this.settings.selectedComment,
+                replyForm: this.settings.replyForm
             });
             this.container.append(view.render().el);
         }
@@ -514,17 +572,64 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     }
 });
 
+Q.CommentFormView = Q.View.extend('CommentFormView', {
+    n: {
+        commentForm: 'form'
+    },
+    events:{
+        'click .cancel': 'addCommentCancel'
+    },
+    
+    init: function(container, settings){
+        //model is the comment collection we are adding to.
+        
+        this._super(container, settings);
+        _.bindAll(this, 'onSubmitCommentForm');
+        
+        this.container.hide();
+        this.form = this.n.commentForm.CommentForm({
+            validationOptions:{
+                submitHandler: this.onSubmitCommentForm
+            }
+        });
+    },
+    
+    show: function(){
+        this._super();
+        this.form.focusFirst();
+    },
+    
+    hide: function(){
+        this.container.hide();
+        this.form.reset();
+    },
+    
+    addCommentCancel: function(){
+        this.hide();
+        return false;
+    },
+    
+    onSubmitCommentForm: function(){
+        var self = this;
+        
+        $.log(self.model, self.form.val('body'));
+        self.model.addComment(self.form.val('body'));
+        
+        this.addCommentCancel();
+        return false;
+    }
+});
+
 Q.ViewFilePage = Q.Page.extend({
     n: {
         tabs: '#tabs',
         pageImageViewer: '#inpage-image-viewer',
         comments: '#comments',
-        commentForm: '#add-comment form',
-        addComment: '#add-comment'
+        addComment: '#add-comment',
+        replyComment: '#reply-comment'
     },
     events:{
-        'click #add-comment-link': 'addCommentClick',
-        'click #add-comment .cancel': 'addCommentCancel'
+        'click #add-comment-link': 'addCommentClick'
     },
     run: function(){
         
@@ -534,14 +639,7 @@ Q.ViewFilePage = Q.Page.extend({
          */
         var self = this;
         this._super.apply(this, arguments);
-        _.bindAll(this, 'viewVersion', 'addVersion', 'onSubmitCommentForm');
-        
-        this.n.addComment.hide();
-        this.commentForm = this.n.commentForm.CommentForm({
-            validationOptions:{
-                submitHandler: this.onSubmitCommentForm
-            }
-        });
+        _.bindAll(this, 'viewVersion', 'addVersion');
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
@@ -549,9 +647,17 @@ Q.ViewFilePage = Q.Page.extend({
         
         this.comments = new Q.Comments([]);
         
+        this.commentForm = this.n.addComment.CommentFormView({
+            model: this.comments
+        });
+        this.replyForm = window.replyForm = this.n.replyComment.CommentFormView({
+            model: null
+        });
+        
         this.commentsView = this.n.comments.CommentsView({
             model: this.comments,
-            selectedComment: this.selectedComment
+            selectedComment: this.selectedComment,
+            replyForm: this.replyForm
         });
         
         //do setup and binding here
@@ -581,27 +687,15 @@ Q.ViewFilePage = Q.Page.extend({
         $.log(this.comments);
     },
     
-    /// these functions should prolly be in a separate view
-    addCommentCancel: function(){
-        this.n.addComment.hide();
-        this.commentForm.reset();
-        return false;
-    },
     addCommentClick: function(){
-        if(this.n.addComment.is(':visible'))
-            this.addCommentCancel();
+        if(this.commentForm.container.is(':visible'))
+            this.commentForm.addCommentCancel();
         else{
-            this.n.addComment.show();
-            this.commentForm.focusFirst();
+            this.commentForm.show();
+            this.commentForm.form.focusFirst();
         }
         return false;
     },
-    onSubmitCommentForm: function(){
-        this.comments.addComment(this.commentForm.val('body'));
-        this.addCommentCancel();
-        return false;
-    },
-    ////
     
     addVersion: function(m){
         $.log('add version', m);

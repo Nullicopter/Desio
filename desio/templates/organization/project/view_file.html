@@ -71,18 +71,24 @@
     .new-image-comment p{margin-top: 0;}
     .new-image-comment textarea{width: 240px;}
     
+    /****/
+    .popup-comment-view{
+        width: 350px;
+        position: absolute;
+        z-index: 1000;
+    }
+    .popup-comment-view .comment-container{
+        background: #eee;
+        border: 2px solid #ccc;
+    }
+    
     /**comments**/
     
-    #comments>.comment{
-        border-bottom: 1px solid #ccc;
-    }
-    #comments .comment{
-        padding: 8px 10px;
-    }
-    #comments .comment.selected{
-        background: #fff;
-    }
-    #comments .comment .time{
+    #comments>.comment{border-bottom: 1px solid #ccc;}
+    #comments .comment.selected{background: #fff;}
+    .comment{padding: 8px 10px;}
+    
+    .comment .time{
         float: right;
         font-weight: bold;
         color: #666;
@@ -90,26 +96,17 @@
         line-height: 25px;
         height: 25px;
     }
-    #comments .comment .creator{
-        line-height: 25px;
-        height: 25px;
-    }
-    #comments .comment .creator>span{
-        font-weight: bold;
-    }
-    #comments .comment.position{
-        cursor: pointer;
-    }
-    #comments .comment.position .creator{
+    .comment .creator{ line-height: 25px; height: 25px; }
+    .comment .creator>span{font-weight: bold;}
+    .comment.position{cursor: pointer;}
+    .comment.position .creator{
         padding-left: 24px;
         background: transparent url(${h.static_url('i', 'icons/selection.png')}) 0 3px no-repeat;
     }
-    #comments .comment .body{
-        margin-top: 5px;
-    }
-    #comments .comment .replies{
-        padding-left: 10px;
-    }
+    .comment .body{margin-top: 5px;}
+    .comment .replies{padding-left: 10px;}
+    
+    #reply-comment{display:none;}
     
     /***pins****/
     
@@ -152,6 +149,14 @@
             ${f.submit('Add Comment')} <a href="#" class="cancel">cancel</a>
         </form>
     </div>
+    
+    <div id="reply-comment">
+        <form method="post">
+            <p>Craft your reply</p>
+            <div>${f.textarea('body', id=None)}</div>
+            ${f.submit('Add Reply')} <a href="#" class="cancel">cancel</a>
+        </form>
+    </div>
 </%def>
 
 <div id="tabs"></div>
@@ -187,11 +192,17 @@
     </div>
 </script>
 
+<script id="popup-comment-template" class="jstemplate" type="text/template">
+    <div class="comment-container">
+    </div>
+</script>
+
 <script id="comment-template" class="jstemplate" type="text/template">
     <div class="time">{{time}}</div>
     <div class="creator"><span>{{creator}}</span> says</div>
     <div class="body">{{body}}</div>
     <div class="replies"></div>
+    <div><a href="#" class="reply-link">reply</a></div>
 </script>
 
 <div class="clear"></div>
