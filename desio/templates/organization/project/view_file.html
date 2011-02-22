@@ -110,6 +110,11 @@
     #comments .comment .replies{
         padding-left: 10px;
     }
+    
+    /***pins****/
+    
+    .pins .pin{position: absolute; width: 37px; height: 37px; z-index: 1001;}
+    
     </style>
     
     <script type="text/javascript">
@@ -165,6 +170,11 @@
 
 <script id="image-template" class="jstemplate" type="text/template">
     <img src="{{url}}" />
+    <div class="pins"></div>
+</script>
+
+<script id="pin-template" class="jstemplate" type="text/template">
+    <img class="pin not-doc" src="${h.static_url('i', 'icons/blob.png')}" title="{{title}}" />
 </script>
 
 <script id="image-comment-template" class="jstemplate" type="text/template">

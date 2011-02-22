@@ -39,6 +39,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     init: function(){
         //gets selectedVersion model in the settings.
         //gets selectedComment in settings
+        //gets comments
         _.bindAll(this, 'changeVersion', 'docClick');
         this._super.apply(this, arguments);
         
@@ -54,7 +55,10 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     docClick: function(e){
         $.log('document click', this.currentVersion, this.views);
         
-        if(this.currentVersion && this.currentVersion in this.views){
+        var targ = $(e.target);
+        var docclick = !(targ.is('.not-doc') || targ.parents('.not-doc').length);
+        
+        if(docclick && this.currentVersion && this.currentVersion in this.views){
             var v = this.views[this.currentVersion];
             for(var i = 0; i < v.length; i++)
                 v[i].release(e);
@@ -109,18 +113,75 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     }
 });
 
+Q.PinView = Q.View.extend({
+    template: '#pin-template',
+    pinsize:{ x: 37, y: 37 },
+    className: 'pin',
+    
+    events: {
+        'click': 'setComment'
+    },
+    
+    init: function(){
+        //gets:
+        // model: is a comment
+        // selectedComment
+        
+        _.bindAll(this, 'updateComment', 'selectComment');
+        this._super.apply(this, arguments);
+        
+        this.model.bind('change:body', this.updateComment);
+        //this.settings.selectedComment.bind('change:comment', this.selectComment);
+    },
+    
+    selectComment: function(m){
+        m = m.get();
+        if(m && m.id == this.model.id)
+            this.container.hide();
+        else
+            this.container.show();
+    },
+    
+    setComment: function(){
+        this.settings.selectedComment.set(this.model);
+    },
+    
+    render: function(){
+        var m = this.model;
+        var position = m.get('position');
+        
+        var pin = this.container.append($(_.template(this.template, {
+            title: m.get('creator').name + ': ' + m.get('body')
+        })));
+        
+        //find the center of the selection
+        var pos = {
+            left: (position[0] + position[2]/2 - this.pinsize.x/2)/this.settings.xscale,
+            top: (position[1] + position[3]/2 - this.pinsize.y/2)/this.settings.yscale
+        };
+        
+        pin.css(pos);
+        pin.attr('extract', m.get('extract_id'));
+        
+        return this;
+    }
+});
+
 Q.ImageView = Q.View.extend({
     template: '#image-template',
+    pinTemplate: '#pin-template',
     className: 'image',
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment');
+        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment');
         this._super.apply(this, arguments);
         
-        $.log('ImageView settings', this.settings, this.model);
+        this.pinTemplate = $(this.pinTemplate).html();
         
         this.settings.selectedComment.bind('change:comment', this.changeComment);
+        this.settings.comments.bind('add', this.onAddComment);
+        this.settings.comments.bind('newcomment', this.onAddComment);
     },
     
     onChange: function(c){
@@ -135,6 +196,7 @@ Q.ImageView = Q.View.extend({
         if(m && this.model.get('id') == m.get('extract_id') && m.hasPosition()){
             this.hidePopups();
             var pos = m.get('position');
+            this.pins.hide();
             this.cropper.animateTo([pos[0], pos[1], pos[2]+pos[0], pos[3]+pos[1]]);
         }
     },
@@ -142,6 +204,33 @@ Q.ImageView = Q.View.extend({
     hidePopups: function(){
         if(this.newCommentView)
             this.newCommentView.hide();
+    },
+    
+    onAddComment: function(m){
+        if(m && m.hasPosition() && m.get('extract_id') == this.model.get('id') && this.cropper){
+            
+            var pin = new Q.PinView({
+                model: m,
+                selectedComment: this.settings.selectedComment,
+                xscale: this.cropper.xscale,
+                yscale: this.cropper.yscale
+            });
+            
+            /*
+            this.pins.append($('<div/>', {
+            }).css({
+                position: 'absolute',
+                left: pin.settings.xoffset,
+                top: pin.settings.yoffset,
+                width: 40,
+                height: 40,
+                background: '#f00'
+            }));*/
+            
+            pin.template = this.pinTemplate;
+            
+            this.pins.append(pin.render().el);
+        }
     },
     
     onSelect: function(c){
@@ -154,15 +243,22 @@ Q.ImageView = Q.View.extend({
     onRelease: function(){
         this.hidePopups();
         this.settings.selectedComment.set(null);
+        this.pins.show();
     },
     
     onStart: function(){
         this.settings.selectedComment.set(null);
+        this.pins.hide();
     },
     
     setCropper: function(cropperApi){
         this.cropper = cropperApi;
         this.newCommentView.setCropper(cropperApi);
+        
+        this.$('.jcrop-holder').append(this.pins);
+        for(var i = 0; i < this.settings.comments.length; i++){
+            this.onAddComment(this.settings.comments.models[i]);
+        }
     },
     
     release: function(){
@@ -198,6 +294,8 @@ Q.ImageView = Q.View.extend({
         
         this.newCommentView.render();
         this.newCommentView.hide();
+        
+        this.pins = this.$('.pins');
         
         return this;
     }

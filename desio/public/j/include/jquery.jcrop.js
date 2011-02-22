@@ -1158,6 +1158,9 @@ $.Jcrop = function(obj,opt, imageObj)
 		cancel: cancelCrop,
 
 		focus: KeyManager.watchKeys,
+        
+        xscale: xscale,
+        yscale: yscale,
 
 		getBounds: function() { return [ boundx * xscale, boundy * yscale ]; },
 		getWidgetSize: function() { return [ boundx, boundy ]; },
