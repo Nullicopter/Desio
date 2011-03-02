@@ -42,9 +42,34 @@ def to_unicode(s, encoding='utf-8'):
         return s.decode(encoding, 'ignore')
     return unicode(s)
 
+def find_short_description(words, cutoff=100):
+    """Finds the first sentence in the glob of words."""
+    if not words: return words
+    
+    if len(words) < cutoff: return words
+    
+    ret = []
+    
+    def append_tokens(input, output):
+        count = 0
+        for s in input:
+            s = s.strip()
+            if count + len(s) > cutoff: break
+            output.append(s)
+            count += len(s)
+    
+    sentences = words.split('.')
+    append_tokens(sentences, ret)
+    
+    if ret:
+        return ' '.join([s+'.' for s in sentences if s])
+    else:
+        w = words.split()
+        append_tokens(w, ret)
+        
+        return ' '.join(ret)
 
 _is_testing = None
-
 def is_testing():
     """
     are we currently in test mode?

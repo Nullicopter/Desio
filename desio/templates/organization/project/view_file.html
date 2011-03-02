@@ -128,13 +128,15 @@
 </%def>
 
 <%def name="sidepanel()">
-    % if c.file.description:
-        <p id="description">${c.file.description}</p>
-    % endif
-    <ul id="file-links">
-        <li><a href="#">Download</a></li>
-        <li><a href="#">Share this file</a></li>
-    </ul>
+    <div class="info">
+        % if c.file.description:
+            <p id="description">${c.file.description}</p>
+        % endif
+        <ul>
+            <li><a href="#">Download</a></li>
+            <li><a href="#">Share this file</a></li>
+        </ul>
+    </div>
     
     <h3>Comments</h3>
     

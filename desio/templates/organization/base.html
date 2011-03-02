@@ -2,6 +2,10 @@
 <%namespace name="r" file="/require.html"/>
 <%namespace name="com" file="/common.html"/>
 
+<%!
+from desio import utils
+%>
+
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
@@ -14,15 +18,34 @@
 </%def>
 
 <%def name="project_sidepanel()">
+    <div class="info">
+        <ul>
+            <li>Confused? <a href="#">Take the tour!</a></li>
+            <li><a href="#">Some more info Here</a></li>
+        </ul>
+    </div>
+    
     % if c.projects:
+        <div class="projects">
         % for p in c.projects:
-            <div><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></div>
+            <a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}" class="project ${c.project == p and 'selected' or ''}">
+                <h3>${p.name}</h3>
+                <% desc = utils.find_short_description(p.description, 50) %>
+                % if desc:
+                    <div class="description">
+                        ${desc}
+                    </div>
+                % endif
+            </a>
         % endfor
+        </div>
         
-        <div><a href="${h.url_for(controller='organization/project', action='new')}">New</a></div>
+        <div class="new-button">
+            <a class="secondary b140" href="${h.url_for(controller='organization/project', action='new')}">Create a Project</a>
+        </div>
     % else:
         <p>
-            No projects
+            No projects yet
             % if c.is_org_creator:
                 <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
             % endif

@@ -120,6 +120,7 @@ CSS = {
         'core/tables.css',
         'core/navigation.css',
         'core/generic.css',
+        'core/buttons.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
     ]),

@@ -74,6 +74,7 @@ class ProjectController(OrganizationBaseController):
             view_dir = entity.type == projects.Directory.TYPE
         
         c.projects = api.project.get(c.real_user, c.user, c.organization)
+        c.project = project
         c.path_components = self._split_path_components(project, entity)
         c.title = c.path_components[-1]
         
@@ -84,7 +85,6 @@ class ProjectController(OrganizationBaseController):
     
     def _view_file(self, entity, project, path, path_components):
         
-        c.project = project
         c.sidepanel_tab = c.title
         
         logger.info('viewing FILE %s %s' % (path, entity))
