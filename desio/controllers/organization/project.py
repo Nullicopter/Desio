@@ -95,7 +95,7 @@ class ProjectController(OrganizationBaseController):
         #we could pass in the current version
         c.file, head_change = file[0]
         
-        comments = api.file.get_comments(c.real_user, c.user, change=head_change)
+        comments = api.file.get_comments(c.real_user, c.user, file=c.file)
         c.comments = v1.file.get_comments().output(comments)
         
         c.path = path

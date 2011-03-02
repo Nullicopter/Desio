@@ -92,21 +92,20 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                         comments: this.settings.comments,
                         boxWidth: this.settings.boxWidth,
                         selectedComment: this.settings.selectedComment
-                    }).render());
+                    }));
             
             
             if(images.length == 0){
                 images.push(new Q.ImageView({
                     model: new Backbone.Model(model.attributes)
-                }).render());
+                }));
             }
             
             this.views[ver] = images;
         }
         
         for(var i = 0; i < images.length; i++){
-            $.log(images[i].model);
-            this.n.images.append(images[i].container);
+            this.n.images.append(images[i].render().container);
         }
         
         this.currentVersion = ver;
@@ -161,7 +160,7 @@ Q.PinView = Q.View.extend({
         };
         
         pin.css(pos);
-        pin.attr('extract', m.get('extract_id'));
+        pin.attr('extract', m.get('extract').id);
         
         return this;
     }
@@ -193,7 +192,7 @@ Q.ImageView = Q.View.extend({
     changeComment: function(m){
         m = m.get();
         
-        if(m && this.model.get('id') == m.get('extract_id') && m.hasPosition()){
+        if(m && this.container.is(':visible') && this.model.get('order_index') == m.get('extract').order_index && m.hasPosition()){
             this.hidePopups();
             var pos = m.get('position');
             this.pins.hide();
@@ -211,25 +210,13 @@ Q.ImageView = Q.View.extend({
     },
     
     onAddComment: function(m){
-        if(m && m.hasPosition() && m.get('extract_id') == this.model.get('id') && this.cropper){
-            
+        if(m && m.hasPosition() && m.get('extract').order_index == this.model.get('order_index') && this.cropper){
             var pin = new Q.PinView({
                 model: m,
                 selectedComment: this.settings.selectedComment,
                 xscale: this.cropper.xscale,
                 yscale: this.cropper.yscale
             });
-            
-            /*
-            this.pins.append($('<div/>', {
-            }).css({
-                position: 'absolute',
-                left: pin.settings.xoffset,
-                top: pin.settings.yoffset,
-                width: 40,
-                height: 40,
-                background: '#f00'
-            }));*/
             
             pin.template = this.pinTemplate;
             
@@ -273,7 +260,7 @@ Q.ImageView = Q.View.extend({
     render: function(){
         $.log('render', this.settings.boxWidth);
         if(this.cropper)
-            this.cropper.destory();
+            this.cropper.destroy();
         
         this._super();
         
@@ -464,7 +451,8 @@ Q.CommentView = Q.View.extend({
         var d = {
             time: $.relativeDateStr($.parseDate(this.model.get('created_date'))),
             creator: this.model.get('creator').name,
-            body: this.model.get('body')
+            body: this.model.get('body'),
+            version: this.model.get('change_version')
         };
         this.renderTemplate(d);
         

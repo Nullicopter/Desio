@@ -87,6 +87,7 @@
     #comments>.comment{border-bottom: 1px solid #ccc;}
     #comments .comment.selected{background: #fff;}
     .comment{padding: 8px 10px;}
+    .replies .comment{padding-right: 0;}
     
     .comment .time{
         float: right;
@@ -198,8 +199,8 @@
 </script>
 
 <script id="comment-template" class="jstemplate" type="text/template">
-    <div class="time">{{time}}</div>
-    <div class="creator"><span>{{creator}}</span> says</div>
+    <div class="time">{{time}} (v{{version}})</div>
+    <div class="creator"><span>{{creator}}</span></div>
     <div class="body">{{body}}</div>
     <div class="replies"></div>
     <div><a href="#" class="reply-link">reply</a></div>

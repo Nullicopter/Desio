@@ -416,6 +416,7 @@ class File(Entity):
     """
     TYPE = u'f'
     __mapper_args__ = {'polymorphic_identity': TYPE}
+    _comment_attribute = 'file'
 
     def __init__(self, *args, **kwargs):
         super(File, self).__init__(*args, **kwargs)
@@ -466,6 +467,17 @@ class File(Entity):
         change.set_contents(temp_contents_filepath)
         self.update_activity()
         return change
+    
+    def get_comments(self):
+        """
+        Get the comments associated with this change(_extract).
+        """
+        q = Session.query(Comment)
+        q = q.filter_by(status=STATUS_EXISTS)
+        q = q.join(Change)
+        q = q.filter(Change.entity_id==self.id)
+        q = q.order_by(sa.asc(Comment.created_date))
+        return q.all()
 
 class Uploadable(object):
     """
@@ -510,7 +522,7 @@ class Commentable(object):
         q = Session.query(Comment)
         q = q.filter_by(status=STATUS_EXISTS)
         q = q.filter_by(**{self._comment_attribute: self})
-        q = q.order_by(sa.asc(Comment.id))
+        q = q.order_by(sa.asc(Comment.created_date))
         return q.all()
 
     

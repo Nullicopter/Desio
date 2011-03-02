@@ -28,6 +28,17 @@ Q.Directories = Q.Collection.extend({});
  *
  * Comments. How do they work?
  *
+ * They are a bit messy. They are attached to a change or an extract. For now,
+ * we're showing all comments for the file at once, even if they are for an older version.
+ *
+ * Maybe at some point we could switch to the version of the file that the comment
+ * was on when a comment is clicked/selected. For now, a comment has a pin on the
+ * extract from the currently showing image keyed on the order_index. So if
+ * v1 is a 3 page pdf, and you have comments on page one, then upload a v2
+ * that inserted a page at 1, shifting all the rest down, your comments no longer
+ * make sense. Sooooo we should switch version on comment select at some point.
+ * For now this is good enough.
+ *
  * Initial load of page: 
  * - Place all comments in Q.Comments with {save: false}
  * - Each root level comment will have a Q.Comment created. 
@@ -129,7 +140,7 @@ Q.Comments = Q.Collection.extend({
         //this is a backbone model
         if(currentVersion){
             this.version = currentVersion;
-            this.version.bind('change:change_eid', this.fetchForVersion);
+            //this.version.bind('change:change_eid', this.fetchForVersion);
         }
     },
     

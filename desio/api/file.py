@@ -96,12 +96,12 @@ def remove_comment(real_user, user, comment, **kw):
     comment.delete()
     return True
 
-@enforce(change=projects.Change, extract=projects.ChangeExtract)
-@authorize(Or(Exists('change'), Exists('extract')), CanReadProject(get_from=['change', 'extract']))
-def get_comments(real_user, user, change=None, extract=None):
+@enforce(change=projects.Change, extract=projects.ChangeExtract, file=projects.File)
+@authorize(Or(Exists('change'), Exists('extract'), Exists('file')), CanReadProject(get_from=['change', 'file', 'extract']))
+def get_comments(real_user, user, change=None, extract=None, file=None):
     """
     Get all comments related to the commentable object passed
     """
-    commentable = change or extract
+    commentable = change or extract or file
     return commentable, commentable.get_comments()
     

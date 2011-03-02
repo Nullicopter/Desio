@@ -11,6 +11,12 @@ def fdatetime(dt):
         return dt.strftime(DATE_FORMAT)
     return None
 
+def out_file(filenchange):
+    f, change = filenchange
+    out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
+    out.update(out_change(change))
+    return out
+
 def out_change_extract(extract):
     edict = itemize(extract, 'id', 'order_index', 'extract_type', 'url', 'description')
     edict['url'] = '/' + edict['url']
@@ -39,7 +45,8 @@ def out_comment(comment):
     out['creator'] = user.get().output(comment.creator)
     out['id'] = out['eid']
     out['change'] = comment.change.eid
-    out['extract_id'] = comment.change_extract_id
+    out['change_version'] = comment.change.version
+    out['extract'] = comment.change_extract and out_change_extract(comment.change_extract) or None
     return out
 
 def out_directory(directory):
@@ -150,16 +157,11 @@ class file:
             return file.get().output(f)
     
     class get:
-        def get_file(self, filenchange):
-            f, change = filenchange
-            out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
-            out.update(out_change(change))
-            return out
         
         def output(self, files):
             if isinstance(files, list):
-                return [self.get_file(f) for f in files]
-            return self.get_file(files)
+                return [out_file(f) for f in files]
+            return out_file(files)
             
             
     class add_comment:
@@ -187,6 +189,8 @@ class file:
                 out = out_change_extract(commentable)
             elif commentable._comment_attribute == 'change':
                 out = out_change(commentable, with_extracts=False)
+            elif commentable._comment_attribute == 'file':
+                out = out_file((commentable, commentable.get_change()))
             
             children = dd(lambda: [])
             
