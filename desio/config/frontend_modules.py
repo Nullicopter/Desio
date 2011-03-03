@@ -87,7 +87,8 @@ JS = {
     ]),
     
     'file': ('build/modules/file.js', [
-        'lib/modules/file.js'
+        'lib/modules/file/model.js',
+        'lib/modules/file/view.js'
     ]),
     
     'image': ('build/modules/image.js', [
@@ -107,7 +108,9 @@ JS = {
         'controllers/organization/base.js'
     ]),
     'controllers.organization.project': ('build/controllers/organization.project.js', [
-        'controllers/organization/project.js',
+        'controllers/organization/project/project.js',
+        'controllers/organization/project/file.js',
+        'controllers/organization/project/settings.js',
         'controllers/organization/base.js'
     ])
 }
@@ -158,5 +161,10 @@ CSS = {
         
     'controllers.organization': ('build/controllers/organization.css', [
         'controllers/organization.css'
+    ]),
+    
+    'controllers.organization.project': ('build/controllers/organization.project.css', [
+        'controllers/organization.project/project.css',
+        'controllers/organization.project/file.css'
     ])
 }

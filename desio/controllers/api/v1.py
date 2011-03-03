@@ -210,20 +210,20 @@ class file:
             return out
         
 def build_tree(directories):
-    directories.sort(key=lambda d: d.path)
+    directories.sort(key=lambda d: d.full_path)
     # we need a root object to have a single point from which
     # we can retrieve all the children directories.
     root = {'children': []}
     lookup = {u"/": root}
     # these are sorted by path, so everything fits inside the "/"
-    # and I'll add then to the quick_path_lookup as I add them
-    # to speedup node lookup and make it O(1) at the expense of
+    # and I'll add them to the quick_path_lookup as I add them
+    # to speedup node lookup and make it O(n) at the expense of
     # 2x memory usage, who cares right now...
     for directory in directories:
         outdir = out_directory(directory)
         outdir['children'] = []
         lookup[directory.path]['children'].append(outdir)
         lookup[directory.full_path] = outdir
-
+    
     del lookup
     return root['children']

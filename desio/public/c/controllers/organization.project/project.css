@@ -1,0 +1,89 @@
+/***
+ * Viewing multiple files: project directory or project frontpage.
+ */
+
+.files-container{position: relative;}
+.files{min-height: 100px;}
+.drop{
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0px;
+    opacity: .8;
+    border: 5px dotted #ddd;
+    background: #eee;
+    -moz-border-radius: 10px;
+    font-size: 22pt;
+    color: #888;
+    text-align: center;
+    z-index: 20px;
+}
+
+.drop.over{
+    color: #666;
+    border: 5px dotted #ccc;
+}
+
+.file, .processing-file{
+    width: 266px;
+    margin: 5px 5px 5px 0;
+    position: relative;
+    float: left;
+    height: 199px;
+    overflow: hidden;
+}
+.file img, .processing-file img{
+    width: 266px;
+}
+.file .name-bar, .processing-file .name-bar{
+    height: 30px;
+    background: #000;
+    position: absolute;
+    bottom:0; left: 0;
+    width: 266px;
+    opacity: .4}
+.file .name, .processing-file .name{
+    height: 30px;
+    color: #fff;
+    line-height: 30px;
+    font-weight: bold;
+    position: absolute;
+    bottom:0; left: 0;
+    padding-left: 8px;
+    }
+
+.processing-file .progress-container{
+    height: 30px;
+    width: 250px;
+    background: #fff;
+    -moz-border-radius: 10px;
+    line-height: 30px;
+    font-weight: bold;
+    position: absolute;
+    top:100px; left: 20px;
+}
+
+.processing-file .progress-text{
+    position: absolute; top: 0; left: 0;
+    height: 30px; width: 270px;
+    line-height: 30px;
+    text-align: center;
+}
+.processing-file .progress{
+    position: absolute; top: 0; left: 0;
+    background: #ccc;
+    height: 30px;
+    -moz-border-radius: 10px;
+}
+
+/** dir sidebar **/
+
+#root-directory{padding: 10px 0 10px 10px;}
+#root-directory h2{margin: 0 0 10px 0}
+
+.dir-tree{
+    padding: 5px 0;
+}
+.dir-tree h3{margin: 0;}
+.dir-tree .children{margin: 0 0 0 10px;}
+.dir-tree.current{
+    background: #fff;
+}

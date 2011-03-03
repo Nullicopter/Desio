@@ -8,77 +8,6 @@
     ${parent.header()}
     ${r.require('file')}
     <style type="text/css">
-    .files-container{position: relative;}
-    .files{min-height: 100px;}
-    .drop{
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0px;
-        opacity: .8;
-        border: 5px dotted #ddd;
-        background: #eee;
-        -moz-border-radius: 10px;
-        font-size: 22pt;
-        color: #888;
-        text-align: center;
-        z-index: 20px;
-    }
-    
-    .drop.over{
-        color: #666;
-        border: 5px dotted #ccc;
-    }
-    
-    .file, .processing-file{
-        width: 310px;
-        margin: 5px 5px 5px 0;
-        position: relative;
-        float: left;
-        height: 232px;
-        overflow: hidden;
-    }
-    .file img, .processing-file img{
-        width: 310px;
-    }
-    .file .name-bar, .processing-file .name-bar{
-        height: 30px;
-        background: #000;
-        position: absolute;
-        bottom:0; left: 0;
-        width: 310px;
-        opacity: .4}
-    .file .name, .processing-file .name{
-        height: 30px;
-        color: #fff;
-        line-height: 30px;
-        font-weight: bold;
-        position: absolute;
-        bottom:0; left: 0;
-        padding-left: 8px;
-        }
-    
-    .processing-file .progress-container{
-        height: 30px;
-        width: 270px;
-        background: #fff;
-        -moz-border-radius: 10px;
-        line-height: 30px;
-        font-weight: bold;
-        position: absolute;
-        top:100px; left: 20px;
-    }
-    
-    .processing-file .progress-text{
-        position: absolute; top: 0; left: 0;
-        height: 30px; width: 270px;
-        line-height: 30px;
-        text-align: center;
-    }
-    .processing-file .progress{
-        position: absolute; top: 0; left: 0;
-        background: #ccc;
-        height: 30px;
-        -moz-border-radius: 10px;
-    }
     
     </style>
     <script type="text/javascript">
@@ -87,19 +16,30 @@
         previewImage: '/i/site/preview.png',
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         directories: ${json.dumps(c.structure) | n},
+        tree: ${json.dumps(c.tree) | n},
         path: '${c.path}',
         showDropTargetOn: 'bodydrag'//'elemdrag'
     }).readyrun();
     </script>
 </%def>
 
-<div>
-    <a id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">Add Directory</a>
-</div>
-
-% if c.project.description:
-    <p>${c.project.description}</p>
-% endif
+<%def name="sidepanel()">
+    <div class="info">
+        % if c.project.description:
+            <p id="description">${c.project.description}</p>
+        % endif
+    </div>
+    
+    <div id="root-directory">
+        <h2>Directories</h2>
+        <div class="children">
+        </div>
+    </div>
+    
+    <div class="new-button">
+        <a class="secondary b140" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">Create a Directory</a>
+    </div>
+</%def>
 
 <div id="files-module"></div>
 
@@ -119,6 +59,12 @@
         <div class="files">
         </div>
         <div class="clearl"></div>
+    </div>
+</script>
+
+<script id="dir-tree-template" class="jstemplate" type="text/template">
+    <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">{{name}}</a></h3>
+    <div class="children">
     </div>
 </script>
 

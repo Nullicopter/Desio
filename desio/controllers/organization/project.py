@@ -104,10 +104,14 @@ class ProjectController(OrganizationBaseController):
     
     def _view_directory(self, entity, project, path, path_components):
         
+        c.sidepanel_tab = project.name
+        
+        dirs = api.project.get_directories(c.real_user, c.user, c.project)
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
         if not struc: abort(404)
         
         c.structure = v1.project.get_structure().output(struc)
+        c.tree = v1.project.get_directories().output(dirs)
         c.path = path
         
         return self.render('/organization/project/view.html')
