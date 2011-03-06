@@ -12,6 +12,10 @@ class SettingsController(OrganizationBaseController):
     """
     Organization settings like user's, org name, subdomain, etc
     """
+    def __before__(self, **kw):
+        super(SettingsController, self).__before__(**kw)
+        
+        c.projects = api.project.get(c.real_user, c.user, c.organization)
     
     def index(self, **kw):
         return self.users(**kw)

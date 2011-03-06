@@ -4,7 +4,31 @@
 
 ;(function($){
 
-Q.ProjectUserSettingsPage = Q.Page.extend({
+Q.BaseSettingsPage = Q.Page.extend({
+    n: {
+        root: '#root-directory',
+        sidepanel: '#sidepanel'
+    },
+    
+    run: function(){
+        this._super.apply(this, arguments);
+        this.n.sidepanel.Sidepanel({
+            collapsable: false
+        });
+        
+        var root = new Q.Directory({
+            name: '',
+            path: '/', full_path: '/',
+            children: this.settings.tree.directories
+        });
+        
+        this.rootObject = root;
+        
+        this.root = this.n.root.DirectoryTreeView({model: root});
+        this.root.render();
+    }
+})
+Q.ProjectUserSettingsPage = Q.BaseSettingsPage.extend({
     run: function(){
         var self = this;
         this._super.apply(this, arguments);
@@ -13,7 +37,7 @@ Q.ProjectUserSettingsPage = Q.Page.extend({
     }
 });
 
-Q.ProjectGeneralSettingsPage = Q.Page.extend({
+Q.ProjectGeneralSettingsPage = Q.BaseSettingsPage.extend({
     run: function(){
         var self = this;
         this._super.apply(this, arguments);

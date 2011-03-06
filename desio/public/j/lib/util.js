@@ -98,6 +98,24 @@ $.extend($, {
             return modret($.pluralize(data.mstotal, '{0} millis', 'now!'));
         
         return $.formatDate(date, "b e, Y");
+    },
+    
+    fileSize: function(bytes, decimals){
+        decimals = (decimals || decimals == 0) ? decimals : 0;
+        
+        // Bytes is an integer
+        var k = 1024;
+        
+        var labels = [' bytes', 'KB', 'MB', 'GB', 'TB', 'OMFGs', 'WTFOMFGs'];
+        var i = 0;
+        var cur = bytes;
+        
+        while(cur >= k){
+            cur /= k;
+            i++;
+        }
+        $.log(decimals);
+        return Q.DataFormatters.decimal(cur, decimals, false) + '' + labels[i];
     }
 });
 

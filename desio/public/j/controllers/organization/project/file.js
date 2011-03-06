@@ -89,17 +89,18 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         else{
             var extr = model.get('extracts');
             
-            //if we didnt find any proper extracts, use the real file url
             for(var i = 0; i < extr.length; i++)
                 if(extr[i].extract_type != "thumbnail")
                     images.push(new Q.ImageView(
                         $.extend({}, this.settings, { model: new Backbone.Model(extr[i]) })
                     ));
             
-            
+            //if we didnt find any proper extracts, use the real file url
             if(images.length == 0){
                 images.push(new Q.ImageView(
-                    $.extend({}, this.settings, { model: new Backbone.Model(model.attributes) })
+                    $.extend({}, this.settings, {
+                        model: new Backbone.Model(model.attributes)
+                    })
                 ));
             }
             
@@ -175,7 +176,8 @@ Q.PinView = Q.View.extend({
         
         this.position();
         
-        pin.attr('extract', m.get('extract').id);
+        if(m.get('extract'))
+            pin.attr('extract', m.get('extract').id);
         
         return this;
     }
@@ -207,7 +209,7 @@ Q.ImageView = Q.View.extend({
     changeComment: function(m){
         m = m.get();
         
-        if(m && this.container.is(':visible') && this.model.get('order_index') == m.get('extract').order_index && m.hasPosition()){
+        if(m && this.container.is(':visible') && (!m.get('extract') || this.model.get('order_index') == m.get('extract').order_index) && m.hasPosition()){
             this.hidePopups();
             var pos = m.get('position');
             this.pins.hide();
@@ -242,7 +244,8 @@ Q.ImageView = Q.View.extend({
     },
     
     onAddComment: function(m){
-        if(m && m.hasPosition() && m.get('extract').order_index == this.model.get('order_index') && this.cropper){
+        if(m && m.hasPosition() && (!m.get('extract') || m.get('extract').order_index == this.model.get('order_index')) && this.cropper){
+            $.log('placing pin?', m);
             var pin = new Q.PinView({
                 model: m,
                 selectedComment: this.settings.selectedComment,
@@ -683,7 +686,7 @@ Q.PinButtonView = Q.View.extend('PinButtonView', {
 
 Q.ViewFilePage = Q.Page.extend({
     n: {
-        tabs: '#tabs',
+        tabs: '#version-tabs',
         pageImageViewer: '#inpage-image-viewer',
         comments: '#comments',
         addComment: '#add-comment',

@@ -127,6 +127,10 @@ class ProjectController(OrganizationBaseController):
     @has_project()
     @authorize(CanContributeToOrgRedirect())
     def settings_users(self, project=None, **kw):
+        dirs = api.project.get_directories(c.real_user, c.user, c.project)
+        c.tree = v1.project.get_directories().output(dirs)
+        
+        c.sidepanel_tab = project.name
         c.tab = 'Users'
         c.title = project.name + ' Settings'
         c.project_user_module_params = modules.project.project_user_module(c.real_user, c.user, c.organization, project=project)
@@ -135,6 +139,10 @@ class ProjectController(OrganizationBaseController):
     @has_project()
     @authorize(CanContributeToOrgRedirect())
     def settings_general(self, project=None, **kw):
+        dirs = api.project.get_directories(c.real_user, c.user, c.project)
+        c.tree = v1.project.get_directories().output(dirs)
+        
+        c.sidepanel_tab = project.name
         c.tab = 'General'
         c.title = project.name + ' Settings'
         

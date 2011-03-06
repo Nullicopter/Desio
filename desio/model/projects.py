@@ -584,7 +584,11 @@ class Change(Base, Uploadable, Commentable):
                         self.entity.project.organization.eid,
                         self.entity.project.eid,
                         self.entity.eid])
-
+    
+    @property
+    def number_comments(self):
+        return Session.query(sa.func.count(Comment.id)).filter_by(change_id=self.id).first()[0]
+        
     @property
     def url(self):
         """

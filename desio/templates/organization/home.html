@@ -2,6 +2,9 @@
 <%namespace name="r" file="/require.html"/>
 <%namespace name="project" file="/modules/project.html"/>
 
+<%!
+    from desio import utils
+%>
 <%def name="js_includes()">
     ${parent.js_includes()}
     ${r.require('file', 'controllers.organization.project')}
@@ -33,7 +36,7 @@
                 % for f in files:
                     <% ch = f.get_change() %>
                     <div class="file">
-                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.thumbnail_url)}
+                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
                     </div>
                 % endfor
                 </div>

@@ -27,6 +27,7 @@ Q.Sidepanel = Q.Module.extend('Sidepanel', {
         });
         
         if(this.settings.collapsable){
+            this.settings.collapseButton.show();
             this.settings.collapseButton.click(this.toggleCollapse);
             this.collapse(this.settings.collapseInitially);
         }
@@ -83,17 +84,19 @@ Q.Tabs = Q.Module.extend('Tabs', {
         this._super(container, $.extend({}, defs, settings));
         
         var cur = this.$('.'+this.settings.currentClass);
+        this.tabs = this.$('.'+this.settings.tabClass);
         this.select(cur.length ? parseInt(cur.attr('rel')) : 0);
     },
     
     onTabClick: function(e){
         var target = $(e.target);
+        if(!target.is('a')) target = target.parent(); //could be an inner span
         this.select(parseInt(target.attr('rel')));
         return false;
     },
     
     select: function(index){
-        var tabs = this.$('.'+this.settings.tabClass);
+        var tabs = this.tabs;
         tabs.removeClass(this.settings.currentClass);
         
         tabs.eq(index).addClass(this.settings.currentClass);

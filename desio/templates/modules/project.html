@@ -53,11 +53,19 @@ roles = [
     </div>
 </%def>
 
-<%def name="file_thumb(project, name, version, full_path, url)" >
-    <div class="name-bar"></div>
-    <div class="name">${name} - v${version}</div>
-    
+<%def name="file_thumb(project, name, version, full_path, url, user, updated, size, number_comments)" >
     <a href="${h.url_for(controller='organization/project', action='view', slug=project.slug)}${full_path}">
+        <div class="name-bar"></div>
+        <div class="name">
+            <span class="version">v${version}</span>
+            ${name}
+        </div>
+        <div class="extra-info">
+            <div class="number-comments">${number_comments}</div>
+            <div>${size}</div>
+            <div>updated ${updated}</div>
+            <div>by ${user}</div>
+        </div>
         <img src="${url}" />
     </a>
 </%def>

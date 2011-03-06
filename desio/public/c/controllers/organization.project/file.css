@@ -2,10 +2,10 @@
  * Single file page
  */
 
-#tabs{
+#version-tabs{
     height: 30px;
 }
-#tabs .tab{
+#version-tabs .tab{
     width: 36px; height: 30px; background: #f3f3f3;
     float: right;
     margin-left: 3px;
@@ -16,7 +16,7 @@
     font-size: 9pt;
     cursor: pointer;
 }
-#tabs .tab.selected{
+#version-tabs .tab.selected{
     color: #f0f0f0;
     background: #ccc;
 }

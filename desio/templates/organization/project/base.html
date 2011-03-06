@@ -14,6 +14,12 @@
     % endif
 </%def>
 
-<h1>${'/'.join(com.path_component_urls(c.project, c.path_components)) | n}</h1>
+<h1>
+    % if c.path_components:
+        ${'/'.join(com.path_component_urls(c.project, c.path_components)) | n}
+    % else:
+        ${c.title}
+    % endif
+</h1>
 
 ${next.body()}

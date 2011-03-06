@@ -38,6 +38,7 @@
     z-index: 1000;
     right: 0;
     top: 55px;
+    display: none;
     background: transparent url(../../i/buttons/collapse_arrows.png) no-repeat 0 0;
 }
 
@@ -68,3 +69,12 @@
 #sidepanel .projects .project h3{ margin-top: 0; }
 #sidepanel .projects .project.selected{ background: #fff; }
 #sidepanel .projects .project .description{ font-weight: normal; }
+
+#sidepanel #secondary-links, #sidepanel #secondary-links li{margin: 0; padding: 0; list-style:none;}
+#sidepanel #secondary-links {margin: 20px 0;}
+#sidepanel #secondary-links li {
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+#sidepanel #secondary-links a{ display: block; color: #666; padding: 10px; }
+#sidepanel #secondary-links a.current{ background: #fff; }

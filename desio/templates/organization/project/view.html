@@ -34,6 +34,10 @@
     </div>
     
     <div id="root-directory">
+        
+        <div class="dir-tree ${c.path == '/' and 'current' or ''}">
+            <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}">Project Home</a></h3>
+        </div>
         <h2>Directories</h2>
         <div class="children">
         </div>
@@ -42,6 +46,10 @@
     <div class="new-button">
         <a class="secondary b140" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">Create a Directory</a>
     </div>
+    
+    <ul id="secondary-links">
+        <li><a href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}">Project Settings</a></li>
+    </ul>
 </%def>
 
 <div id="files-module"></div>
@@ -89,5 +97,5 @@
 </script>
 
 <script id="file-template" class="jstemplate" type="text/template">
-    ${project.file_thumb(c.project, '{{name}}', '{{version}}', '{{full_path}}', '{{thumbnail_url}}')}
+    ${project.file_thumb(c.project, '{{name}}', '{{version}}', '{{full_path}}', '{{thumbnail_url}}', '{{user}}', '{{created_date}}', '{{size}}', '{{number_comments}}')}
 </script>

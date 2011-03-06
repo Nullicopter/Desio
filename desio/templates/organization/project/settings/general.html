@@ -9,18 +9,20 @@
     ${parent.header()}
     <style type="text/css">
         #name{width: 500px;}
-        #description{width: 550px; height: 150px;}
+        #description-entry{width: 550px; height: 150px;}
         
     </style>
     <script type="text/javascript">
-        new Q.ProjectGeneralSettingsPage({}).readyrun();
+        new Q.ProjectGeneralSettingsPage({
+            tree: ${json.dumps(c.tree) | n},
+        }).readyrun();
     </script>
 </%def>
 
 <form id="edit-form" action="${h.api_url('project', 'edit', project=c.project.eid)}" method="post">
     
     ${f.text_chunk('name', label='Project Name', value=c.project.name)}
-    ${f.textarea_chunk('description', label='Project Description', sublabel='optional', value=c.project.description)}
+    ${f.textarea_chunk('description', id='description-entry', label='Project Description', sublabel='optional', value=c.project.description)}
     
     ${f.submit('Save Settings')}
 </form>

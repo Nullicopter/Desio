@@ -37,10 +37,6 @@ if c.organization:
                 |
                 <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
                 % endif
-                % if c.is_org_admin:
-                |
-                <a href="${h.url_for(controller='organization/settings', action='users')}">account settings</a>
-                % endif
                 |
                 <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
             % else:

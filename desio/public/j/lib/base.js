@@ -15,6 +15,13 @@ _.templateSettings = {
   interpolate : /\{\{(.+?)\}\}/g
 };
 
+Q.DataFormatters.relativetime = function(data){
+    return $.relativeDateStr($.parseDate(data));
+};
+Q.DataFormatters.filesize = function(data, decimals){
+    return $.fileSize(data, decimals);
+};
+
 
 Q.defaultValidationOptions = {
     errorPlacement: function(error, element) {

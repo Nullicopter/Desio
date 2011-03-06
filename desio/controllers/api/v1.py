@@ -23,13 +23,14 @@ def out_change_extract(extract):
     return edict
 
 def out_change(change, with_extracts=True):
-    out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version')              
+    out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version', 'number_comments')
     out['change_description'] = change.description
     out['change_eid'] = change.eid
     out['version'] = change.version
-    out['created_date'] = fdatetime(out['created_date'])            
+    out['created_date'] = fdatetime(out['created_date'])
     out['url'] = '/'+out['url']
     out['thumbnail_url'] = '/'+out['thumbnail_url']
+    out['creator'] = user.get().output(change.creator)
 
     if with_extracts:
         out['extracts'] = []

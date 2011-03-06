@@ -40,7 +40,9 @@ Q.FileView = Q.View.extend({
     template: '#file-template',
     
     formatters: {
-        //'size': 'filesize'
+        'size': 'filesize(0)',
+        'number_comments': 'number',
+        'created_date': 'relativetime'
     },
 
     init: function(container, settings) {
@@ -57,6 +59,8 @@ Q.FileView = Q.View.extend({
     
     render: function() {
         var attr = $.extend({}, this.model.attributes);
+        attr.user = attr.creator.name;
+        $.log(attr);
         
         for(var k in attr)
             if(k in this.formatters)
