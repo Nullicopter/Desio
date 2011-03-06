@@ -21,6 +21,8 @@
     background: #ccc;
 }
 
+
+#toolbar {float: left; height: 25px;}
 /*****/
 .image-viewer .top-bar{
     height: 35px;
@@ -104,4 +106,5 @@
 
 /***pins****/
 
+#pin-toggle{ float: left; width: 25px; height: 26px; background-image: url(../../../i/buttons/pin_toggle_25.png);}
 .pins .pin{position: absolute; width: 37px; height: 37px; z-index: 1001;}

@@ -14,7 +14,8 @@
 }
 
 .primary:hover, .secondary:hover{background-position: center left;}
-.primary.disabled, .secondary.disabled{background-position: bottom left;}
+.primary.disabled, .secondary.disabled,
+.primary.selected, .secondary.selected{background-position: bottom left;}
 
 .primary:hover, .primary:active, .primary:visited,
 .secondary:hover, .secondary:active, .secondary:visited{

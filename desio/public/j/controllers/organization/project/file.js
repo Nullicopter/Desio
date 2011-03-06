@@ -44,6 +44,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         //gets selectedVersion model in the settings.
         //gets selectedComment in settings
         //gets comments
+        //gets pinsMode
         _.bindAll(this, 'changeVersion', 'docClick');
         this._super.apply(this, arguments);
         
@@ -95,13 +96,18 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                         model: new Backbone.Model(extr[i]),
                         comments: this.settings.comments,
                         boxWidth: this.settings.boxWidth,
-                        selectedComment: this.settings.selectedComment
+                        selectedComment: this.settings.selectedComment,
+                        pinsMode: this.settings.pinsMode
                     }));
             
             
             if(images.length == 0){
                 images.push(new Q.ImageView({
-                    model: new Backbone.Model(model.attributes)
+                    model: new Backbone.Model(model.attributes),
+                    comments: this.settings.comments,
+                    boxWidth: this.settings.boxWidth,
+                    selectedComment: this.settings.selectedComment,
+                    pinsMode: this.settings.pinsMode
                 }));
             }
             
@@ -177,7 +183,7 @@ Q.ImageView = Q.View.extend({
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment');
+        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment', 'changePinsMode');
         this._super.apply(this, arguments);
         
         this.pinTemplate = $(this.pinTemplate).html();
@@ -185,6 +191,7 @@ Q.ImageView = Q.View.extend({
         this.settings.selectedComment.bind('change:comment', this.changeComment);
         this.settings.comments.bind('add', this.onAddComment);
         this.settings.comments.bind('newcomment', this.onAddComment);
+        this.settings.pinsMode.bind('change:pins', this.changePinsMode);
     },
     
     onChange: function(c){
@@ -204,6 +211,17 @@ Q.ImageView = Q.View.extend({
             
             this.popupCommentView.show(this.cropper.trackerElem, m);
         }
+    },
+    
+    changePinsMode: function(m){
+        m = m.get();
+        $.log(m, 'pins');
+        if(m == 'show'){
+            this.pins.show();
+            this.cropper.release();
+        }
+        else
+            this.pins.hide();
     },
     
     hidePopups: function(){
@@ -238,7 +256,8 @@ Q.ImageView = Q.View.extend({
     onRelease: function(){
         this.hidePopups();
         this.settings.selectedComment.set(null);
-        this.pins.show();
+        if(this.settings.pinsMode.get() == 'show')
+            this.pins.show();
     },
     
     onStart: function(){
@@ -612,13 +631,44 @@ Q.CommentFormView = Q.View.extend('CommentFormView', {
     }
 });
 
+Q.PinButtonView = Q.View.extend('PinButtonView', {
+    init: function(c, set){
+        this._super(c, set);
+        _.bindAll(this, 'setButton', 'pinToggle');
+        this.model.bind('change:pins', this.setButton);
+        c.click(this.pinToggle);
+        
+        this.pins = $('.pins');
+    },
+    
+    setButton: function(mode){
+        var targ = this.container;
+        if(mode.get() == 'hide'){
+            targ.removeClass('selected');
+            targ.attr('title', 'Click to show annotation pins');
+        }
+        else{
+            targ.addClass('selected');
+            targ.attr('title', 'Click to hide annotation pins');
+        }
+    },
+    
+    pinToggle: function(e){
+        if(this.model.get() == 'show')
+            this.model.set('hide');
+        else
+            this.model.set('show');
+    }
+});
+
 Q.ViewFilePage = Q.Page.extend({
     n: {
         tabs: '#tabs',
         pageImageViewer: '#inpage-image-viewer',
         comments: '#comments',
         addComment: '#add-comment',
-        replyComment: '#reply-comment'
+        replyComment: '#reply-comment',
+        pinToggle: '#pin-toggle'
     },
     events:{
         'click #add-comment-link': 'addCommentClick'
@@ -636,6 +686,10 @@ Q.ViewFilePage = Q.Page.extend({
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
         this.selectedComment = new Q.SingleSelectionModel('comment');
+        this.pinsMode = new Q.SingleSelectionModel('pins');
+        this.n.pinToggle.PinButtonView({model: this.pinsMode})
+        
+        this.pinsMode.set('show');
         
         this.comments = new Q.Comments([]);
         
@@ -660,6 +714,7 @@ Q.ViewFilePage = Q.Page.extend({
             model: this.versions,
             selectedVersion: this.selectedVersion,
             selectedComment: this.selectedComment,
+            pinsMode: this.pinsMode,
             comments: this.comments,
             boxWidth: this.settings.boxWidth
         });
