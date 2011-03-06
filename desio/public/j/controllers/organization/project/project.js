@@ -50,12 +50,19 @@ Q.ViewProjectPage = Q.Page.extend({
     events:{
         'click #add-directory-link': 'addDirectory'
     },
-    n: { root: '#root-directory'},
+    n: {
+        root: '#root-directory',
+        sidepanel: '#sidepanel'
+    },
     run: function(){
         var self = this;
         this._super.apply(this, arguments);
         
         this.filesModule = $(this.settings.module).FilesModule(this.settings);
+        this.n.sidepanel.Sidepanel({
+            collapsePreference: this.settings.collapsePreference,
+            collapseInitially: this.settings.collapseInitially
+        });
         
         var root = new Q.Directory({
             name: '',

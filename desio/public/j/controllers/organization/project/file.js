@@ -92,23 +92,15 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
             //if we didnt find any proper extracts, use the real file url
             for(var i = 0; i < extr.length; i++)
                 if(extr[i].extract_type != "thumbnail")
-                    images.push(new Q.ImageView({
-                        model: new Backbone.Model(extr[i]),
-                        comments: this.settings.comments,
-                        boxWidth: this.settings.boxWidth,
-                        selectedComment: this.settings.selectedComment,
-                        pinsMode: this.settings.pinsMode
-                    }));
+                    images.push(new Q.ImageView(
+                        $.extend({}, this.settings, { model: new Backbone.Model(extr[i]) })
+                    ));
             
             
             if(images.length == 0){
-                images.push(new Q.ImageView({
-                    model: new Backbone.Model(model.attributes),
-                    comments: this.settings.comments,
-                    boxWidth: this.settings.boxWidth,
-                    selectedComment: this.settings.selectedComment,
-                    pinsMode: this.settings.pinsMode
-                }));
+                images.push(new Q.ImageView(
+                    $.extend({}, this.settings, { model: new Backbone.Model(model.attributes) })
+                ));
             }
             
             this.views[ver] = images;
@@ -155,13 +147,15 @@ Q.PinView = Q.View.extend({
         this.settings.selectedComment.set(this.model);
     },
     
-    render: function(){
+    setScale: function(xscale, yscale){
+        this.settings.xscale = xscale;
+        this.settings.yscale = yscale;
+        position();
+    },
+    
+    position: function(){
         var m = this.model;
         var position = m.get('position');
-        
-        var pin = this.container.append($(_.template(this.template, {
-            title: m.get('creator').name + ': ' + m.get('body')
-        })));
         
         //find the center of the selection
         var pos = {
@@ -169,7 +163,18 @@ Q.PinView = Q.View.extend({
             top: (position[1] + position[3]/2 - this.pinsize.y/2)/this.settings.yscale
         };
         
-        pin.css(pos);
+        this.pin.css(pos);
+    },
+    
+    render: function(){
+        var m = this.model;
+        
+        var pin = this.pin = this.container.append($(_.template(this.template, {
+            title: m.get('creator').name + ': ' + m.get('body')
+        })));
+        
+        this.position();
+        
         pin.attr('extract', m.get('extract').id);
         
         return this;
@@ -183,7 +188,7 @@ Q.ImageView = Q.View.extend({
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        _.bindAll(this, 'onChange', 'onSelect', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment', 'changePinsMode');
+        _.bindAll(this, 'onChange', 'onSelect', 'changeCollapse', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment', 'changePinsMode');
         this._super.apply(this, arguments);
         
         this.pinTemplate = $(this.pinTemplate).html();
@@ -192,13 +197,12 @@ Q.ImageView = Q.View.extend({
         this.settings.comments.bind('add', this.onAddComment);
         this.settings.comments.bind('newcomment', this.onAddComment);
         this.settings.pinsMode.bind('change:pins', this.changePinsMode);
+        this.settings.collapsable.bind('change:collapse', this.changeCollapse);
     },
     
     onChange: function(c){
         if(this.newCommentView)
             this.newCommentView.hide();
-        
-        //$.log('onChange', c.x, c.y, c.x2, c.y2, c.w, c.h, c);
     },
     changeComment: function(m){
         m = m.get();
@@ -213,9 +217,15 @@ Q.ImageView = Q.View.extend({
         }
     },
     
+    changeCollapse: function(isit){
+        var width = isit ? this.settings.fullBoxWidth : this.settings.boxWidth;
+        $.log('set width: ', width);
+        this.settings.collapseInitially = isit;
+        this.render();
+    },
+    
     changePinsMode: function(m){
         m = m.get();
-        $.log(m, 'pins');
         if(m == 'show'){
             this.pins.show();
             this.cropper.release();
@@ -281,21 +291,13 @@ Q.ImageView = Q.View.extend({
     },
     
     render: function(){
-        $.log('render', this.settings.boxWidth);
         if(this.cropper)
             this.cropper.destroy();
         
         this._super();
         
-        this.newCommentView = new Q.ImageNewCommentView({
-            model: this.model.clone(),
-            comments: this.settings.comments
-        });
-        this.popupCommentView = new Q.PopupCommentView({
-            model: this.model,
-            replyForm: window.replyForm
-        });
-        
+        var width = this.settings.collapseInitially ? this.settings.fullBoxWidth : this.settings.boxWidth;
+        $.log('rendering with width', width, this.settings.collapseInitially);
         var img = this.$('img').Jcrop({
             onChange: this.onChange,
             onSelect: this.onSelect,
@@ -307,15 +309,32 @@ Q.ImageView = Q.View.extend({
             allowMove: false,
             keySupport: false,
             allowResize: false,
-            boxWidth: this.settings.boxWidth
+            boxWidth: width
         });
         
-        this.newCommentView.render();
-        this.newCommentView.hide();
-        this.popupCommentView.render();
-        this.popupCommentView.hide();
+        if(!this.newCommentView){
+            this.newCommentView = new Q.ImageNewCommentView({
+                model: this.model.clone(),
+                comments: this.settings.comments
+            });
+            this.newCommentView.render();
+            this.newCommentView.hide();
+        }
         
-        this.pins = this.$('.pins');
+        if(!this.popupCommentView){
+            this.popupCommentView = new Q.PopupCommentView({
+                model: this.model,
+                replyForm: window.replyForm
+            });
+            
+            this.popupCommentView.render();
+            this.popupCommentView.hide();
+        }
+        
+        if(!this.pinObjs)
+            this.pinObjs = [];
+        
+        this.pins = this.$('.pins')[this.settings.pinsMode.get()]();
         
         return this;
     }
@@ -658,6 +677,7 @@ Q.PinButtonView = Q.View.extend('PinButtonView', {
             this.model.set('hide');
         else
             this.model.set('show');
+        return false;
     }
 });
 
@@ -668,7 +688,8 @@ Q.ViewFilePage = Q.Page.extend({
         comments: '#comments',
         addComment: '#add-comment',
         replyComment: '#reply-comment',
-        pinToggle: '#pin-toggle'
+        pinToggle: '#pin-toggle',
+        sidepanel: '#sidepanel'
     },
     events:{
         'click #add-comment-link': 'addCommentClick'
@@ -683,12 +704,18 @@ Q.ViewFilePage = Q.Page.extend({
         this._super.apply(this, arguments);
         _.bindAll(this, 'viewVersion', 'addVersion');
         
+        var sidepanel = this.n.sidepanel.Sidepanel({
+            collapsePreference: this.settings.collapsePreference,
+            collapseInitially: this.settings.collapseInitially
+        });
+        
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Backbone.Model({});
         this.selectedComment = new Q.SingleSelectionModel('comment');
+        
+        //pin junk
         this.pinsMode = new Q.SingleSelectionModel('pins');
         this.n.pinToggle.PinButtonView({model: this.pinsMode})
-        
         this.pinsMode.set('show');
         
         this.comments = new Q.Comments([]);
@@ -716,7 +743,10 @@ Q.ViewFilePage = Q.Page.extend({
             selectedComment: this.selectedComment,
             pinsMode: this.pinsMode,
             comments: this.comments,
-            boxWidth: this.settings.boxWidth
+            boxWidth: this.settings.boxWidth,
+            fullBoxWidth: this.settings.fullBoxWidth,
+            collapseInitially: this.settings.collapseInitially,
+            collapsable: sidepanel
         });
         
         //add the versions to the model

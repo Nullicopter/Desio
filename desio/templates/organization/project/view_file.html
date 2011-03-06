@@ -18,6 +18,9 @@
         comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
         boxWidth: 800,
+        fullBoxWidth: 800+310,
+        collapsePreference: 'view_file_sidepanel_collapse',
+        collapseInitially: ${c.real_user.get_preference('view_file_sidepanel_collapse', default='false')},
         showDropTargetOn: 'elemdrag'//'bodydrag'
     }).readyrun();
     </script>

@@ -19,6 +19,8 @@
         directories: ${json.dumps(c.structure) | n},
         tree: ${json.dumps(c.tree) | n},
         path: '${c.path}',
+        collapsePreference: 'view_project_sidepanel_collapse',
+        collapseInitially: ${c.real_user.get_preference('view_project_sidepanel_collapse', default='false')},
         showDropTargetOn: 'bodydrag'//'elemdrag'
     }).readyrun();
     </script>

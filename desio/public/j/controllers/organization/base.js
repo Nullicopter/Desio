@@ -1,6 +1,73 @@
 
 ;(function($){
 
+Q.Sidepanel = Q.Module.extend('Sidepanel', {
+    
+    init: function(container, settings){
+        var defs = {
+            tabs: '#sidepanel-tabs',
+            panels: '#sidepanels',
+            collapsable: true,
+            collapseButton: '#sidepanel-collapse',
+            collapsePreference: null,
+            collapseInitially: false,
+            collapseClass: 'collapsed',
+            content: '#content'
+        };
+        this._super(container, $.extend({}, defs, settings));
+        _.bindAll(this, 'toggleCollapse');
+        
+        this.settings.content = $.getjQueryObject(this.settings.content);
+        this.settings.tabs = $.getjQueryObject(this.settings.tabs);
+        this.settings.panels = $.getjQueryObject(this.settings.panels);
+        this.settings.collapseButton = $.getjQueryObject(this.settings.collapseButton);
+        
+        this.settings.tabs.Tabs({
+            panels: this.settings.panels.children()
+        });
+        
+        if(this.settings.collapsable){
+            this.settings.collapseButton.click(this.toggleCollapse);
+            this.collapse(this.settings.collapseInitially);
+        }
+        else
+            this.settings.collapseButton.hide();
+    },
+    setPref: function(val){
+        if(this.settings.collapsePreference){
+            $.postJSON(window.PREFS_URL, {
+                key: this.settings.collapsePreference,
+                value: ''+val
+            });
+        }
+    },
+    collapse: function(doit, trigger){
+        if(doit){
+            this.container.addClass(this.settings.collapseClass);
+            this.settings.content.addClass(this.settings.collapseClass);
+            this.settings.collapseButton.attr('title', 'Expand the sidebar');
+            if(trigger) {
+                this.setPref(true);
+                this.trigger('change:collapse', true);
+            }
+        }
+        else{
+            this.container.removeClass(this.settings.collapseClass);
+            this.settings.content.removeClass(this.settings.collapseClass);
+            this.settings.collapseButton.attr('title', 'Collapse the sidebar');
+            if(trigger) {
+                this.setPref(false);
+                this.trigger('change:collapse', false);
+            }
+        }
+    },
+    
+    toggleCollapse: function(){
+        this.collapse(!this.container.hasClass(this.settings.collapseClass), true);
+        return false;
+    }
+});
+
 Q.Tabs = Q.Module.extend('Tabs', {
     
     events: {
@@ -16,7 +83,7 @@ Q.Tabs = Q.Module.extend('Tabs', {
         this._super(container, $.extend({}, defs, settings));
         
         var cur = this.$('.'+this.settings.currentClass);
-        this.select(cur.length ? parseInt(cur.attr('rel')) : 0)
+        this.select(cur.length ? parseInt(cur.attr('rel')) : 0);
     },
     
     onTabClick: function(e){
@@ -36,11 +103,21 @@ Q.Tabs = Q.Module.extend('Tabs', {
     }
 });
 
-$(function(){
-    $('#sidepanel-tabs').Tabs({
-        panels: $('#sidepanels').children()
-    });
+Q.OrgHomePage = Q.Page.extend({
+    n: {
+        sidepanel: '#sidepanel'
+    },
+    events:{
+    },
+    run: function(){
+        var self = this;
+        this._super.apply(this, arguments);
+        //_.bindAll(this, 'viewVersion', 'addVersion');
+        
+        this.n.sidepanel.Sidepanel({
+            collapsable: false
+        });
+    }
 });
-
 
 })(jQuery);

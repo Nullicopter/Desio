@@ -257,7 +257,7 @@ class User(Base):
             return '%s %s' % (self.first_name, self.last_name)
         return self.username
     
-    def get_preference(self, key, ignore_default=False):
+    def get_preference(self, key, default=None, ignore_default=False):
         """
         Gets a user's preference.
         
@@ -269,6 +269,9 @@ class User(Base):
         
         if key in self.preferences_dict:
             return self.preferences_dict[key].value
+        
+        if default != None:
+            return default
         
         if not ignore_default:
             if key in self.preferences_defaults:

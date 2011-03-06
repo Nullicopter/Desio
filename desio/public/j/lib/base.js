@@ -8,6 +8,7 @@
 //Overrides
 Q.Loader.defaults.image = '/i/loaders/16x16_arrows.gif';
 Q.AsyncForm.defaults.autoGenValidationOptions = true;
+window.PREFS_URL = '/api/v1/user/set_pref';
 
 //Mustache-like delimiters!
 _.templateSettings = {

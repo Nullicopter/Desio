@@ -1,7 +1,7 @@
 
 #header-inner, #page-inner, #footer-inner{width: 1140px !important;}
 
-#sidepanel{width: 300px; float: left;}
+#sidepanel{width: 300px; float: left; position: relative;}
 .sidepanel{background: #f5f5f5;}
 
 #content{margin-left: 310px;}
@@ -28,6 +28,32 @@
 #sidepanel .new-button{
     padding: 10px;
 }
+
+/**** collapse stuff ****/
+
+#sidepanel-collapse{
+    display: block;
+    position: absolute;
+    height: 20px; width: 28px;
+    z-index: 1000;
+    right: 0;
+    top: 55px;
+    background: transparent url(../../i/buttons/collapse_arrows.png) no-repeat 0 0;
+}
+
+#sidepanel.collapsed{
+    width: 0px;
+}
+#sidepanel.collapsed .tabs{ display: none; }
+#sidepanel.collapsed #sidepanels{ display: none; }
+
+#sidepanel.collapsed #sidepanel-collapse{
+    background-position: bottom left;
+    top: 88px;
+}
+
+/*confusing, but consistent*/
+#content.collapsed{margin-left: 0px;}
 
 /**** PROJECT TAB ****/
 #sidepanel .projects .project:first-child{ border-top: 1px solid #ddd; }
