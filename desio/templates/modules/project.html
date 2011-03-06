@@ -52,3 +52,12 @@ roles = [
     % endif
     </div>
 </%def>
+
+<%def name="file_thumb(project, name, version, full_path, url)" >
+    <div class="name-bar"></div>
+    <div class="name">${name} - v${version}</div>
+    
+    <a href="${h.url_for(controller='organization/project', action='view', slug=project.slug)}${full_path}">
+        <img src="${url}" />
+    </a>
+</%def>

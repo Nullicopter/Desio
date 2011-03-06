@@ -1,6 +1,7 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
+<%namespace name="project" file="/modules/project.html"/>
 <%!
     import simplejson as json
 %>
@@ -86,11 +87,5 @@
 </script>
 
 <script id="file-template" class="jstemplate" type="text/template">
-    <div class="name-bar"></div>
-    <div class="name">{{name}} - v{{version}}</div>
-    
-    ##<a href="${h.url_for(controller='organization/project/file', action='view')}/{{eid}}">
-    <a href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}{{full_path}}">
-        <img src="{{thumbnail_url}}" />
-    </a>
+    ${project.file_thumb(c.project, '{{name}}', '{{version}}', '{{full_path}}', '{{thumbnail_url}}')}
 </script>

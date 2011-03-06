@@ -1,20 +1,42 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
+<%namespace name="project" file="/modules/project.html"/>
 
 <%def name="js_includes()">
     ${parent.js_includes()}
-    
+    ${r.require('file', 'controllers.organization.project')}
+</%def>
+
+<%def name="header()">
+    ${parent.header()}
+    <style type="text/css">
+        .project .files{
+            height: 200px;
+        }
+    </style>
 </%def>
 
 <h1>Your Dash</h1>
 
-<h2>Projects</h2>
-
 % if c.projects:
-    <div><a href="${h.url_for(controller='organization/project', action='new')}">New</a></div>
-    % for p in c.projects:
-        <div><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></div>
+    <div id="projects">
+    % for p, files in c.project_data:
+        <div class="project">
+            <h2><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></h2>
+            
+            % if files:
+                <div class="files">
+                % for f in files:
+                    <% ch = f.get_change() %>
+                    <div class="file">
+                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.thumbnail_url)}
+                    </div>
+                % endfor
+                </div>
+            % endif
+        </div>
     % endfor
+    </div>
 % else:
     <p>
         No projects
@@ -23,3 +45,5 @@
         % endif
     </p>
 % endif
+
+<div class="clear"></div>

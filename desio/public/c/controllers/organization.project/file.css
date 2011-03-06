@@ -95,7 +95,7 @@
 .comment.position{cursor: pointer;}
 .comment.position .creator{
     padding-left: 24px;
-    background: transparent url(${h.static_url('i', 'icons/selection.png')}) 0 3px no-repeat;
+    background: transparent url(../../../i/icons/selection.png) 0 3px no-repeat;
 }
 .comment .body{margin-top: 5px;}
 .comment .replies{padding-left: 10px;}
