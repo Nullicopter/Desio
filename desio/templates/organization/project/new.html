@@ -1,4 +1,4 @@
-<%inherit file="../base.html"/>
+<%inherit file="/base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
 <%namespace name="project" file="/modules/project.html"/>
@@ -8,11 +8,11 @@
 %>
 <%def name="header()">
     ${parent.header()}
-    ${r.require('project', 'controllers.organization.project')}
-    
+    ${r.require('project', 'controllers.organization', 'controllers.organization.project')}
     <style type="text/css">
         #name{width: 500px;}
         #description{width: 550px; height: 150px;}
+        #add-user-pane{float: right; width: 450px;}
     </style>
     <script type="text/javascript">
         
@@ -25,18 +25,18 @@
 
 <h1>${c.title}</h1>
 
+<div id="add-user-pane">
+    <h2>Add folks to the project</h2>
+    <p>You can do this later too!</p>
+    ${project.project_user_module(c.project_user_module_params['userMap'])}
+</div>
+
 <form id="new-form" action="${h.api_url('project', 'create', organization=c.organization.eid)}" method="post">
     
     ${f.text_chunk('name', label='Project Name')}
     ${f.textarea_chunk('description', label='Project Description', sublabel='optional')}
     
 </form>
-
-<div id="add-user-pane">
-    <h2>Add folks to the project</h2>
-    <p>You can do this later too!</p>
-    ${project.project_user_module(c.project_user_module_params['userMap'])}
-</div>
 
 <p>
     <a id="create-project-link" href="#">Create Project</a>

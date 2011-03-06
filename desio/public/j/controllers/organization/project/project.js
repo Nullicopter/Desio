@@ -70,6 +70,7 @@ Q.ViewProjectPage = Q.Page.extend({
             children: this.settings.tree.directories
         });
         
+        this.rootObject = root;
         this.directories = root.get('children'); //will be a Q.Directories obj
         
         this.root = this.n.root.DirectoryTreeView({model: root});
@@ -85,7 +86,10 @@ Q.ViewProjectPage = Q.Page.extend({
         var l = $(e.target);
         var n = prompt('What do you want to name this directory?');
         
-        var dirs = this.currentDirectory.get('children');
+        //this will allow for adding children to the current directory
+        //var dirs = this.currentDirectory.get('children');
+        var dirs = this.directories;
+        var path = this.rootObject.path; //this.settings.path;
         for(var i = 0; i < dirs.length; i++)
             if(dirs.models[i].get('name') == n){
                 n = null;
@@ -94,7 +98,7 @@ Q.ViewProjectPage = Q.Page.extend({
         
         if(n){
             $.postJSON(l[0].href, {
-                path: $.pathJoin(this.settings.path, n)
+                path: $.pathJoin(path, n)
             }, function(data){
                 data = data.results;
                 $.log(data);
@@ -120,7 +124,7 @@ Q.ProjectCreatePage = Q.Page.extend({
             submitters: '#create-project-link',
             onSuccess: function(data){self.success(data);}
         });
-        this.form.focusFirst();
+        this.form.getElement('name').focus();
         
         this.projectUserModule = $('#project-user-module').ProjectUserModule(this.settings);
         this.projectUserModule.bind('synced', this.synced);
