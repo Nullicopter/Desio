@@ -59,7 +59,7 @@ Q.FileView = Q.View.extend({
     
     render: function() {
         var attr = $.extend({}, this.model.attributes);
-        attr.user = attr.creator.name;
+        attr.user = attr.creator ? attr.creator.name : '';
         $.log(attr);
         
         for(var k in attr)
@@ -137,6 +137,7 @@ Q.DirectoryView = Q.View.extend({
     
     addFile: function(m){
         this.target.hide();
+        $.log('adding processig file?', m, this.filesElem);
         //we need to check the type. It may be a processing file, and it
         //may be a regular file.
         //It may be a regular file that was just uploaded so it connected to
