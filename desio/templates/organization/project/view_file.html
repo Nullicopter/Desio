@@ -37,7 +37,7 @@
         </ul>
     </div>
     
-    <h3>Comments</h3>
+    <h3 id="comments-header">Notes for version <span class="version">${c.head_change.version}</span></h3>
     
     <div id="comments">
         
@@ -61,11 +61,15 @@
     </div>
 </%def>
 
-<div id="toolbar">
-    <a id="pin-toggle" class="secondary selected" href="#" title="Click to hide annotation pins."></a>
-</div>
+<%def name="content_subheader()">
+    <div id="version-tabs" class="tabs"></div>
+    v10 by Bob Johnson 2 hours ago
+</%def>
 
-<div id="version-tabs" class="tabs"></div>
+<div id="toolbar">
+    <a href="#" id="sidepanel-collapse"></a>
+    <a id="pin-toggle" class="selected" href="#" title="Click to hide annotation pins."></a>
+</div>
 
 <div id="inpage-image-viewer">
     <div class="image-viewer">
@@ -76,7 +80,10 @@
 </div>
 
 <script id="tab-template" class="jstemplate" type="text/template">
-    <span class="tab-text">v{{version}}</span>
+    <span class="tab-text {{comments_class}}">
+        <span class="number-comments {{comments_class}}">{{number_comments_open}}</span>
+        <span class="text">v{{version}}</span>
+    </span>
 </script>
 
 <script id="image-template" class="jstemplate" type="text/template">
@@ -104,11 +111,15 @@
 </script>
 
 <script id="comment-template" class="jstemplate" type="text/template">
-    <div class="time">{{time}} (v{{version}})</div>
-    <div class="creator"><span>{{creator}}</span></div>
+    <div class="number-comments">0</div>
+    <a href="#" class="pin-small complete-indicator status-{{completion_status}}" title="Click to mark this note complete"></a>
+    <div class="creator">
+        <span>{{creator}}</span> says
+    </div>
     <div class="body">{{body}}</div>
+    <div class="time">{{time}}</div>
     <div class="replies"></div>
-    <div><a href="#" class="reply-link">reply</a></div>
+    ##<div><a href="#" class="reply-link">reply</a></div>
 </script>
 
 <div class="clear"></div>

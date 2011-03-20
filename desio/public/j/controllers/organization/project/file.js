@@ -5,6 +5,15 @@
 
 ;(function($){
 
+/**
+ * TabView deals with the version tabs
+ * ImageViewer is the sort of image controller. Creates ImageViews. Deals with this on version change.
+ * PinView - deals with single pin view
+ * ImageView - Viewing a single image extract. Multi page docs get multiple of these. Takes care of showing the pins.
+ * CommentsView - the comments section on the sidebar. Handles binding on to the comment collection.
+ *
+ */
+
 Q.TabView = Q.View.extend({
     
     template: '#tab-template',
@@ -19,15 +28,27 @@ Q.TabView = Q.View.extend({
         this.settings.selectedVersion.bind('change:version', this.changeVersion)
     },
     
+    render: function(){
+        var att = this.model.attributes;
+        var data = {
+            version: att.version,
+            number_comments_open: att.number_comments_open,
+            number_comments: att.number_comments,
+            comments_class: att.number_comments_open ? 'has-open' : ''
+        };
+        return this.renderTemplate(data);
+    },
+    
     changeVersion: function(m){
-        if(m.get('version') == this.model.get('version'))
+        if(m.get().get('version') == this.model.get('version'))
             this.container.addClass('selected');
         else
             this.container.removeClass('selected');
     },
     
     clickTab: function(){
-        this.settings.selectedVersion.set(_.clone(this.model.attributes));
+        $.log('setting', this.model.attributes);
+        this.settings.selectedVersion.set(this.model);
     }
 });
 
@@ -71,7 +92,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     },
     
     changeVersion: function(m){
-        var ver = m.get('version');
+        var ver = m.get().get('version');
         if(ver == this.currentVersion) return;
         
         var model = null;
@@ -133,6 +154,7 @@ Q.PinView = Q.View.extend({
         this._super.apply(this, arguments);
         
         this.model.bind('change:body', this.updateComment);
+        this.model.pin = this;
         //this.settings.selectedComment.bind('change:comment', this.selectComment);
     },
     
@@ -190,16 +212,23 @@ Q.ImageView = Q.View.extend({
     
     init: function(){
         //model is a generic backbone model with a file extract in it
-        _.bindAll(this, 'onChange', 'onSelect', 'changeCollapse', 'onRelease', 'setCropper', 'onStart', 'changeComment', 'onAddComment', 'changePinsMode');
+        _.bindAll(this, 'onChange', 'onSelect', 'changeCollapse',
+                  'onRelease', 'setCropper', 'onStart', 'changeComment',
+                  'onAddComment', 'changePinsMode', 'onChangeVersion', 'onCommentRefresh');
         this._super.apply(this, arguments);
         
         this.pinTemplate = $(this.pinTemplate).html();
         
+        this.settings.selectedComment.bind('change:version', this.changeVersion);
         this.settings.selectedComment.bind('change:comment', this.changeComment);
         this.settings.comments.bind('add', this.onAddComment);
+        this.settings.comments.bind('refresh', this.onCommentRefresh);
         this.settings.comments.bind('newcomment', this.onAddComment);
         this.settings.pinsMode.bind('change:pins', this.changePinsMode);
         this.settings.collapsable.bind('change:collapse', this.changeCollapse);
+        
+        this.pinViews = [];
+        this.waitForRefresh = false;
     },
     
     onChange: function(c){
@@ -245,7 +274,7 @@ Q.ImageView = Q.View.extend({
     
     onAddComment: function(m){
         if(m && m.hasPosition() && (!m.get('extract') || m.get('extract').order_index == this.model.get('order_index')) && this.cropper){
-            $.log('placing pin?', m);
+            //$.log('placing pin?', m);
             var pin = new Q.PinView({
                 model: m,
                 selectedComment: this.settings.selectedComment,
@@ -256,6 +285,7 @@ Q.ImageView = Q.View.extend({
             pin.template = this.pinTemplate;
             
             this.pins.append(pin.render().el);
+            this.pinViews.push(pin);
         }
     },
     
@@ -278,13 +308,32 @@ Q.ImageView = Q.View.extend({
         this.pins.hide();
     },
     
+    onCommentRefresh: function(c){
+        for(var i = 0; i < this.pinViews.length; i++){
+            this.pinViews[i].remove();
+        }
+        for(var i = 0; i < this.settings.comments.length; i++){
+            this.onAddComment(this.settings.comments.models[i]);
+        }
+        this.waitForRefresh = false;
+    },
+    
+    onChangeVerison: function(c){
+        //on version change, the setCropper function will be called before the refresh.
+        //So we set this to not load pins until comment refresh. 
+        this.waitForRefresh = true;
+    },
+    
     setCropper: function(cropperApi){
         this.cropper = cropperApi;
         this.newCommentView.setCropper(cropperApi);
         
         this.$('.jcrop-holder').append(this.pins);
-        for(var i = 0; i < this.settings.comments.length; i++){
-            this.onAddComment(this.settings.comments.models[i]);
+        
+        if(!this.waitForRefresh){
+            for(var i = 0; i < this.settings.comments.length; i++){
+                this.onAddComment(this.settings.comments.models[i]);
+            }
         }
     },
     
@@ -430,7 +479,13 @@ Q.CommentView = Q.View.extend({
     template: '#comment-template',
     
     events: {
-        'click .reply-link': 'onClickReply'
+        'click .reply-link': 'onClickReply',
+        'click .complete-indicator': 'onClickComplete'
+    },
+    
+    tooltips:{
+        open: 'Not completed; Click to complete.',
+        completed: 'Completed; Click to uncomplete.'
     },
     
     init: function(container, settings){
@@ -440,7 +495,7 @@ Q.CommentView = Q.View.extend({
          * selectedComment: 
          */
         this._super(container, settings);
-        _.bindAll(this, 'onAddReply', 'onSelectComment');
+        _.bindAll(this, 'onAddReply', 'onSelectComment', 'onChangeCompletionStatus');
         
         if(this.model.get('position')){
             this.container.addClass('position');
@@ -452,6 +507,8 @@ Q.CommentView = Q.View.extend({
         var replies = this.model.get('replies');
         replies.bind('add', this.onAddReply);
         replies.bind('newcomment', this.onAddReply);
+        
+        this.model.bind('change:completion_status', this.onChangeCompletionStatus);
         
         if(this.settings.selectedComment)
             this.settings.selectedComment.bind('change:comment', this.onSelectComment)
@@ -479,16 +536,53 @@ Q.CommentView = Q.View.extend({
     
     onAddReply: function(m){
         if(this.replies && !m.isNew()){
-            this.replies.show();
+            //this.replies.show();
             $.log('Adding reply in onAddReply', m);
             var com = new Q.CommentView({
                 model: m,
                 selectedComment: this.settings.selectedComment
             });
             this.replies.append(com.render().el);
+            var r = this.model.get('replies');
+            if(r && $.isNumber(r.length))
+                this.$('.number-comments').text(r.length);
         }
         else
             $.log('NOT Adding reply as no replies yet...', m);
+    },
+    
+    setPinStatus: function(status){
+        var ind = this.$('.complete-indicator');
+        ind.removeClass('status-'+this.model.statusToggle[status]);
+        ind.addClass('status-'+status);
+        
+        ind.attr('title', this.tooltips[status]);
+    },
+    
+    onClickComplete: function(){
+        var cv = this.model.get('completion_status');
+        this.setPinStatus(this.model.statusToggle[cv.status]);
+        
+        this.model.toggleCompleteness();
+        return false;
+    },
+    
+    onChangeCompletionStatus: function(m){
+        var cv = m.get('completion_status');
+        
+        this.setPinStatus(cv.status);
+        
+        var time = this.$('.time');
+        time.find('.completed').remove();
+        
+        if(cv.status == 'completed'){
+            time.prepend(
+                $('<div/>', {
+                    'class': 'completed',
+                    text: 'completed by ' + cv.user + ' ' + $.relativeDateStr($.parseDate(cv.created_date))
+                })
+            );
+        }
     },
     
     render: function(){
@@ -497,7 +591,8 @@ Q.CommentView = Q.View.extend({
             time: $.relativeDateStr($.parseDate(this.model.get('created_date'))),
             creator: this.model.get('creator').name,
             body: this.model.get('body'),
-            version: this.model.get('change_version')
+            version: this.model.get('change_version'),
+            completion_status: this.model.get('completion_status').status
         };
         this.renderTemplate(d);
         
@@ -511,6 +606,9 @@ Q.CommentView = Q.View.extend({
         
         if(!this.settings.replyForm)
             this.$('.reply-link').remove();
+        
+        this.onChangeCompletionStatus(this.model);
+        
         return this;
     }
 });
@@ -552,10 +650,11 @@ Q.CommentsView = Q.View.extend('CommentsView', {
          */
         
         this._super(container, settings);
-        _.bindAll(this, 'onAddComment', 'onNewComment', 'onRemoveComment');
+        _.bindAll(this, 'onAddComment', 'onNewComment', 'onRemoveComment', 'onRefresh');
         
         var loader = this.loader = this.container.Loader();
         
+        this.model.bind('refresh', this.onRefresh);
         this.model.bind('newcomment', this.onNewComment);
         this.model.bind('add', this.onAddComment);
         this.model.bind('remove', this.onRemoveComment);
@@ -568,6 +667,8 @@ Q.CommentsView = Q.View.extend('CommentsView', {
             $.log('stop loading');
             loader.stopLoading()
         });
+        
+        this.views = [];
     },
     
     render: function(){return this;},
@@ -584,6 +685,7 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         if(m && m.hasPosition())
             this.settings.selectedComment.set(m);
     },
+    
     onNewComment: function(m){
         this.onAddComment(m);
         if(m && m.hasPosition())
@@ -598,7 +700,17 @@ Q.CommentsView = Q.View.extend('CommentsView', {
                 replyForm: this.settings.replyForm
             });
             this.container.append(view.render().el);
+            this.views.push(view);
         }
+    },
+    
+    onRefresh: function(){
+        for(var i = 0; i < this.views.length; i++)
+            this.views[i].remove();
+        this.views = [];
+        
+        for(var i = 0; i < this.model.length; i++)
+            this.onAddComment(this.model.at(i));
     },
     
     onRemoveComment: function(m){
@@ -692,7 +804,8 @@ Q.ViewFilePage = Q.Page.extend({
         addComment: '#add-comment',
         replyComment: '#reply-comment',
         pinToggle: '#pin-toggle',
-        sidepanel: '#sidepanel'
+        sidepanel: '#sidepanel',
+        headerVersion: '#comments-header .version'
     },
     events:{
         'click #add-comment-link': 'addCommentClick'
@@ -713,7 +826,7 @@ Q.ViewFilePage = Q.Page.extend({
         });
         
         this.versions = new Q.FileVersions([]);
-        this.selectedVersion = new Backbone.Model({});
+        this.selectedVersion = new Q.SingleSelectionModel('version');
         this.selectedComment = new Q.SingleSelectionModel('comment');
         
         //pin junk
@@ -737,7 +850,6 @@ Q.ViewFilePage = Q.Page.extend({
         });
         
         //do setup and binding here
-        this.selectedVersion.bind('change:version', this.viewVersion);
         this.versions.bind('add', this.addVersion);
         
         this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
@@ -756,13 +868,15 @@ Q.ViewFilePage = Q.Page.extend({
         for(var i = 0; i < this.settings.versions.length; i++){
             this.versions.add(this.settings.versions[i]);
         }
-        this.selectedVersion.set(this.settings.versions[0]);
+        this.selectedVersion.set(this.versions.at(0));
         
         this.comments.setCurrentVersion(this.selectedVersion);
         this.comments.add(this.settings.comments, {
             save: false,
             urls: this.settings.commentUrls
         });
+        
+        this.selectedVersion.bind('change:version', this.viewVersion);
         
         $.log(this.comments);
     },
@@ -787,8 +901,11 @@ Q.ViewFilePage = Q.Page.extend({
     
     viewVersion: function(m){
         //m.version is a FileVersion model
-        var version = m.get('version');
+        var version = m.get();
         $.log('View version', version);
+        this.comments.fetchForVersion(version);
+        
+        this.n.headerVersion.text(version.get('version'));
     }
 });
 

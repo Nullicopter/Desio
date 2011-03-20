@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from desio import api
-from desio.model import users, fixture_helpers as fh, projects, STATUS_APPROVED
+from desio.model import users, fixture_helpers as fh, projects, STATUS_APPROVED, STATUS_COMPLETED, STATUS_OPEN
 from desio.tests import *
 
 from pylons_common.lib.exceptions import *
@@ -30,13 +30,16 @@ class TestFile(TestController):
     def test_comments(self):
         
         rando = fh.create_user()
+        reader = fh.create_user()
         user = fh.create_user()
         guy_in_project = fh.create_user()
         project = fh.create_project(user=user, name=u"helloooo")
         self.flush()
         
         project.organization.attach_user(guy_in_project, status=STATUS_APPROVED)
+        project.organization.attach_user(reader, status=STATUS_APPROVED)
         assert api.project.attach_user(user, user, project, guy_in_project, projects.PROJECT_ROLE_WRITE)
+        assert api.project.attach_user(user, user, project, reader, projects.PROJECT_ROLE_READ)
         
         filepath = file_path('ffcc00.gif')
         change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
@@ -57,6 +60,23 @@ class TestFile(TestController):
         assert comment.y == 345
         assert comment.width == 10
         assert comment.height == 20
+        assert comment.completion_status.status == STATUS_OPEN
+        
+        #make sure comment completion statuses work
+        api.file.set_comment_completion_status(user, user, comment, status=STATUS_COMPLETED)
+        self.flush()
+        assert comment.completion_status.status == STATUS_COMPLETED
+        
+        api.file.set_comment_completion_status(user, guy_in_project, comment, status=STATUS_OPEN)
+        self.flush()
+        assert comment.completion_status.status == STATUS_OPEN
+        
+        ex = self.throws_exception(lambda: api.file.set_comment_completion_status(user, user, None, status=STATUS_COMPLETED))
+        assert ex.code == NOT_FOUND
+        ex = self.throws_exception(lambda: api.file.set_comment_completion_status(user, user, comment))
+        assert 'status' in ex.error_dict
+        ex = self.throws_exception(lambda: api.file.set_comment_completion_status(reader, reader, comment, status=STATUS_COMPLETED))
+        assert ex.code == FORBIDDEN
         
         _, reply = api.file.add_comment(user, user, 'My reply!', change=change.eid, in_reply_to=comment.eid)
         self.flush()

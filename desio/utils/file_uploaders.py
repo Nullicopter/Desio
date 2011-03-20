@@ -20,7 +20,7 @@ class LocalUploader(object):
         try:
             os.makedirs(final_directory)
         except: 
-            print sys.exc_info()
+            pass #print sys.exc_info()
         
         shutil.move(from_filepath, final_filepath)
 

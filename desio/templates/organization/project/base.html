@@ -14,12 +14,12 @@
     % endif
 </%def>
 
-<h1>
+<%def name="content_header()">
     % if c.path_components:
-        ${'/'.join(com.path_component_urls(c.project, c.path_components)) | n}
+        ${'<span class="path-separator">/</span>'.join(com.path_component_urls(c.project, c.path_components)) | n}
     % else:
         ${c.title}
     % endif
-</h1>
+</%def>
 
 ${next.body()}

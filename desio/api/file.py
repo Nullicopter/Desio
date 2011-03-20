@@ -4,7 +4,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
                     CanContributeToOrg, CanReadOrg, MustOwn, Or, Exists
-from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
 import sqlalchemy as sa
 
@@ -95,6 +95,18 @@ def remove_comment(real_user, user, comment, **kw):
     
     comment.delete()
     return True
+
+@enforce(comment=projects.Comment, status=unicode)
+@authorize(Exists('comment'), Or( CanWriteProject(get_from='comment'), MustOwn('comment') ))
+def set_comment_completion_status(real_user, user, comment, status=None, **kw):
+    """
+    Set completion status
+    """
+    class StatusForm(formencode.Schema):
+        status = fv.OneOf([STATUS_OPEN, STATUS_COMPLETED], not_empty=True)
+    scrubbed = validate(StatusForm, status=status)
+    
+    return comment.set_completion_status(user, scrubbed.status)
 
 @enforce(change=projects.Change, extract=projects.ChangeExtract, file=projects.File)
 @authorize(Or(Exists('change'), Exists('extract'), Exists('file')), CanReadProject(get_from=['change', 'file', 'extract']))

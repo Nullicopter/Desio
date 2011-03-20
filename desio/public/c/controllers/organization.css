@@ -1,25 +1,61 @@
 
+#content{margin-left: 310px;}
+#content-header{height: 50px; position: relative;}
+#content-header h1{
+    margin: 0;
+    font-size: 16pt;
+}
+#content-header h1 .path-separator{
+    color: #cbcbcb;
+    font-size: 28pt;
+    vertical-align:middle;
+    line-height: 31px;
+    padding: 0 6px 0 9px;
+}
+#content-header h1 a, #content-header h1 a:active{color: #333; font-weight: normal}
+#content-header h1 a:first-child{font-weight: bold}
+
+#content-inner {margin-top: 10px; position: relative;}
+
 #header-inner, #page-inner, #footer-inner{width: 1140px !important;}
 
+#sidepanels{margin-top: 10px;}
 #sidepanel{width: 300px; float: left; position: relative;}
-.sidepanel{background: #f5f5f5;}
+.sidepanel{}
 
-#content{margin-left: 310px;}
-
-#sidepanel-tabs a, #sidepanel-tabs a:active{
-    color: #999;
-    background: #f5f5f5;
+#sidepanel-tabs{
+    height: 50px;
 }
-#sidepanel-tabs a:hover, #sidepanel-tabs a.current{
-    color: #222;
-    border: 1px solid #aaa;
-    border-bottom: none;
-    background: #f5f5f5;
+#sidepanel-tabs a, #sidepanel-tabs a:active{
+    display: block;
+    float: left;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px #999;
+    margin-right: 5px;
+    background: transparent url(../../i/site/blue_tab_large.png) 0 -94px;
+    width: 80px;
+    height: 47px;
+    line-height: 38px;
+    text-align: center;
+    padding: 0;
+    border: 0;
+}
+#sidepanel-tabs a.current{
+    background-position: 0 0;
+    line-height: 40px;
+    text-shadow: none;
+}
+#sidepanel-tabs a.current:hover{
+    background-position: 0 -47px;
+}
+#sidepanel-tabs a:hover{
+    background-position: 0 -141px;
 }
 
 
 #sidepanel .info{
-    padding: 20px 10px 10px 10px;
+    padding: 0;
 }
 
 #sidepanel .info ul, #sidepanel .info li{list-style: none; margin: 0; padding: 0;}
@@ -33,24 +69,18 @@
 
 #sidepanel-collapse{
     display: block;
-    position: absolute;
-    height: 20px; width: 28px;
-    z-index: 1000;
-    right: 0;
-    top: 55px;
-    display: none;
-    background: transparent url(../../i/buttons/collapse_arrows.png) no-repeat 0 0;
+    height: 14px; width: 14px;
+    background: transparent url(../../i/icons/arrows.png) no-repeat 0 0;
 }
 
 #sidepanel.collapsed{
     width: 0px;
 }
-#sidepanel.collapsed .tabs{ display: none; }
+#sidepanel.collapsed .sidepanel-tabs{ display: none; }
 #sidepanel.collapsed #sidepanels{ display: none; }
 
-#sidepanel.collapsed #sidepanel-collapse{
+#content.collapsed #sidepanel-collapse{
     background-position: bottom left;
-    top: 88px;
 }
 
 /*confusing, but consistent*/

@@ -118,8 +118,10 @@ Q.Directories = Q.Collection.extend({
 Q.Comment = Q.Model.extend({
     urls: {
         'create': '/api/v1/file/add_comment',
-        'delete': '/api/v1/file/remove_comment'
+        'delete': '/api/v1/file/remove_comment',
+        'completion': '/api/v1/file/set_comment_completion_status'
     },
+    statusToggle: {open: 'completed', completed: 'open'},
     
     init: function(){
         
@@ -149,6 +151,22 @@ Q.Comment = Q.Model.extend({
     
     hasPosition: function(){
         return this.get('position') ? true : false;
+    },
+    
+    toggleCompleteness: function(){
+        var data = {
+            comment: this.id,
+            status: this.statusToggle[this.get('completion_status').status]
+        };
+        var self = this;
+        $.postJSON(this.urls.completion, data, function(data){
+            $.log('Completion res', data.results);
+            if(data && data.results){
+                self.set({
+                    completion_status: data.results
+                });
+            }
+        });
     }
 });
 
@@ -231,11 +249,13 @@ Q.Comments = Q.Collection.extend({
     
     fetchForVersion: function(fileVersion){
         //give me a fileversion model object
+        // triggers refresh event
         
         var neweid = fileVersion.get('change_eid');
         
         $.log('Attempting to fetch comments for version', fileVersion.get('version'), neweid);
         
+        this.setCurrentVersion(fileVersion);
         //we could cache the comments, but whatev for now
         //var oldeid = null;
         //if(this.version)

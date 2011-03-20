@@ -24,6 +24,7 @@ def out_change_extract(extract):
 
 def out_change(change, with_extracts=True):
     out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version', 'number_comments')
+    out['number_comments_open'] = change.get_number_comments(status=u'open')
     out['change_description'] = change.description
     out['change_eid'] = change.eid
     out['version'] = change.version
@@ -39,6 +40,12 @@ def out_change(change, with_extracts=True):
 
     return out
 
+def out_comment_status(cs):
+    out = itemize(cs, 'created_date', 'status')
+    out['created_date'] = fdatetime(out['created_date'])
+    out['user'] = cs.user.human_name
+    return out
+
 def out_comment(comment):
     out  = itemize(comment, 'eid', 'body', 'position', 'created_date', 'status')
     out['created_date'] = fdatetime(out['created_date'])
@@ -48,6 +55,7 @@ def out_comment(comment):
     out['change'] = comment.change.eid
     out['change_version'] = comment.change.version
     out['extract'] = comment.change_extract and out_change_extract(comment.change_extract) or None
+    out['completion_status'] = out_comment_status(comment.completion_status)
     return out
 
 def out_directory(directory):
@@ -153,6 +161,10 @@ class file:
     
     class remove_comment: pass
     
+    class set_comment_completion_status:
+        def output(self, cs):
+            return out_comment_status(cs)
+
     class upload:
         def output(self, f):
             return file.get().output(f)

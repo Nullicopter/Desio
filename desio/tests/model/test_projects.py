@@ -108,6 +108,7 @@ class TestProjects(TestController):
         Test basic changes functionality
         """
         user = fh.create_user()
+        user2 = fh.create_user()
         project = fh.create_project(user=user, name=u"helloooo")
         self.flush()
 
@@ -135,6 +136,40 @@ class TestProjects(TestController):
         self.flush()
         assert change.get_comments() == [comment, comment1, comment2]
         
+        comment_status = comment.completion_status
+        assert comment_status
+        assert comment_status.comment == comment
+        assert comment_status.user == user
+        assert comment_status.status == STATUS_OPEN
+        assert comment_status.id
+        
+        cs = comment.set_completion_status(user2, STATUS_OPEN)
+        self.flush()
+        cs = comment.set_completion_status(user2, STATUS_COMPLETED)
+        self.flush()
+        cs = comment.set_completion_status(user2, STATUS_OPEN)
+        self.flush()
+        cs = comment.set_completion_status(user2, STATUS_COMPLETED)
+        self.flush()
+        assert cs
+        assert cs.comment == comment
+        assert cs.user == user2
+        assert cs.status == STATUS_COMPLETED
+        assert cs.id
+        
+        comment_status = comment.completion_status
+        assert comment_status
+        assert comment_status.comment == comment
+        assert comment_status.user == user2
+        assert comment_status.status == STATUS_COMPLETED
+        assert comment_status.id
+        
+        num = change.get_number_comments(status=STATUS_COMPLETED)
+        assert num == 1
+        
+        num = change.get_number_comments(status=STATUS_OPEN)
+        assert num == 2
+        
     def test_extracts(self):
         """
         Test basic changeset functionality
@@ -150,17 +185,19 @@ class TestProjects(TestController):
         
         extracts = change.change_extracts
         
-        assert len(extracts) == 2
+        assert len(extracts) == 3
         foundthumb = False
         for e in extracts:
             if e.extract_type == image.EXTRACT_TYPE_THUMBNAIL:
                 foundthumb = True
                 assert e.url == change.thumbnail_url
+                assert e.order_index == 0
             else:
                 assert e.extract_type == image.EXTRACT_TYPE_FULL
+                assert e.order_index == 0 or e.order_index == 1
             
             assert e.url
-            assert e.order_index == 0
+            
         assert foundthumb
     
     def test_membership(self):

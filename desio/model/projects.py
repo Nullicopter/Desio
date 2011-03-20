@@ -5,6 +5,7 @@ from datetime import datetime, MINYEAR
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.sql.expression import func
 
 from desio.model.meta import Session, Base
 import hashlib
@@ -587,8 +588,32 @@ class Change(Base, Uploadable, Commentable):
     
     @property
     def number_comments(self):
-        return Session.query(sa.func.count(Comment.id)).filter_by(change_id=self.id).first()[0]
+        return self.get_number_comments()
+    
+    def get_number_comments(self, status=None):
+        if not status:
+            return Session.query(sa.func.count(Comment.id)).filter_by(change_id=self.id).first()[0]
         
+        
+        date = Session.query(func.max(CommentStatus.created_date).label('date')).filter(CommentStatus.comment_id==Comment.id)
+        q = Session.query(func.count(Comment.id)).outerjoin(CommentStatus)
+        q = q.filter(Comment.change_id==self.id).filter(Comment.status!=STATUS_REMOVED)
+        q = q.filter(Comment.in_reply_to_id==None)
+        
+        if status == STATUS_OPEN:
+            q = q.filter(sa.or_(
+                CommentStatus.id==None,
+                sa.and_(CommentStatus.created_date==date.subquery().columns.date, CommentStatus.status==status)
+            ))
+            print q
+            return q.scalar()
+        else:
+            q = q.filter(
+                sa.and_(CommentStatus.created_date==date.subquery().columns.date, CommentStatus.status==status)
+            )
+            print q
+            return q.scalar()
+    
     @property
     def url(self):
         """
@@ -682,6 +707,8 @@ class ChangeExtract(Base, Uploadable, Commentable):
     #right now, all extracts have a png type.
     ext = '.png'
     
+    def __repr__(self):
+        return '%s(%s, %s, %s)' % (self.__class__.__name__, self.id, self.order_index, self.extract_type)
     @property
     def project(self):
         return self.change.project
@@ -732,7 +759,22 @@ class ChangeExtract(Base, Uploadable, Commentable):
         """
         self.uploader.set_contents(tmp_contents_filepath, self.url)
 
+class CommentStatus(Base):
+    __tablename__ = "comment_statuses"
     
+    id = sa.Column(sa.Integer, primary_key=True)
+    
+    status = sa.Column(sa.String(16), nullable=False, default=STATUS_OPEN)
+
+    created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
+    
+    user = relationship("User", backref=backref("comment_statuses", cascade="all"))
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
+
+    comment = relationship("Comment", backref=backref("comment_statuses", cascade="all"))
+    comment_id = sa.Column(sa.Integer, sa.ForeignKey('comments.id'), index=True)
+    
+
 class Comment(Base):
     __tablename__ = "comments"
     
@@ -765,6 +807,27 @@ class Comment(Base):
     @property
     def project(self):
         return self.change.project
+    
+    @property
+    def completion_status(self):
+        """
+        Users can 'complete' comments.
+        
+        This will get the most recent row from CommentStatus.
+        Should be either 'open' or 'completed'
+        """
+        cs = Session.query(CommentStatus).filter_by(comment_id=self.id).order_by(sa.desc(CommentStatus.created_date)).first()
+        if not cs:
+            #create a default
+            cs = CommentStatus(user=self.creator, created_date=self.created_date, status=STATUS_OPEN, comment=self)
+            Session.add(cs)
+            Session.flush()
+        return cs
+    
+    def set_completion_status(self, user, status):
+        cs = CommentStatus(user=user, status=status, comment=self)
+        Session.add(cs)
+        return cs
     
     @property
     def position(self):

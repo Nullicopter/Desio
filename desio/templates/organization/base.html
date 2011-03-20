@@ -61,15 +61,14 @@ from desio import utils
 </%def>
 
 <%def name="sidepanel_container()">
-    <a href="#" id="sidepanel-collapse"></a>
     <%
     tab_def = [
         ('Projects', '#', True)
     ]
     if c.sidepanel_tab:
-        tab_def.append((c.sidepanel_tab, '#'))
+        tab_def.append(('Info', '#'))
     %>
-    ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs')}
+    ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs', className='sidepanel-tabs')}
     
     <div id="sidepanels">
         <div class="sidepanel">
@@ -84,12 +83,30 @@ from desio import utils
     </div>
 </%def>
 
+<%def name="content_header()">
+</%def>
+<%def name="content_subheader()">
+</%def>
+
 <div class="organization" id="org-${c.organization.subdomain}">
     <div id="sidepanel">
         ${self.sidepanel_container()}
     </div>
     
     <div id="content">
-        ${next.body()}
+        
+        
+        <div id="content-header">
+            <h1>
+                ${self.content_header()}
+            </h1>
+            <div class="subheader">
+                ${self.content_subheader()}
+            </div>
+        </div>
+        
+        <div id="content-inner">
+            ${next.body()}
+        </div>
     </div>
 </div>
