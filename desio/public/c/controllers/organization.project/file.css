@@ -127,9 +127,53 @@
     border: 2px solid #ccc;
 }
 
+#comments-header{
+    margin-bottom: 5px;
+    font-size: 15pt;
+    font-weight: normal;
+    color: #333;
+}
+
+/**comment filter**/
+
+#comments-filter{
+    height: 38px;
+    border-top: 1px solid #CCC9C0;
+    border-bottom: 1px solid #CCC9C0;
+}
+#comments-filter a, #comments-filter a:hover{
+    display: block;
+    height: 35px;
+    line-height: 38px;
+    float: left;
+    margin-right: 20px;
+    padding: 0 5px;
+    color: #333;
+    font-weight: normal;
+    text-decoration: none;
+}
+#comments-filter a:hover{
+    border-bottom: 3px solid #E3E0D7;
+}
+
+#comments-filter a.selected{
+    font-weight: bold;
+    border-bottom: 3px solid #CCC9C0;
+}
+
+#comments.show-open .comment.status-completed{display:none;}
+#comments.show-completed .comment.status-open{display:none;}
+
 /**comments**/
 
-#comments>.comment{border-bottom: 1px solid #ccc;}
+.no-comments{
+    display: none;
+    padding: 10px 10px;
+    color: #aaa;
+    font-size: 12pt;
+}
+
+#comments>.comment, .no-comments{border-bottom: 1px solid #E3E0D7;}
 #comments .comment.selected{background: #fff;}
 .comment{padding: 8px 0px;}
 

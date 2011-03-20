@@ -564,6 +564,8 @@ Q.CommentView = Q.View.extend({
         var ind = this.$('.complete-indicator');
         ind.removeClass('status-'+this.model.statusToggle[status]);
         ind.addClass('status-'+status);
+        this.container.removeClass('status-'+this.model.statusToggle[status]);
+        this.container.addClass('status-'+status);
         
         ind.attr('title', this.tooltips[status]);
     },
@@ -648,7 +650,14 @@ Q.PopupCommentView = Q.PopupView.extend({
 Q.CommentsView = Q.View.extend('CommentsView', {
     
     events:{
-        'click .comment': 'onClickComment'
+        'click .comment': 'onClickComment',
+        'click #comments-filter a': 'onFilterClick'
+    },
+    
+    n: {
+        comments: '#comments',
+        filterLinks: '#comments-filter a',
+        noCommentBoxen: '.no-comments'
     },
     
     init: function(container, settings){
@@ -682,6 +691,22 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     
     render: function(){return this;},
     
+    onFilterClick: function(e){
+        var t = $(e.target);
+        this.n.comments.removeClass('show-open');
+        this.n.comments.removeClass('show-completed');
+        this.n.comments.removeClass('show-all');
+        
+        this.n.comments.addClass('show-'+t.attr('rel'));
+        this.n.filterLinks.removeClass('selected');
+        t.addClass('selected');
+        
+        this.n.noCommentBoxen.hide();
+        if(this.n.comments.find('.comment:visible').length == 0)
+            this.$('.no-comments-'+t.attr('rel')).show();
+        return false;
+    },
+    
     onClickComment: function(e){
         var targ = $(e.target);
         if(targ.is('a')) return true;
@@ -708,7 +733,7 @@ Q.CommentsView = Q.View.extend('CommentsView', {
                 selectedComment: this.settings.selectedComment,
                 replyForm: this.settings.replyForm
             });
-            this.container.append(view.render().el);
+            this.n.comments.append(view.render().el);
             this.views.push(view);
         }
     },
@@ -809,7 +834,7 @@ Q.ViewFilePage = Q.Page.extend({
     n: {
         tabs: '#version-tabs',
         pageImageViewer: '#inpage-image-viewer',
-        comments: '#comments',
+        comments: '#comments-view',
         addComment: '#add-comment',
         replyComment: '#reply-comment',
         pinToggle: '#pin-toggle',

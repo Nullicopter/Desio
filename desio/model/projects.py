@@ -596,6 +596,8 @@ class Change(Base, Uploadable, Commentable):
         
         
         date = Session.query(func.max(CommentStatus.created_date).label('date')).filter(CommentStatus.comment_id==Comment.id)
+        date = date.group_by(CommentStatus.comment_id)
+        
         q = Session.query(func.count(Comment.id)).outerjoin(CommentStatus)
         q = q.filter(Comment.change_id==self.id).filter(Comment.status!=STATUS_REMOVED)
         q = q.filter(Comment.in_reply_to_id==None)

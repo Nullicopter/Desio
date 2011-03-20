@@ -39,11 +39,31 @@
     
     <h3 id="comments-header">Notes for version <span class="version">${c.head_change.version}</span></h3>
     
-    <div id="comments">
+    <div id="comments-view">
+        <div id="comments-filter">
+            <a href="#" class="selected" rel="all" title="Show all notes">All</a>
+            <a href="#" rel="open" title="Show only open (uncompleted) notes">Open</a>
+            <a href="#" rel="completed" title="Show only completed notes">Completed</a>
+        </div>
         
+        <div id="comments">
+            
+        </div>
+        
+        <div class="no-comments no-comments-all">
+            This version of ${c.file.name} has no notes.
+            Add one by dragging a box on the image and typing your comment.
+        </div>
+        <div class="no-comments no-comments-open">
+            There are no open, uncompleted notes to show for this version.
+            This is probably a good thing!
+        </div>
+        <div class="no-comments no-comments-completed">
+            There are no completed notes to show for this version.
+        </div>
     </div>
     
-    <div><a id="add-comment-link" href="#">add a comment</a></div>
+    ##<div><a id="add-comment-link" href="#">add a comment</a></div>
     <div id="add-comment">
         <form method="post">
             <p>Enter your comment</p>
