@@ -138,7 +138,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
 
 Q.PinView = Q.View.extend({
     template: '#pin-template',
-    pinsize:{ x: 37, y: 37 },
+    pinsize:{ x: 33, y: 44 },
     className: 'pin',
     
     events: {
@@ -150,9 +150,10 @@ Q.PinView = Q.View.extend({
         // model: is a comment
         // selectedComment
         
-        _.bindAll(this, 'updateComment', 'selectComment');
+        _.bindAll(this, 'updateComment', 'selectComment', 'onChangeCompletionStatus');
         this._super.apply(this, arguments);
         
+        this.model.bind('change:completion_status', this.onChangeCompletionStatus);
         this.model.bind('change:body', this.updateComment);
         this.model.pin = this;
         //this.settings.selectedComment.bind('change:comment', this.selectComment);
@@ -183,7 +184,7 @@ Q.PinView = Q.View.extend({
         //find the center of the selection
         var pos = {
             left: (position[0] + position[2]/2 - this.pinsize.x/2)/this.settings.xscale,
-            top: (position[1] + position[3]/2 - this.pinsize.y/2)/this.settings.yscale
+            top: (position[1] + position[3]/2 - this.pinsize.y - 10)/this.settings.yscale
         };
         
         this.pin.css(pos);
@@ -193,7 +194,8 @@ Q.PinView = Q.View.extend({
         var m = this.model;
         
         var pin = this.pin = this.container.append($(_.template(this.template, {
-            title: m.get('creator').name + ': ' + m.get('body')
+            title: m.get('creator').name + ': ' + m.get('body'),
+            completion_status: m.get('completion_status').status
         })));
         
         this.position();
@@ -202,6 +204,13 @@ Q.PinView = Q.View.extend({
             pin.attr('extract', m.get('extract').id);
         
         return this;
+    },
+    
+    onChangeCompletionStatus: function(m){
+        var cv = m.get('completion_status');
+        var pin = this.$('.pin');
+        pin.removeClass('status-'+this.model.statusToggle[cv.status]);
+        pin.addClass('status-'+cv.status);
     }
 });
 

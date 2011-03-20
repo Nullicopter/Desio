@@ -171,6 +171,8 @@
     color: #333;
 }
 
+/*pins*/
+
 .pin-small{
     width: 12px;
     height: 16px;
@@ -183,7 +185,6 @@
 .pin-small.status-open{
     background-image: url(../../../i/icons/pin_red_small.png);
 }
-/***pins****/
 
 #pin-toggle{
     display: block;
@@ -194,4 +195,10 @@
 #pin-toggle.selected{
     background-position: center bottom;
 }
-.pins .pin{position: absolute; width: 37px; height: 37px; z-index: 1001;}
+.pins .pin{
+    position: absolute; width: 33px; height: 44px; z-index: 1001;
+    background: transparent url(../../../i/icons/pin_blue_large.png) no-repeat top left;
+}
+.pins .pin.status-open{
+    background-image: url(../../../i/icons/pin_red_large.png);
+}
