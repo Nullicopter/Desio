@@ -21,11 +21,11 @@ Q.TabView = Q.View.extend({
     
     init: function(){
         //gets selectedVersion model in the settings.
-        _.bindAll(this, 'clickTab', 'changeVersion');
+        _.bindAll(this, 'clickTab', 'changeVersion', 'changeOpenComments');
         this._super.apply(this, arguments);
         this.container.click(this.clickTab);
         
-        this.settings.selectedVersion.bind('change:version', this.changeVersion)
+        this.settings.selectedVersion.bind('change:version', this.changeVersion);
     },
     
     render: function(){
@@ -39,9 +39,27 @@ Q.TabView = Q.View.extend({
         return this.renderTemplate(data);
     },
     
+    changeOpenComments: function(m){
+        $.log('open comment change', m);
+        var numopen = m.get('number_comments_open');
+        
+        var com = this.$('.number-comments');
+        com.text(numopen);
+        
+        var fn = 'removeClass';
+        if(numopen) fn = 'addClass';
+        
+        com[fn]('has-open');
+        this.$('.tab-text')[fn]('has-open');
+    },
+    
     changeVersion: function(m){
-        if(m.get().get('version') == this.model.get('version'))
+        if(!m.get().get) return;
+        
+        if(m.get().get('version') == this.model.get('version')){
             this.container.addClass('selected');
+            m.get().bind('change:number_comments_open', this.changeOpenComments);
+        }
         else
             this.container.removeClass('selected');
     },
@@ -92,6 +110,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
     },
     
     changeVersion: function(m){
+        if(!m.get().get) return;
+        
         var ver = m.get().get('version');
         if(ver == this.currentVersion) return;
         
@@ -245,6 +265,7 @@ Q.ImageView = Q.View.extend({
             this.newCommentView.hide();
     },
     changeComment: function(m){
+        
         m = m.get();
         
         if(m && this.container.is(':visible') && (!m.get('extract') || this.model.get('order_index') == m.get('extract').order_index) && m.hasPosition()){
@@ -327,7 +348,8 @@ Q.ImageView = Q.View.extend({
         this.waitForRefresh = false;
     },
     
-    onChangeVerison: function(c){
+    onChangeVerison: function(m){
+        if(!m.get().get) return;
         //on version change, the setCropper function will be called before the refresh.
         //So we set this to not load pins until comment refresh. 
         this.waitForRefresh = true;
@@ -904,7 +926,7 @@ Q.ViewFilePage = Q.Page.extend({
         }
         this.selectedVersion.set(this.versions.at(0));
         
-        this.comments.setCurrentVersion(this.selectedVersion);
+        this.comments.setCurrentVersion(this.selectedVersion.get());
         this.comments.add(this.settings.comments, {
             save: false,
             urls: this.settings.commentUrls
@@ -934,6 +956,8 @@ Q.ViewFilePage = Q.Page.extend({
     },
     
     viewVersion: function(m){
+        if(!m.get().get) return;
+        
         //m.version is a FileVersion model
         var version = m.get();
         $.log('View version', version);

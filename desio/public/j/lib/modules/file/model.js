@@ -196,7 +196,9 @@ Q.Comments = Q.Collection.extend({
     
     init: function(models, settings){
         this._super.apply(this, arguments);
-        _.bindAll(this, 'fetchForVersion');
+        _.bindAll(this, 'fetchForVersion', 'onChangeCompletionStatus');
+        
+        this.bind('change:completion_status', this.onChangeCompletionStatus);
     },
     
     setCurrentVersion: function(currentVersion){
@@ -205,6 +207,22 @@ Q.Comments = Q.Collection.extend({
             this.version = currentVersion;
             //this.version.bind('change:change_eid', this.fetchForVersion);
         }
+    },
+    
+    onChangeCompletionStatus: function(m){
+        var v = this.version;
+        $.log('change complete', v,m);
+        var numopen = v.get('number_comments_open');
+        var cs = m.get('completion_status');
+        
+        if(cs.status == 'open') numopen++;
+        else numopen--;
+        
+        v.set({
+            number_comments_open: numopen
+        });
+        
+        //$.log('changing number_comments_open', this.version);
     },
     
     _add: function(m, options){
@@ -248,6 +266,7 @@ Q.Comments = Q.Collection.extend({
     },
     
     fetchForVersion: function(fileVersion){
+        
         //give me a fileversion model object
         // triggers refresh event
         
