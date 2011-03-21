@@ -63,6 +63,10 @@ Q.Sidepanel = Q.Module.extend('Sidepanel', {
         }
     },
     
+    isCollapsed: function(){
+        return this.container.hasClass(this.settings.collapseClass);
+    },
+    
     toggleCollapse: function(){
         this.collapse(!this.container.hasClass(this.settings.collapseClass), true);
         return false;

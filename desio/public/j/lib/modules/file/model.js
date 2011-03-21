@@ -211,6 +211,8 @@ Q.Comments = Q.Collection.extend({
     
     onChangeCompletionStatus: function(m){
         var v = this.version;
+        if(!v) return;
+        
         $.log('change complete', v,m);
         var numopen = v.get('number_comments_open');
         var cs = m.get('completion_status');

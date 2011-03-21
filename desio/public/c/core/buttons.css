@@ -5,13 +5,14 @@
 	background-repeat: no-repeat;
 	background-position: top left;
 	border: 0;
-    height: 33px;
+    height: 34px;
     font-weight: normal;
     text-shadow: 1px 1px 1px #666;
     text-align: center;
-    font-size: 11pt;
+    font-size: 10pt;
     line-height: 33px;
 }
+input.primary, input.secondary{padding-bottom: 2px;}
 
 .primary:hover, .secondary:hover{background-position: center left;}
 .primary.disabled, .secondary.disabled,
@@ -24,16 +25,23 @@
 }
 
 .secondary:hover, .secondary:active, .secondary:visited, .secondary{
-    color: #fff;
-    height: 26px;
-    line-height: 26px;
-    font-size: 9pt;
-    text-shadow: none;
+    color: #666;
+    height: 34px;
+    line-height: 36px;
+    font-size: 10pt;
+    text-shadow: 1px 1px 1px #fff;
 }
 .secondary.disabled{ color: #888; }
 
 
 /****/
+.primary.bleft, .secondary.bleft{ float: left; }
+.primary.bright, .secondary.bright{ float: right; }
+
+.primary.b114{
+    width: 114px;
+    background-image: url(../../i/buttons/primary_114.png);
+}
 
 .primary.b140{
     width: 140px;
@@ -43,4 +51,9 @@
 .secondary.b140{
     width: 140px;
     background-image: url(../../i/buttons/secondary_140.png);
+}
+
+.secondary.b79{
+    width: 79px;
+    background-image: url(../../i/buttons/secondary_79.png);
 }

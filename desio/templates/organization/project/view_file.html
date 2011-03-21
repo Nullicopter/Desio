@@ -74,9 +74,10 @@
     
     <div id="reply-comment">
         <form method="post">
-            <p>Craft your reply</p>
             <div>${f.textarea('body', id=None)}</div>
-            ${f.submit('Add Reply')} <a href="#" class="cancel">cancel</a>
+            <div class="buttons">
+                ${f.submit('Add Reply', className="primary b114 bleft")} <a href="#" class="cancel secondary b79 bleft">Cancel</a>
+            </div>
         </form>
     </div>
 </%def>
@@ -139,7 +140,9 @@
     <div class="body">{{body}}</div>
     <div class="time">{{time}}</div>
     <div class="replies"></div>
-    ##<div><a href="#" class="reply-link">reply</a></div>
+    <div class="reply-box">
+        <input type="text" class="text" value="Add a reply..."/>
+    </div>
 </script>
 
 <div class="clear"></div>

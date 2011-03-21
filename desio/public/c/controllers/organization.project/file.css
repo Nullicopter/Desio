@@ -164,6 +164,9 @@
 #comments.show-open .comment.status-completed{display:none;}
 #comments.show-completed .comment.status-open{display:none;}
 
+#comments.show-selected>.comment{display:none;}
+#comments.show-selected>.comment.selected{display:block;}
+
 /**comments**/
 
 .no-comments{
@@ -174,7 +177,6 @@
 }
 
 #comments>.comment, .no-comments{border-bottom: 1px solid #E3E0D7;}
-#comments .comment.selected{background: #fff;}
 .comment{padding: 8px 0px;}
 
 .comment .number-comments{float: right;}
@@ -192,12 +194,42 @@
 .comment .creator>span{font-weight: bold;}
 .comment.position{cursor: pointer;}
 .comment .body{margin-top: 5px;}
-.comment .replies{
-    display: none;
-    padding-left: 10px;
+
+/*selected comments*/
+#comments>.comment.selected{
+    border-bottom: none;
+}
+.comment.selected .replies, .comment.selected>.reply-box{
+    display: block;
+}
+.comment.selected>.reply-box{
+    border-top: 1px solid #CCC9C0;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+.comment.selected>.reply-box .text, .comment.selected>.reply-box textarea{
+    color: #aaa;
+    font-size: 10pt;
+    width: 288px
 }
 
+/*reply blocks*/
+.comment .replies{
+    display: none;
+}
+#comments>.comment>.replies{padding: 0 0 0 15px;}
+#comments>.comment>.replies .comment:first-child{ margin-top: 10px; }
+
+.comment .replies .comment { border-top: 1px solid #E3E0D7; }
+.comment .replies .comment .creator{ padding-left: 0; }
+.comment .reply-box,
+.comment .replies .comment .complete-indicator,
+.comment .replies .comment .number-comments{ display:none }
+
 #reply-comment{display:none;}
+.comment .reply-box #reply-comment textarea{color: #333;}
+#reply-comment .buttons{height: 34px; padding-top: 5px;}
+#reply-comment .buttons a{margin-left: 5px;}
 
 /***icons****/
 .number-comments{
