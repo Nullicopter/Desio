@@ -456,6 +456,10 @@ Q.ImageNewCommentView = Q.PopupView.extend({
     template: '#image-comment-template',
     className: 'new-image-comment',
     
+    events: {
+        'click .cancel': 'clickCancel'
+    },
+    
     init: function(container, settings){
         //model is a generic backbone model with a file extract in it
         var defs = {
@@ -485,6 +489,14 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         
         //this.cropper.release();
         
+        return false;
+    },
+    
+    clickCancel: function(){
+        if(this.cropper)
+            this.cropper.release();
+        else
+            this.hide();
         return false;
     },
     

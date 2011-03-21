@@ -52,6 +52,7 @@ Q.PopupView = Q.View.extend({
         
         this.referenceContainer.append(this.el);
         this.el.id = this.id + '-' + Q.PopupView.id++;
+        this.container.addClass('popup-view');
         
         this.container.mousedown(function(e){
             e.stopPropagation();

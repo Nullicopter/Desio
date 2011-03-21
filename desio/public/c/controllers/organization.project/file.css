@@ -103,38 +103,40 @@
 .image{position: relative;}
 
 /****/
-.new-image-comment{
-    width: 294px;
+.popup-view{
+    width: 324px;
     position: absolute;
     z-index: 1000;
-}
-.new-image-comment .comment-container{
-    width: 250px;
-    background: #eee;
-    border: 2px solid #ccc;
-    padding: 20px;
-}
-.new-image-comment p{margin-top: 0;}
-.new-image-comment textarea{width: 240px;}
-
-/****/
-.popup-comment-view{
-    width: 344px;
-    position: absolute;
-    z-index: 1000;
-}
-.popup-comment-view .comment-container{
     border: 10px solid #fff;
     background: #fff;
     -moz-border-radius: 12px;
     -webkit-border-radius: 12px;
 }
-.popup-comment-view .comment-container>.comment{
+.popup-view .popup-container{
     padding: 10px;
     border: 2px solid #d3d3d3;
     background: #f0f0f0;
     -moz-border-radius: 8px;
     -webkit-border-radius: 8px;
+}
+
+/****/
+
+.new-image-comment h4{
+    color: #333333;
+    font-size: 12pt;
+    font-weight: normal;
+    margin-bottom: 10px;
+    margin-top: 3px;
+}
+.new-image-comment textarea{
+    width: 288px;
+    font-size: 10pt;
+}
+
+/****/
+.popup-comment-view .comment-container>.comment{
+    padding: 0;
 }
 
 #comments-header{
@@ -240,8 +242,8 @@
 
 #reply-comment{display:none;}
 .comment .reply-box #reply-comment textarea{color: #333;}
-#reply-comment .buttons{height: 34px; padding-top: 5px;}
-#reply-comment .buttons a{margin-left: 5px;}
+.new-image-comment .buttons, #reply-comment .buttons{height: 34px; padding-top: 5px;}
+.new-image-comment .buttons a, #reply-comment .buttons a{margin-left: 5px;}
 
 /***icons****/
 .number-comments{

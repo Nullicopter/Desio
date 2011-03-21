@@ -122,17 +122,19 @@
 </script>
 
 <script id="image-comment-template" class="jstemplate" type="text/template">
-    <div class="comment-container">
+    <div class="popup-container comment-container">
         <form method="post">
-            <p>Enter a comment</p>
+            <h4>Enter a Note</h4>
             <div>${f.textarea('body', id=None)}</div>
-            ${f.submit('Add Comment')}
+            <div class="buttons">
+                ${f.submit('Add Note', className="primary b114 bleft")} <a href="#" class="cancel secondary b79 bleft">Cancel</a>
+            </div>
         </form>
     </div>
 </script>
 
 <script id="popup-comment-template" class="jstemplate" type="text/template">
-    <div class="comment-container">
+    <div class="popup-container comment-container">
     </div>
 </script>
 
