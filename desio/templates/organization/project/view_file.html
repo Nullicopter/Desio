@@ -3,6 +3,7 @@
 <%namespace name="f" file="/forms.html"/>
 <%!
     import simplejson as json
+    from desio import utils
 %>
 <%def name="header()">
     ${parent.header()}
@@ -84,7 +85,11 @@
 
 <%def name="content_subheader()">
     <div id="version-tabs" class="tabs"></div>
-    v10 by Bob Johnson 2 hours ago
+    <div class="file-meta">
+        <b>v<span class="version">${c.head_change.version}</span></b> by
+        <span class="name">${c.head_change.creator.human_name}</span>
+        <span class="time">${utils.relative_date_str(c.head_change.created_date)}</span>
+    </div>
 </%def>
 
 <div id="toolbar">

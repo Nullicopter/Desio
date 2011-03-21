@@ -141,7 +141,7 @@ $.fn.scrollshow = function(options){
             top -= diff;
         }
         
-        $.debug('scrolling to ', top);
+        $.debug('scrolling to ', top, place.offset(), winheight, objheight);
         
         $('html, body').animate({
             scrollTop: top

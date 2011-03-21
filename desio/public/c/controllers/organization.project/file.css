@@ -87,6 +87,7 @@
     padding: 15px 0;
     /*width: 960px;*/
     text-align: center;
+    margin-bottom: 10px;
 }
 #content .image-viewer .image img{
     /*max-width: 800px;*/
@@ -118,13 +119,22 @@
 
 /****/
 .popup-comment-view{
-    width: 350px;
+    width: 344px;
     position: absolute;
     z-index: 1000;
 }
 .popup-comment-view .comment-container{
-    background: #eee;
-    border: 2px solid #ccc;
+    border: 10px solid #fff;
+    background: #fff;
+    -moz-border-radius: 12px;
+    -webkit-border-radius: 12px;
+}
+.popup-comment-view .comment-container>.comment{
+    padding: 10px;
+    border: 2px solid #d3d3d3;
+    background: #f0f0f0;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
 }
 
 #comments-header{
@@ -217,7 +227,9 @@
 .comment .replies{
     display: none;
 }
+.comment-container>.comment>.replies,
 #comments>.comment>.replies{padding: 0 0 0 15px;}
+.comment-container>.comment>.replies .comment:first-child,
 #comments>.comment>.replies .comment:first-child{ margin-top: 10px; }
 
 .comment .replies .comment { border-top: 1px solid #E3E0D7; }

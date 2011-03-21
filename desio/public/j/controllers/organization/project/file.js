@@ -88,7 +88,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         this._super.apply(this, arguments);
         
         //this will store all the image views. Lazy loaded.
-        this.views = {};
+        window.imageViews = this.views = {};
         this.currentVersion = null;
         
         this.settings.selectedVersion.bind('change:version', this.changeVersion)
@@ -551,6 +551,8 @@ Q.CommentView = Q.View.extend({
         
         if(this.settings.selectedComment)
             this.settings.selectedComment.bind('change:comment', this.onSelectComment)
+        
+        this.model.view = this;
     },
     
     onSelectComment: function(m){
@@ -677,6 +679,9 @@ Q.PopupCommentView = Q.PopupView.extend({
             replyForm: this.settings.replyForm
         });
         this.container.find('.comment-container').html(com.render().el);
+        var c = new Q.SingleSelectionModel('comment');
+        c.set(comment);
+        com.onSelectComment(c);
         
         this._super(referenceElem);
     }
@@ -729,9 +734,62 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         m = m.get();
         if(m){
             this.n.comments.addClass('show-selected');
+            
+            if(m && this.container.is(':visible') && m.get('extract') && m.hasPosition()){
+                
+                //this mess is to move the comment to the position of the selection if offscreen
+                var pos = m.get('position');
+                var imageView = window.imageViews[this.settings.selectedVersion.get().get('version')];
+                
+                $.log('Selected comment at', [pos[0], pos[1]], 'on', imageView, m.get('extract').order_index);
+                
+                imageView = imageView[m.get('extract').order_index];
+                var cont = this.container.offset().top;
+                var selection = imageView.container.offset().top + pos[1]/imageView.cropper.yscale;
+                
+                if(selection > 400){
+                    
+                    //set timeouts so that the comment's height gets setup before we move it.
+                    setTimeout(function(){
+                        var h = m.view.container.height();
+                        var p = imageView.container.parent();
+                        $.log('selection, max', selection, p.offset().top + p.height() - h, p, m.view.container, h);
+                        
+                        var css = {
+                            position: 'absolute',
+                            left: 0
+                        };
+                        
+                        //if the thing would jut out lower than the image, attach it to the
+                        //bottom of the image.
+                        var max = (p.offset().top + p.height() - h);
+                        if(max < selection)
+                            css.bottom = - (p.offset().top + p.height() - cont - 40);
+                        else
+                            css.top = selection - cont
+                        
+                        m.view.container.css(css);
+                        
+                        setTimeout(function(){
+                            m.view.container.scrollshow();
+                        }, 100);
+                        
+                    }, 100);
+                    
+                }
+                else
+                    //selection is above the fold.
+                    setTimeout(function(){
+                        m.view.container.scrollshow();
+                    }, 100);
+                
+            }
         }
         else{
             this.n.comments.removeClass('show-selected');
+            this.n.comments.find('.comment').css({
+                position: 'static', top: '', bottom: '', left: ''
+            });
         }
     },
     
@@ -829,6 +887,7 @@ Q.CommentFormView = Q.View.extend('CommentFormView', {
         this.container.hide();
         this.form.reset();
         this.trigger('hide', this);
+        $('body').append(this.container);
     },
     
     addCommentCancel: function(){
@@ -887,7 +946,9 @@ Q.ViewFilePage = Q.Page.extend({
         replyComment: '#reply-comment',
         pinToggle: '#pin-toggle',
         sidepanel: '#sidepanel',
-        headerVersion: '#comments-header .version'
+        headerVersion: '#comments-header .version, .file-meta .version',
+        headerName: '.file-meta .name',
+        headerTime: '.file-meta .time'
     },
     events:{
         'click #add-comment-link': 'addCommentClick'
@@ -928,6 +989,7 @@ Q.ViewFilePage = Q.Page.extend({
         this.commentsView = this.n.comments.CommentsView({
             model: this.comments,
             selectedComment: this.selectedComment,
+            selectedVersion: this.selectedVersion,
             replyForm: this.replyForm
         });
         
@@ -990,6 +1052,8 @@ Q.ViewFilePage = Q.Page.extend({
         this.comments.fetchForVersion(version);
         
         this.n.headerVersion.text(version.get('version'));
+        this.n.headerName.text(m.get('creator').name);
+        this.n.headerTime.text($.relativeDateStr($.parseDate(version.get('created_date'))));
     }
 });
 
