@@ -95,6 +95,7 @@
 <div id="toolbar">
     <a href="#" id="sidepanel-collapse"></a>
     <a id="pin-toggle" class="selected" href="#" title="Click to hide annotation pins."></a>
+    <a id="diff-toggle" class="" href="#" title="Click to show this version's changes."></a>
 </div>
 
 <div id="inpage-image-viewer">
@@ -115,6 +116,9 @@
 <script id="image-template" class="jstemplate" type="text/template">
     <img src="{{url}}" />
     <div class="pins"></div>
+    <div class="no-diff">
+        <p>No changes found between this version and the last.</p>
+    </div>
 </script>
 
 <script id="pin-template" class="jstemplate" type="text/template">

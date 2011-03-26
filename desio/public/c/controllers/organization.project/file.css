@@ -65,7 +65,7 @@
     top: 0;
     width: 14px;
     padding: 5px 8px;
-    height: 40px;
+    height: 62px;
     border-top: 1px solid #e5e5e5;
     border-left: 1px solid #e5e5e5;
     border-bottom: 1px solid #e5e5e5;
@@ -106,7 +106,22 @@
     margin: 0 auto;
 }
 .image{position: relative;}
-
+.image .no-diff{
+    position: absolute;
+    top: 15px;
+    left: 14px;
+    bottom: 15px;
+    width: 800px;
+    z-index: 25;
+    color: #fff;
+    text-align: center;
+    font-size: 18pt;
+    background: transparent url(../../../i/site/stripe_transparent_bg.png) repeat;
+    display: none;
+}
+.image .no-diff p{
+    margin: 30px 0 0 0;
+}
 /****/
 .popup-view{
     width: 324px;
@@ -283,11 +298,18 @@
 
 #pin-toggle{
     display: block;
-    width: 14px;
+    width: 16px;
     height: 16px;
     background: url(../../../i/icons/pin_blue_small.png) no-repeat center top;
 }
-#pin-toggle.selected{
+#diff-toggle{
+    display: block;
+    margin-top: 8px;
+    width: 16px;
+    height: 16px;
+    background: url(../../../i/icons/diff_16x16.png) no-repeat center top;
+}
+#pin-toggle.selected, #diff-toggle.selected{
     background-position: center bottom;
 }
 .pins .pin{

@@ -42,13 +42,17 @@ Default is 72dpi
 convert -depth 16 -background white eps/headphones.eps -trim +repage converted/headphones_ai.png
 """
 
+import Image as PILImage
+import ImageChops
+
 from magickwand.image import Image
-from magickwand import api
+from magickwand import api, wand
 import tempfile
 import os.path
 
 EXTRACT_TYPE_THUMBNAIL = u'thumbnail'
 EXTRACT_TYPE_FULL = u'full'
+EXTRACT_TYPE_DIFF = u'diff'
 
 class ExtractedFile(object):
     def __init__(self, filename, type):
@@ -67,19 +71,26 @@ class Extractor(object):
         self.image = image
         self.out_filename = out_filename
     
-    def _write_file(self, type):
-        
-        if self.out_filename:
-            ofn = self.out_filename
+    @classmethod
+    def _get_tmp_file(cls, type, out_filename=None):
+        if out_filename:
+            ofn = out_filename
             ofn = os.path.join(os.path.dirname(ofn), type +'_'+ os.path.basename(ofn))
             f = open(ofn, 'wb')
             name = f.name
         else:
-            f, name = tempfile.mkstemp('.'+self.dest_format)
+            f, name = tempfile.mkstemp('.'+cls.dest_format)
             
             #why is this returning an int on my machine? Supposed to be a file pointer.
             if isinstance(f, int):
                 f = open(name, 'wb')
+        
+        return f, name
+    
+    def _write_file(self, type):
+        
+        f, name = self._get_tmp_file(type, self.out_filename)
+        
         
         f.write(self.image.dump(self.dest_format))
         f.close()
@@ -127,7 +138,67 @@ class Extractor(object):
         """
         Will return a list of all extracted files
         """
-        return self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+    
+    @classmethod
+    def difference(cls, prev_image, current_image):
+        """
+        params are filenames
+        """
+        print 'diffing', prev_image, current_image
+        
+        f, name = cls._get_tmp_file(EXTRACT_TYPE_DIFF)
+        
+        print 'Saving diff to', name
+        
+        """
+        # PIL -- This complains that some pairs of images 'do not match' Even when
+        # they are generated from the same PSD and are the same pixel size. WTF.
+        # USING IMAGEMAGICK INSTEAD, BITCHES
+        p = PILImage.open(prev_image)
+        c = PILImage.open(current_image)
+        
+        diff = ImageChops.difference(c, p)
+        
+        diff.save(f, cls.dest_format) #TODO catch IOError and do something with it.
+        f.close()
+        
+        del p
+        del c
+        del diff
+        """
+        
+        image = Image(current_image)
+        other = Image(prev_image)
+        
+        isize = image.size
+        osize = other.size
+        
+        offset = (0,0)
+        if isize != osize:
+            #enabling this makes the diff always the same size as the largest one
+            #disabling makes it the size of the most current one. Hopefully this doesnt
+            #happen very often...
+            if False:#isize < osize: #basically, if both x and y components are less
+                #swap; image is always the larger one
+                tmp = image
+                image = other
+                other = tmp
+                
+                tmp = isize
+                isize = osize
+                osize = tmp
+            
+            offset = ((isize[0] - osize[0])/2, (isize[1] - osize[1])/2)
+        
+        image.composite(other, offset, operator=wand.DIFFERENCE_COMPOSITE_OP)
+        
+        f.write(image.dump(cls.dest_format))
+        
+        image.destroy()
+        other.destroy()
+        
+        return ExtractedFile(name, EXTRACT_TYPE_DIFF)
 
 class GenericExtractor(Extractor):
     """
@@ -211,7 +282,7 @@ class PNGExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
 
 
 EXTRACTORS = {
@@ -249,5 +320,23 @@ def extract(filename, out_filename=None, **kw):
     raise Exception('Wrong format: %s' % img.format)
 
 if __name__ == '__main__':
-    import sys
-    print extract(sys.argv[1], len(sys.argv) > 2 and sys.argv[2] or None)
+    from optparse import OptionParser
+    
+    parser = OptionParser()
+    parser.add_option("-a", "--action", dest="action",
+                      help="Run an action", default='extract')
+    
+    (options, args) = parser.parse_args()
+    
+    if not args:
+        parser.error('Enter a filename or two')
+    
+    if options.action == 'extract':
+        extract(args[0], args[1:] and args[1:][0] or None)
+    
+    if options.action == 'diff':
+        if len(args) < 2:
+            parser.error('Enter a previous and a current filename to diff')
+        
+        print Extractor.difference(args[0], args[1])
+        

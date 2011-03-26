@@ -130,11 +130,21 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
         else{
             var extr = model.get('extracts');
             
-            for(var i = 0; i < extr.length; i++)
-                if(extr[i].extract_type != "thumbnail")
-                    images.push(new Q.ImageView(
-                        $.extend({}, this.settings, { model: new Backbone.Model(extr[i]) })
-                    ));
+            var ext = {
+                thumbnail: [],
+                diff: [],
+                full: []
+            };
+            for(var i in extr)
+                ext[extr[i].extract_type].push(extr[i]);
+            
+            for(var i in ext.full)
+                images.push(new Q.ImageView(
+                    $.extend({}, this.settings, {
+                        model: new Backbone.Model(ext.full[i]),
+                        diff: ext.diff[i]
+                    })
+                ));
             
             //if we didnt find any proper extracts, use the real file url
             if(images.length == 0){
@@ -243,7 +253,8 @@ Q.ImageView = Q.View.extend({
         //model is a generic backbone model with a file extract in it
         _.bindAll(this, 'onChange', 'onSelect', 'changeCollapse',
                   'onRelease', 'setCropper', 'onStart', 'changeComment',
-                  'onAddComment', 'changePinsMode', 'onChangeVersion', 'onCommentRefresh');
+                  'onAddComment', 'changePinsMode', 'onChangeVersion', 'onCommentRefresh',
+                  'changeDiffMode');
         this._super.apply(this, arguments);
         
         this.pinTemplate = $(this.pinTemplate).html();
@@ -254,6 +265,7 @@ Q.ImageView = Q.View.extend({
         this.settings.comments.bind('refresh', this.onCommentRefresh);
         this.settings.comments.bind('newcomment', this.onAddComment);
         this.settings.pinsMode.bind('change:pins', this.changePinsMode);
+        this.settings.diffMode.bind('change:diffs', this.changeDiffMode);
         this.settings.collapsable.bind('change:collapse', this.changeCollapse);
         
         this.pinViews = [];
@@ -295,6 +307,24 @@ Q.ImageView = Q.View.extend({
         }
         else
             this.pins.hide();
+    },
+    
+    changeDiffMode: function(m){
+        m = m.get();
+        if(m == 'show'){
+            if(this.settings.diff)
+                this.$('img').attr('src', this.settings.diff.url);
+            else{
+                this.$('.no-diff').show();
+            }
+            
+            if(this.cropper)
+                this.cropper.release();
+        }
+        else{
+            this.$('img').attr('src', this.model.get('url'));
+            this.$('.no-diff').hide();
+        }
     },
     
     hidePopups: function(){
@@ -420,6 +450,8 @@ Q.ImageView = Q.View.extend({
             this.pinObjs = [];
         
         this.pins = this.$('.pins')[this.settings.pinsMode.get()]();
+        
+        this.changeDiffMode(this.settings.diffMode);
         
         return this;
     }
@@ -929,34 +961,53 @@ Q.CommentFormView = Q.View.extend('CommentFormView', {
     }
 });
 
-Q.PinButtonView = Q.View.extend('PinButtonView', {
+Q.ButtonView = Q.View.extend({
     init: function(c, set){
         this._super(c, set);
-        _.bindAll(this, 'setButton', 'pinToggle');
-        this.model.bind('change:pins', this.setButton);
-        c.click(this.pinToggle);
-        
-        this.pins = $('.pins');
+        _.bindAll(this, 'setButton', 'toggle');
+        c.click(this.toggle);
     },
     
     setButton: function(mode){
         var targ = this.container;
-        if(mode.get() == 'hide'){
+        if(mode.get() == 'hide')
             targ.removeClass('selected');
-            targ.attr('title', 'Click to show annotation pins');
-        }
-        else{
+        else
             targ.addClass('selected');
-            targ.attr('title', 'Click to hide annotation pins');
-        }
+        
+        targ.attr('title', this.titles[mode.get()]);
     },
     
-    pinToggle: function(e){
+    toggle: function(e){
         if(this.model.get() == 'show')
             this.model.set('hide');
         else
             this.model.set('show');
         return false;
+    }
+});
+
+Q.PinButtonView = Q.ButtonView.extend('PinButtonView', {
+    titles: {
+        show: 'Click to hide annotation pins',
+        hide: 'Click to show annotation pins'
+    },
+    
+    init: function(c, set){
+        this._super(c, set);
+        this.model.bind('change:pins', this.setButton);
+    }
+});
+
+Q.DiffButtonView = Q.PinButtonView.extend('DiffButtonView', {
+    titles: {
+        show: 'Click to hide this version\'s changes',
+        hide: 'Click to show this version\'s changes'
+    },
+    
+    init: function(c, set){
+        this._super(c, set);
+        this.model.bind('change:diffs', this.setButton);
     }
 });
 
@@ -968,6 +1019,7 @@ Q.ViewFilePage = Q.Page.extend({
         addComment: '#add-comment',
         replyComment: '#reply-comment',
         pinToggle: '#pin-toggle',
+        diffToggle: '#diff-toggle',
         sidepanel: '#sidepanel',
         headerVersion: '#comments-header .version, .file-meta .version',
         headerName: '.file-meta .name',
@@ -994,6 +1046,11 @@ Q.ViewFilePage = Q.Page.extend({
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Q.SingleSelectionModel('version');
         this.selectedComment = new Q.SingleSelectionModel('comment');
+        
+        //diffs
+        this.diffMode = new Q.SingleSelectionModel('diffs');
+        this.n.diffToggle.DiffButtonView({model: this.diffMode})
+        this.diffMode.set('hide');
         
         //pin junk
         this.pinsMode = new Q.SingleSelectionModel('pins');
@@ -1024,6 +1081,7 @@ Q.ViewFilePage = Q.Page.extend({
             selectedVersion: this.selectedVersion,
             selectedComment: this.selectedComment,
             pinsMode: this.pinsMode,
+            diffMode: this.diffMode,
             comments: this.comments,
             boxWidth: this.settings.boxWidth,
             fullBoxWidth: this.settings.fullBoxWidth,

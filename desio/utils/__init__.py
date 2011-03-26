@@ -119,7 +119,7 @@ def relative_date_str(date, now=None):
     
     data = relative_date(date, now)
     
-    if data['sectotal'] < 10 and data.ispast: return 'Just now'
+    if data['sectotal'] < 10 and data['ispast']: return 'Just now'
     
     if data['daystotal'] > 7: return date.strftime("%b %d, %Y")
     
