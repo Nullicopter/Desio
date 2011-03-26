@@ -7,24 +7,30 @@
 .drop{
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0px;
-    opacity: .8;
-    border: 5px dotted #ddd;
-    background: #eee;
-    -moz-border-radius: 10px;
-    font-size: 22pt;
-    color: #888;
-    text-align: center;
-    z-index: 20px;
+    color: #fff;
+    border: 1px solid #e5e5e5;
 }
+.drop .drop-inner{
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0px;
+    border: 9px solid #fff;
+    background: transparent url(../../../i/site/stripe_transparent_bg.png) repeat;
+    font-size: 18pt;
+    text-transform: uppercase;
+    text-align: center;
+    z-index: 20;
+    font-weight: normal;
+}
+.drop p{margin: 35px 0 0 0;}
 
-.drop.over{
-    color: #666;
-    border: 5px dotted #ccc;
+.drop.over .drop-inner{
+    color: #fff;
+    font-weight: bold;
 }
 
 .file, .processing-file{
     width: 252px;
-    margin: 10px 10px 10px 0px;
+    margin: 0 0 10px 10px;
     padding: 10px;
     position: relative;
     float: left;
@@ -33,8 +39,13 @@
     background: #fff;
     border: 1px solid #e5e5e5;
 }
-.file img, .processing-file img{
-    width: 252px;
+.file .cover-bar{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 10px;
+    width: 270px;
+    background: #fff;
 }
 .file .name-bar, .processing-file .name-bar{
     height: 30px;
@@ -53,6 +64,10 @@
     bottom:10px; left: 10px;
     padding-left: 8px;
     width: 244px;
+}
+.file .name-text, .processing-file .name-text{
+    width: 210px;
+    overflow: hidden;
 }
 
 .file .version{
@@ -93,40 +108,121 @@
 .file .name-bar{ height: 85px; }
 .file .name{ bottom: 54px; }
 */
-.processing-file .progress-container{
+.processing-file .progress-bg, .processing-file .progress-container{
     height: 30px;
-    width: 250px;
-    background: #fff;
-    -moz-border-radius: 10px;
+    width: 230px;
+    background: #000;
+    -moz-border-radius: 4px;
     line-height: 30px;
     font-weight: bold;
     position: absolute;
-    top:100px; left: 20px;
+    top:100px; left: 19px;
+    opacity: .4;
 }
 
-.processing-file .progress-text{
-    position: absolute; top: 0; left: 0;
-    height: 30px; width: 270px;
-    line-height: 30px;
-    text-align: center;
+.processing-file .progress-container{
+    opacity: .8;
+    background: none;
 }
 .processing-file .progress{
-    position: absolute; top: 0; left: 0;
-    background: #ccc;
+    background: #60AFEE;
     height: 30px;
-    -moz-border-radius: 10px;
+    -moz-border-radius: 4px;
 }
+.processing-file .progress-text.uploading{
+    display: none;
+}
+.processing-file .progress-text.processing img{
+    display: block;
+    float: right;
+    width: 16px;
+    height: 16px;
+}
+.processing-file .progress-text{
+    position: absolute;
+    color: #fff;
+    text-shadow: 1px 1px 1px #ccc;
+    width: 230px;
+    height: 20px;
+    top: 80px;
+    left: 19px;
+    background: none;
+}
+
+#content.collapsed .processing-file .progress-container,
+#content.collapsed .processing-file .progress-bg,
+#content.collapsed .processing-file .progress-text{
+    width: 236px;
+}
+
+
+/* deal with the effin margin issue and the file sizing*/
+
+.file, .processing-file{width: 248px; height: 186px;}
+.file img, .processing-file .thumb{width: 248px;}
+.file .name-bar, .processing-file .name-bar{width: 248px;}
+.file .name, .processing-file .name{width: 240px;}
+.file .extra-info{width: 240px;}
+
+
+#content.collapsed .file, #content.collapsed .processing-file{width: 255px; height: 191px;}
+#content.collapsed .file img, #content.collapsed .processing-file .thumb{width: 255px;}
+#content.collapsed .file .name-bar, #content.collapsed .processing-file .name-bar{width: 255px;}
+#content.collapsed .file .name, #content.collapsed .processing-file .name{width: 247px;}
+#content.collapsed .file .extra-info{width: 247px;}
+
+#content.collapsed .file.posmod3, #content.collapsed .processing-file.posmod3{margin-left: 10px;}
+#content.collapsed .file.posmod4, #content.collapsed .processing-file.posmod4{margin-left: 0;}
+
+#content .file.posmod3, #content .processing-file.posmod3{margin-left: 0;}
 
 /** dir sidebar **/
 
-#root-directory{padding: 10px 0 10px 10px;}
+#add-directory-link{
+    display: block;
+}
+
+#root-directory{
+    border-top: 1px solid #CCC9C0;
+    border-bottom: 1px solid #CCC9C0;
+}
 #root-directory h2{margin: 0 0 10px 0}
 
-.dir-tree{
-    padding: 5px 0;
+.dir-tree{position: relative;}
+.dir-tree .bg{
+    position: absolute;
+    right: -11px;
+    top: -1px;
+    display: none;
+    width: 318px;
+    height: 39px;
+    background: transparent url(../../../i/site/arrow_bg.png) no-repeat top right;
 }
+.dir-tree.current>.bg{
+    display: block;
+}
+
 .dir-tree h3{margin: 0;}
-.dir-tree .children{margin: 0 0 0 10px;}
+.children .dir-tree h3{border-top: 1px solid #E0DDD4;}
+.children .dir-tree.current>h3{border-top: none;}
+.dir-tree h3 a{
+    display:block;
+    height: 35px;
+    line-height: 38px;
+    font-weight: normal;
+    color: #333;
+}
+.dir-tree .children{margin: 0 0 0 20px;}
+
+.dir-tree.current>h3 a{
+    font-weight: bold;
+}
 .dir-tree.current{
-    background: #fff;
+    
+}
+
+/*** other ***/
+
+#project-settings-link{
+    background: transparent url(../../../i/icons/gear.png) no-repeat right 5px;
 }

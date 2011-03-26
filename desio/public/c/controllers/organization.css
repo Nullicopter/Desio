@@ -61,8 +61,11 @@
 #sidepanel .info ul, #sidepanel .info li{list-style: none; margin: 0; padding: 0;}
 #sidepanel .info li{margin: 5px 0; }
 
-#sidepanel .new-button{
-    padding: 10px;
+#sidepanel a.action{
+    font-size: 10pt;
+    color: #333;
+    margin: 10px 0;
+    display: block;
 }
 
 /**** collapse stuff ****/
@@ -71,6 +74,11 @@
     display: block;
     height: 14px; width: 14px;
     background: transparent url(../../i/icons/arrows.png) no-repeat 0 0;
+}
+#sidepanel-collapse.absolute{
+    position: absolute;
+    left: -35px;
+    top:0;
 }
 
 #sidepanel.collapsed{
@@ -82,16 +90,22 @@
 #content.collapsed #sidepanel-collapse{
     background-position: bottom left;
 }
-
+#content.collapsed #sidepanel-collapse.absolute{
+    left: -25px;
+}
 /*confusing, but consistent*/
 #content.collapsed{margin-left: 0px;}
 
 /**** PROJECT TAB ****/
-#sidepanel .projects .project:first-child{ border-top: 1px solid #ddd; }
+#sidepanel .projects {
+    border-top: 1px solid #CCC9C0;
+    border-bottom: 1px solid #CCC9C0;
+}
+#sidepanel .projects .project:first-child{ border-top: none; }
 #sidepanel .projects .project{
     display: block;
-    border-bottom: 1px solid #ddd;
-    padding: 10px;
+    border-top: 1px solid #E0DDD4;
+    padding: 10px 0;
     color: #333;
 }
 #sidepanel .projects .project:hover{ text-decoration: none; }
@@ -100,11 +114,26 @@
 #sidepanel .projects .project.selected{ background: #fff; }
 #sidepanel .projects .project .description{ font-weight: normal; }
 
+#sidepanel .info{margin: 0 0 20px 0;}
+
+#new-project-link{display: block;}
+
 #sidepanel #secondary-links, #sidepanel #secondary-links li{margin: 0; padding: 0; list-style:none;}
-#sidepanel #secondary-links {margin: 20px 0;}
+#sidepanel #secondary-links {margin: 45px 0 0 0;}
 #sidepanel #secondary-links li {
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #CCC9C0;
+    border-bottom: 1px solid #CCC9C0;
 }
-#sidepanel #secondary-links a{ display: block; color: #666; padding: 10px; }
+#sidepanel #secondary-links a{
+    display:block;
+    height: 35px;
+    line-height: 38px;
+    font-weight: normal;
+    font-size: 12pt;
+    color: #333;
+}
 #sidepanel #secondary-links a.current{ background: #fff; }
+
+#org-settings-link{
+    background: transparent url(../../i/icons/gear.png) no-repeat right 5px;
+}

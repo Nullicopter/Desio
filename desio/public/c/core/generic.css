@@ -2,3 +2,27 @@
 .clearl { clear: left; }
 .clearr { clear: right; }
 .clear { clear: both; }
+
+
+.icon-download{
+    padding-left: 32px;
+    height: 24px;
+    line-height: 27px;
+    background: transparent url(../../i/icons/download.png) no-repeat top left;
+}
+.icon-share{
+    padding-left: 32px;
+    height: 24px;
+    line-height: 27px;
+    background: transparent url(../../i/icons/share.png) no-repeat top left;
+}
+    
+.icon-plus{
+    height: 22px;
+    line-height: 23px;
+    padding-left: 28px;
+    background: transparent url(../../i/icons/plus.png) no-repeat top left;
+}
+.icon-plus:hover{
+    background-position: bottom left;
+}

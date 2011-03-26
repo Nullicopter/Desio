@@ -5,16 +5,20 @@ body{
     font-size: 10pt;
     padding: 0;
     margin: 0;
-    background: transparent url(../i/site/ibroughtthenoise.png) repeat;
+    background: #333;
 }
-a{outline: none; text-decoration: none; font-weight: bold; border: none;}
+a{outline: none; text-decoration: none; font-weight: bold; border: none; color:#09f }
 a:hover{text-decoration: underline;}
 img{border: none;}
 
-#page{padding: 10px 0;}
+#page{
+    padding: 10px 0 35px 0;
+    background: transparent url(../i/site/ibroughtthenoise.png) repeat;
+}
 
 #header{
     padding: 10px 0;
+    background: transparent url(../i/site/ibroughtthenoise.png) repeat;
 }
 #header h1{ margin: 0; }
 #header h1 a, #header h1 a:hover, #header h1 a:active{ color: #000; text-decoration: none;}
@@ -26,3 +30,13 @@ img{border: none;}
 }
 
 #header-right{float: right;}
+
+#footer{
+    color: #fff;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 15px 0;
+    border-top: 5px solid #5D81C1;
+    background: #333;
+}
+#footer p{ margin: 0; }

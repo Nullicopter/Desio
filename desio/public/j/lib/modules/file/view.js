@@ -42,7 +42,8 @@ Q.FileView = Q.View.extend({
     formatters: {
         'size': 'filesize(0)',
         'number_comments': 'number',
-        'created_date': 'relativetime'
+        'created_date': 'relativetime',
+        'name': 'compressstr(28)'
     },
 
     init: function(container, settings) {
@@ -85,24 +86,40 @@ Q.ProcessingFileView = Q.FileView.extend({
     },
     updateVersion: function(m){},
     
-    updateProgress: function(m){
-        var perc = Q.DataFormatters.percent(m.get('progress'), 0);
+    _updateProgress: function(prog){
+        var perc = Q.DataFormatters.percent(prog, 0);
+        
+        var isup = prog < 100;
+        this.uploading[isup ? 'show' : 'hide']();
+        this.processing[isup ? 'hide' : 'show']();
         
         this.progress.css({width: perc});
-        this.progressText.text(perc);
+        
+        (function(t){
+            if(t.progtime) clearTimeout(t.progtime);
+            t.progtime = setTimeout(function(){
+                t._updateProgress(100);
+            }, 1500);
+        })(this);
+    },
+    
+    updateProgress: function(m){
+        var prog = m.get('progress');
+        this._updateProgress(prog);
     },
     
     render: function() {
         this._super();
         
         $.log(this.model.get('src'));
-        var img = document.createElement("img");
-        img.file = this.model.get('file');   
-        img.src = this.model.get('src');
+        var img = $("<img/>", {'class': 'thumb'});
+        img[0].file = this.model.get('file');   
+        img[0].src = this.model.get('src');
         
-        this.container.find('img').replaceWith($(img));
+        this.container.find('img.thumb').replaceWith(img);
         this.progress = this.container.find('.progress');
-        this.progressText = this.container.find('.progress-text');
+        this.processing = this.container.find('.processing');
+        this.uploading = this.container.find('.uploading');
         
         return this;
     }
@@ -130,7 +147,6 @@ Q.DirectoryView = Q.View.extend({
         
         this.files = this.model.get('files');
         this.files.bind('add', this.addFile);
-        this.files.bind('change:progress', this.updateProgress);
         this.files.bind('change:version', this.updateVersion);
         
     },
@@ -160,6 +176,7 @@ Q.DirectoryView = Q.View.extend({
             else
                 this.filesElem.append(el);
         }
+        this.updateFileClasses();
     },
     
     updateVersion: function(m){
@@ -173,6 +190,17 @@ Q.DirectoryView = Q.View.extend({
             pm.view.container.replaceWith(m.view.container);
             pm.view.remove();
             this.files.remove(pm);
+        }
+        this.updateFileClasses();
+    },
+    
+    updateFileClasses: function(){
+        var elems = this.filesElem.children();
+        elems.removeClass('posmod3').removeClass('posmod4');
+        for(var i = 0; i < elems.length; i++){
+            var el = elems.eq(i);
+            if(i % 3 == 0) el.addClass('posmod3');
+            if(i % 4 == 0) el.addClass('posmod4');
         }
     },
     

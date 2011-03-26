@@ -740,6 +740,8 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         });
         
         this.views = [];
+        
+        this._checkNoCommentsMessages();
     },
     
     onChangeSelectedComment: function(m){
@@ -802,10 +804,18 @@ Q.CommentsView = Q.View.extend('CommentsView', {
             this.n.comments.find('.comment').css({
                 position: 'static', top: '', bottom: '', left: ''
             });
+            this._checkNoCommentsMessages();
         }
     },
     
     render: function(){return this;},
+    
+    _checkNoCommentsMessages: function(){
+        var t = this.n.filterLinks.filter('.selected');
+        this.n.noCommentBoxen.hide();
+        if(this.n.comments.find('.comment:visible').length == 0)
+            this.$('.no-comments-'+t.attr('rel')).show();
+    },
     
     onFilterClick: function(e){
         var t = $(e.target);
@@ -817,9 +827,7 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         this.n.filterLinks.removeClass('selected');
         t.addClass('selected');
         
-        this.n.noCommentBoxen.hide();
-        if(this.n.comments.find('.comment:visible').length == 0)
-            this.$('.no-comments-'+t.attr('rel')).show();
+        this._checkNoCommentsMessages();
         return false;
     },
     
@@ -851,6 +859,7 @@ Q.CommentsView = Q.View.extend('CommentsView', {
             });
             this.n.comments.append(view.render().el);
             this.views.push(view);
+            this._checkNoCommentsMessages();
         }
     },
     
@@ -861,6 +870,8 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         
         for(var i = 0; i < this.model.length; i++)
             this.onAddComment(this.model.at(i));
+        
+        this._checkNoCommentsMessages();
     },
     
     onRemoveComment: function(m){

@@ -56,9 +56,10 @@ roles = [
 <%def name="file_thumb(project, name, version, full_path, url, user, updated, size, number_comments)" >
     <a href="${h.url_for(controller='organization/project', action='view', slug=project.slug)}${full_path}">
         <div class="name-bar"></div>
+        <div class="cover-bar"></div>
         <div class="name">
             <span class="version">v${version}</span>
-            ${name}
+            <div class="name-text">${name}</div>
         </div>
         <div class="extra-info">
             <div class="number-comments">${number_comments}</div>

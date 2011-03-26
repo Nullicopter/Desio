@@ -21,6 +21,13 @@ Q.DataFormatters.relativetime = function(data){
 Q.DataFormatters.filesize = function(data, decimals){
     return $.fileSize(data, decimals);
 };
+Q.DataFormatters.compressstr = function(data, maxchars){
+    if(data.length < maxchars) return data;
+    
+    var perside = (maxchars - 3)/2;
+    
+    return data.slice(0, perside) + '...' + data.slice(-perside);
+};
 
 
 Q.defaultValidationOptions = {

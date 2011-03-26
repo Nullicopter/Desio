@@ -18,13 +18,11 @@ from desio import utils
 </%def>
 
 <%def name="project_sidepanel()">
-    <div class="info">
-        <ul>
-            <li>Confused? <a href="#">Take the tour!</a></li>
-            <li><a href="#">Some more info Here</a></li>
-        </ul>
-    </div>
     
+    <div class="info">
+        <p class="description">Below are your projects, they are blah blah blah whatever.</p>
+    </div>
+    <p></p>
     % if c.projects:
         <div class="projects">
         % for p in c.projects:
@@ -41,7 +39,7 @@ from desio import utils
         </div>
         
         <div class="new-button">
-            <a class="secondary b140" href="${h.url_for(controller='organization/project', action='new')}">Create a Project</a>
+            <a id="new-project-link" class="icon-plus action" href="${h.url_for(controller='organization/project', action='new')}">New Project</a>
         </div>
     % else:
         <p>
@@ -53,7 +51,7 @@ from desio import utils
     % endif
     
     <ul id="secondary-links">
-        <li><a href="${h.url_for(controller='organization/settings', action='users')}">Settings</a></li>
+        <li><a id="org-settings-link" href="${h.url_for(controller='organization/settings', action='users')}">Settings</a></li>
     </ul>
 </%def>
 

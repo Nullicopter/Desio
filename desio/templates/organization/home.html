@@ -14,7 +14,16 @@
     ${parent.header()}
     <style type="text/css">
         .project .files{
-            height: 200px;
+            height: 208px;
+        }
+        #projects .project h2 a{
+            color: #333;
+        }
+        #projects .project h2{
+            margin: 0 0 10px 0;
+        }
+        #projects .project{
+            margin-bottom: 20px;
         }
     </style>
     
@@ -23,25 +32,26 @@
     </script>
 </%def>
 
-<h1>Your Dash</h1>
+<%def name="content_header()">
+    Your Dashboard
+</%def>
 
 % if c.projects:
     <div id="projects">
     % for p, files in c.project_data:
-        <div class="project">
-            <h2><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></h2>
-            
-            % if files:
+        % if files:
+            <div class="project">
+                <h2><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></h2>
                 <div class="files">
-                % for f in files:
+                % for i, f in enumerate(files):
                     <% ch = f.get_change() %>
-                    <div class="file">
+                    <div class="file ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
                         ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
                     </div>
                 % endfor
                 </div>
-            % endif
-        </div>
+            </div>
+        % endif
     % endfor
     </div>
 % else:
