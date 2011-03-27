@@ -9,33 +9,39 @@
     ${parent.header()}
     ${r.require('file', 'image')}
     <style type="text/css">
-    
+    % if not c.user_role:
+        div.reply-box{display: none !important;}
+    % endif
     </style>
     
     <script type="text/javascript">
     new Q.ViewFilePage({
-        url: '${h.api_url('file', 'upload', project=c.project.eid)}',
+        userRole: ${c.user_role and '"%s"' % c.user_role or 'null' | n},
+        url: '${c.real_user and h.api_url('file', 'upload', project=c.project.eid) or ''}',
         versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
         boxWidth: 800,
         fullBoxWidth: 800+310,
-        collapsePreference: 'view_file_sidepanel_collapse',
-        collapseInitially: ${c.real_user.get_preference('view_file_sidepanel_collapse', default='false')},
+        collapsePreference: '${c.real_user and 'view_file_sidepanel_collapse' or ''}',
+        collapseInitially: ${c.real_user and c.real_user.get_preference('view_file_sidepanel_collapse', default='false') or 'false'},
         showDropTargetOn: 'elemdrag'//'bodydrag'
     }).readyrun();
     </script>
 </%def>
 
 <%def name="sidepanel()">
-    <div class="info">
+    <div class="info ${not c.user_role and 'no-role' or ''}">
         % if c.file.description:
             <p id="description">${c.file.description}</p>
         % endif
-        <ul>
-            <li><a id="download-link" href="${h.url_for(download=True)}" class="action icon-download">Download</a></li>
-            <li><a href="#" class="action icon-share">Share this file</a></li>
-        </ul>
+        
+        % if c.user_role:
+            <ul>
+                <li><a id="download-link" href="${h.url_for(download=True)}" class="action icon-download">Download</a></li>
+                <li><a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="action icon-share">Share this file</a></li>
+            </ul>
+        % endif
     </div>
     
     <h3 id="comments-header">Notes for version <span class="version">${c.head_change.version}</span></h3>
@@ -81,6 +87,16 @@
             </div>
         </form>
     </div>
+</%def>
+<%def name="project_sidepanel()">
+    % if c.user_role:
+        ${parent.project_sidepanel()}
+    % endif
+</%def>
+<%def name="sidepanel_tabs()">
+    % if c.user_role:
+        ${parent.sidepanel_tabs()}
+    % endif
 </%def>
 
 <%def name="content_subheader()">

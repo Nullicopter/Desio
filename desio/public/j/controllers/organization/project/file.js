@@ -389,6 +389,10 @@ Q.ImageView = Q.View.extend({
     
     setCropper: function(cropperApi){
         this.cropper = cropperApi;
+        
+        if(!this.settings.userRole)
+            this.cropper.disable();
+        
         this.newCommentView.setCropper(cropperApi);
         
         this.$('.jcrop-holder').append(this.pins);
@@ -477,8 +481,10 @@ Q.CommentForm = Q.Form.extend('CommentForm', {
         var shift_down = e.shiftKey;
         switch(e.keyCode){
             case 13:
-                this.form.submit();
-                return false;
+                if(shift_down){
+                    this.form.submit();
+                    return false;
+                }
         }
         return true;
     }
@@ -565,6 +571,11 @@ Q.CommentView = Q.View.extend({
         completed: 'Completed; Click to uncomplete.'
     },
     
+    noobtooltips:{
+        open: 'This note has not been completed.',
+        completed: 'This note is completed, taken care of, done. Yeah!'
+    },
+    
     init: function(container, settings){
         /**
          * Will get in settings:
@@ -648,10 +659,16 @@ Q.CommentView = Q.View.extend({
         this.container.removeClass('status-'+this.model.statusToggle[status]);
         this.container.addClass('status-'+status);
         
-        ind.attr('title', this.tooltips[status]);
+        var ttips = this.tooltips;
+        if(!window.USER_ROLE)
+            ttips = this.noobtooltips;
+        
+        ind.attr('title', ttips[status]);
     },
     
     onClickComplete: function(){
+        if(!window.USER_ROLE) return false;
+        
         var cv = this.model.get('completion_status');
         this.setPinStatus(this.model.statusToggle[cv.status]);
         
@@ -1067,6 +1084,10 @@ Q.ViewFilePage = Q.Page.extend({
             model: null
         });
         
+        window.USER_ROLE = this.settings.userRole;
+        if(!this.settings.userRole)
+            this.replyForm.hide();
+        
         this.commentsView = this.n.comments.CommentsView({
             model: this.comments,
             selectedComment: this.selectedComment,
@@ -1078,6 +1099,7 @@ Q.ViewFilePage = Q.Page.extend({
         this.versions.bind('add', this.addVersion);
         
         this.pageImageViewer = this.n.pageImageViewer.ImageViewer({
+            userRole: this.settings.userRole,
             model: this.versions,
             selectedVersion: this.selectedVersion,
             selectedComment: this.selectedComment,
@@ -1092,6 +1114,7 @@ Q.ViewFilePage = Q.Page.extend({
         
         //add the versions to the model
         for(var i = 0; i < this.settings.versions.length; i++){
+            $.log('adding version', this.settings.versions[i]);
             this.versions.add(this.settings.versions[i]);
         }
         this.selectedVersion.set(this.versions.at(0));

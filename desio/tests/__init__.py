@@ -193,9 +193,16 @@ class TestController(TestRollback):
             response = response.follow()
         return "Please Sign In" in response
     
-    def follow(self, response):
+    def follow(self, response, sub_domain=None, **kw):
+        
+        auth_dict = self.get_auth_kw()
+        if sub_domain:
+            auth_dict['extra_environ'] = {'HTTP_HOST': str('%s.%s' % (sub_domain, pylons.config['domain']))}
+        self.__merge_dictionaries__(auth_dict, kw)
+        
         while response.status >= 300:
-            response = response.follow()
+            response = response.follow(**kw)
+        
         return response
     
     def throws_exception(self, fn, types=(ClientException, CompoundException, formencode.validators.Invalid)):

@@ -122,6 +122,7 @@ class ProjectController(OrganizationBaseController):
         
         #we could pass in the current version
         c.file, c.head_change = file[0]
+        print c.file.path
         
         comments = api.file.get_comments(c.real_user, c.user, change=c.head_change)
         c.comments = v1.file.get_comments().output(comments)

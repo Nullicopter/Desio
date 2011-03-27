@@ -3,6 +3,19 @@
     font-weight: normal;
 }
 
+#description{
+    width: 270px;
+}
+
+#sidepanel .info.no-role{
+    padding-top: 52px;
+    min-height: 55px;
+}
+#sidepanel .info.no-role p#description{
+    margin-top: 0;
+    
+}
+
 /**
  * Single file page
  */

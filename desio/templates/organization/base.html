@@ -57,8 +57,7 @@ from desio import utils
 
 <%def name="sidepanel()">
 </%def>
-
-<%def name="sidepanel_container()">
+<%def name="sidepanel_tabs()">
     <%
     tab_def = [
         ('Projects', '#', True)
@@ -67,6 +66,11 @@ from desio import utils
         tab_def.append(('Info', '#'))
     %>
     ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs', className='sidepanel-tabs')}
+</%def>
+
+<%def name="sidepanel_container()">
+    
+    ${self.sidepanel_tabs()}
     
     <div id="sidepanels">
         <div class="sidepanel">
