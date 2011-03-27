@@ -42,8 +42,8 @@ Default is 72dpi
 convert -depth 16 -background white eps/headphones.eps -trim +repage converted/headphones_ai.png
 """
 
-import Image as PILImage
-import ImageChops
+#import Image as PILImage
+#import ImageChops
 
 from magickwand.image import Image
 from magickwand import api, wand
