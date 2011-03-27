@@ -3,7 +3,6 @@
 .clearr { clear: right; }
 .clear { clear: both; }
 
-
 .icon-download{
     padding-left: 32px;
     height: 24px;
@@ -26,3 +25,5 @@
 .icon-plus:hover{
     background-position: bottom left;
 }
+
+.dialog{display: none;}

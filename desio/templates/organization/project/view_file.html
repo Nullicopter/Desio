@@ -122,6 +122,14 @@
     </div>
 </div>
 
+<div id="share-dialog" class="dialog" title="Share">
+    <p>Share this link with folks who are not a member of your organization.
+    They will be able to view all the versions and the comments, but will not
+    be able to contribute to the discission.</p>
+    
+    <pre>${h.get_domain(c.organization.subdomain)}${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}</pre>
+</div>
+
 <script id="tab-template" class="jstemplate" type="text/template">
     <span class="tab-text {{comments_class}}">
         <span class="number-comments {{comments_class}}">{{number_comments_open}}</span>

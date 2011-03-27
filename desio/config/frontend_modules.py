@@ -69,6 +69,7 @@ JS = {
         
         'lib/base.js',
         'lib/util.js',
+        'lib/dialog.js',
         'lib/views.js'
     ]),
     
@@ -124,6 +125,7 @@ CSS = {
         'core/navigation.css',
         'core/generic.css',
         'core/buttons.css',
+        'core/dialog.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
     ]),
@@ -137,7 +139,6 @@ CSS = {
         "jqueryui/jquery.ui.accordion.css",
         "jqueryui/jquery.ui.autocomplete.css",
         "jqueryui/jquery.ui.button.css",
-        "jqueryui/jquery.ui.dialog.css",
         "jqueryui/jquery.ui.slider.css",
         "jqueryui/jquery.ui.tabs.css",
         "jqueryui/jquery.ui.datepicker.css",

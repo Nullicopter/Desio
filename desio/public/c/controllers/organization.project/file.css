@@ -13,7 +13,6 @@
 }
 #sidepanel .info.no-role p#description{
     margin-top: 0;
-    
 }
 
 /**
@@ -134,23 +133,6 @@
 }
 .image .no-diff p{
     margin: 30px 0 0 0;
-}
-/****/
-.popup-view{
-    width: 324px;
-    position: absolute;
-    z-index: 1000;
-    border: 10px solid #fff;
-    background: #fff;
-    -moz-border-radius: 12px;
-    -webkit-border-radius: 12px;
-}
-.popup-view .popup-container{
-    padding: 10px;
-    border: 2px solid #d3d3d3;
-    background: #f0f0f0;
-    -moz-border-radius: 8px;
-    -webkit-border-radius: 8px;
 }
 
 /****/

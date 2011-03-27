@@ -1041,10 +1041,12 @@ Q.ViewFilePage = Q.Page.extend({
         headerVersion: '#comments-header .version, .file-meta .version',
         headerName: '.file-meta .name',
         headerTime: '.file-meta .time',
-        downloadLink: '#download-link'
+        downloadLink: '#download-link',
+        shareDialog: '#share-dialog'
     },
     events:{
-        'click #add-comment-link': 'addCommentClick'
+        'click #add-comment-link': 'addCommentClick',
+        'click #share-link': 'popShareDialog'
     },
     run: function(){
         
@@ -1060,6 +1062,8 @@ Q.ViewFilePage = Q.Page.extend({
             collapsePreference: this.settings.collapsePreference,
             collapseInitially: this.settings.collapseInitially
         });
+        
+        this.shareDialog = this.n.shareDialog.Dialog({width: 600});
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Q.SingleSelectionModel('version');
@@ -1128,6 +1132,11 @@ Q.ViewFilePage = Q.Page.extend({
         this.selectedVersion.bind('change:version', this.viewVersion);
         
         $.log(this.comments);
+    },
+    
+    popShareDialog: function(){
+        this.shareDialog.open();
+        return false;
     },
     
     addCommentClick: function(){
