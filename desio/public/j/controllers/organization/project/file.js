@@ -1023,7 +1023,8 @@ Q.ViewFilePage = Q.Page.extend({
         sidepanel: '#sidepanel',
         headerVersion: '#comments-header .version, .file-meta .version',
         headerName: '.file-meta .name',
-        headerTime: '.file-meta .time'
+        headerTime: '.file-meta .time',
+        downloadLink: '#download-link'
     },
     events:{
         'click #add-comment-link': 'addCommentClick'
@@ -1135,6 +1136,8 @@ Q.ViewFilePage = Q.Page.extend({
         this.n.headerVersion.text(version.get('version'));
         this.n.headerName.text(m.get('creator').name);
         this.n.headerTime.text($.relativeDateStr($.parseDate(version.get('created_date'))));
+        
+        this.n.downloadLink[0].href = $.extendUrl(this.n.downloadLink[0].href, {version: version.get('version')});
     }
 });
 

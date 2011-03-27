@@ -33,7 +33,7 @@
             <p id="description">${c.file.description}</p>
         % endif
         <ul>
-            <li><a href="#" class="action icon-download">Download</a></li>
+            <li><a id="download-link" href="${h.url_for(download=True)}" class="action icon-download">Download</a></li>
             <li><a href="#" class="action icon-share">Share this file</a></li>
         </ul>
     </div>

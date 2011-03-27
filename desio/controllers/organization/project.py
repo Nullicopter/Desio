@@ -1,3 +1,5 @@
+import os.path
+from paste.fileapp import FileApp
 from desio import api
 from desio.lib.base import *
 from desio.lib import modules
@@ -81,8 +83,34 @@ class ProjectController(OrganizationBaseController):
         if view_dir:
             return self._view_directory(entity, project, path, c.path_components)
         else:
+            if 'download' in request.params:
+                return self._download_file(entity, project, path, c.path_components)
             return self._view_file(entity, project, path, c.path_components)
     
+    def _download_file(self, entity, project, path, path_components):
+        import pylons
+        
+        try:
+            v = request.params.get('version')
+            if v: v = int(v)
+        except ValueError, e:
+            abort(404)
+        
+        ch = entity.get_change(version=v)
+        if not ch:
+            abort(404)
+        
+        if config['files_storage'].startswith('file://'):
+            
+            headers = [
+                    ('Content-Disposition', 'attachment; filename=%s' % entity.name)
+                ]
+            dl_app = FileApp(
+                os.path.join(config['files_storage'][len('file://'):], ch.url),
+                headers)
+            
+            return dl_app(request.environ, self.start_response)
+        
     def _view_file(self, entity, project, path, path_components):
         
         c.sidepanel_tab = c.title
