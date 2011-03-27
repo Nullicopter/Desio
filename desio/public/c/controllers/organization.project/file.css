@@ -135,6 +135,10 @@
     margin: 30px 0 0 0;
 }
 
+#content.collapsed .image .no-diff{
+    width: 1110px;
+}
+
 /****/
 
 .new-image-comment h4{

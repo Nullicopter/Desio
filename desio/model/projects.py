@@ -595,23 +595,26 @@ class Change(Base, Uploadable, Commentable):
             return Session.query(sa.func.count(Comment.id)).filter_by(change_id=self.id).first()[0]
         
         
-        date = Session.query(func.max(CommentStatus.created_date).label('date')).filter(CommentStatus.comment_id==Comment.id)
-        date = date.group_by(CommentStatus.comment_id)
+        date = Session.query(func.max(CommentStatus.created_date).label('date'), Comment.id)
+        date = date.filter(CommentStatus.comment_id==Comment.id).filter(Comment.change_id==self.id)
+        date = date.group_by(CommentStatus.comment_id, Comment.id)
+        subq = date.subquery()
         
-        q = Session.query(func.count(Comment.id)).outerjoin(CommentStatus)
+        q = Session.query(func.count(Comment.id)).outerjoin((subq, subq.c.id==Comment.id))
+        q = q.outerjoin((CommentStatus, CommentStatus.comment_id==Comment.id))
         q = q.filter(Comment.change_id==self.id).filter(Comment.status!=STATUS_REMOVED)
         q = q.filter(Comment.in_reply_to_id==None)
         
         if status == STATUS_OPEN:
             q = q.filter(sa.or_(
                 CommentStatus.id==None,
-                sa.and_(CommentStatus.created_date==date.subquery().columns.date, CommentStatus.status==status)
+                sa.and_(CommentStatus.created_date==subq.columns.date, CommentStatus.status==status)
             ))
             print q
             return q.scalar()
         else:
             q = q.filter(
-                sa.and_(CommentStatus.created_date==date.subquery().columns.date, CommentStatus.status==status)
+                sa.and_(CommentStatus.created_date==subq.columns.date, CommentStatus.status==status)
             )
             print q
             return q.scalar()
