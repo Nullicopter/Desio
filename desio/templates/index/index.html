@@ -1,4 +1,4 @@
-<%inherit file="/base.html"/>
+<%inherit file="/bones.html"/>
 
 <%!
     import pylons
@@ -7,26 +7,45 @@
 
 <%def name="header()">
     ${parent.header()}
+    <style>
+        #front-page{
+            min-height: 500px;
+            background: transparent url(../i/site/ibroughtthenoise.png) repeat;
+        }
+        #front-page h1{
+            margin: 0;
+            padding: 0;
+            padding-top: 180px;
+        }
+        #footer-inner, #front-page-inner{
+            width: 600px;
+            margin: 0 auto;
+        }
+        
+        #box{
+            -moz-border-radius: 12px;
+            height: 50px;
+            padding: 10px 0;
+            
+        }
+        
+    </style>
 </%def>
 
-<h1>Hey!</h1>
+<div id="front-page">
+    <div id="front-page-inner">
+        <h1><img src="/i/homepage/logo.png" alt="binder.io"/></h1>
+        
+        <div id="box">
+            <img src="/i/homepage/hangon.png" alt="hang on a bit. we're still working on it."/>
+        </div>
+    </div>
+</div>
 
-% if c.organizations:
-    <h2>Your orgs</h2>
-    % for o in c.organizations:
-    <div><a href="${h.subdomain_url(o.subdomain)}"></a></div>
-    % endfor
-% else:
-    <p>You have no orgs</p>
-% endif
-
-<h1>
-    Neat stuff we get for free:
-</h1>
-
-<h2><a href="${h.url_for(controller='test', action='exercise')}">Framework Exercise</a></h2>
-<h2><a href="${h.url_for(controller='test', action='qunit')}">QUnit Tests</a></h2>
-
-% if auth.is_admin():
-    <h2><a href="${h.url_for(controller='admin/search', action='index')}">Admin Interface</a></h2>
-% endif
+<div id="footer"><footer>
+    <div id="footer-inner">
+        <p>
+            <img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/>
+        </p>
+    </div>
+</footer></div>

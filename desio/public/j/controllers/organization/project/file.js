@@ -660,14 +660,14 @@ Q.CommentView = Q.View.extend({
         this.container.addClass('status-'+status);
         
         var ttips = this.tooltips;
-        if(!window.USER_ROLE)
+        if(!(window.USER_ROLE == 'creator' || window.USER_ROLE == 'admin'))
             ttips = this.noobtooltips;
         
         ind.attr('title', ttips[status]);
     },
     
     onClickComplete: function(){
-        if(!window.USER_ROLE) return false;
+        if(!(window.USER_ROLE == 'creator' || window.USER_ROLE == 'admin')) return false;
         
         var cv = this.model.get('completion_status');
         this.setPinStatus(this.model.statusToggle[cv.status]);
