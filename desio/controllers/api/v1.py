@@ -61,6 +61,15 @@ def out_comment(comment):
 def out_directory(directory):
     return itemize(directory, 'name', 'path', 'eid', 'description', 'full_path')
 
+def out_file_with_all_changes(f, with_extracts=True):
+    out = itemize(f, 'eid', 'name', 'path', 'full_path')
+    out['changes'] = []
+    for change in f.get_changes():
+        ochange = out_change(change, with_extracts)
+        ochange['digest'] = change.digest
+        out['changes'].append(ochange)
+    return out
+    
 class error:
     class explode: pass
     class explode_no_auth: pass
@@ -144,6 +153,15 @@ class project:
             out = project().get().output(p)
             out['directories'] = tree
             return out
+
+    class get_files:
+        def output(self, files):
+            # XXX: This structure could easily be huge in a big project
+            # This clearly needs to change and the client needs to be
+            # somewhat smarter about which calls it's making and caching
+            # the result of each call if possible.
+            p, files = files
+            return dict((f.full_path, out_file_with_all_changes(f)) for f in files)
         
     class add_directory:
         def output(self, d):

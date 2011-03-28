@@ -8,12 +8,11 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
 
 from desio.model.meta import Session, Base
-import hashlib
 
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
 from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush
-from desio.utils import file_uploaders as fu, image, is_testing
+from desio.utils import file_uploaders as fu, image, is_testing, digests
 
 from collections import defaultdict as dd
 
@@ -463,6 +462,7 @@ class File(Entity):
                         entity=self,
                         project=self.project,
                         creator=user)
+        change.digest = digests.md5_file(temp_contents_filepath)
         Session.add(change)
         Session.flush()
         change.set_contents(temp_contents_filepath)
@@ -544,6 +544,7 @@ class Change(Base, Uploadable, Commentable):
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     size = sa.Column(sa.Integer(), nullable=False, default=0)
     diff_size = sa.Column(sa.Integer(), nullable=False, default=0)
+    digest = sa.Column(sa.String(32), nullable=False)
     version = sa.Column(sa.Integer(), nullable=False)
     
     entity = relationship("File", backref=backref("changes", cascade="all"))
@@ -610,13 +611,11 @@ class Change(Base, Uploadable, Commentable):
                 CommentStatus.id==None,
                 sa.and_(CommentStatus.created_date==subq.columns.date, CommentStatus.status==status)
             ))
-            print q
             return q.scalar()
         else:
             q = q.filter(
                 sa.and_(CommentStatus.created_date==subq.columns.date, CommentStatus.status==status)
             )
-            print q
             return q.scalar()
     
     @property
@@ -659,7 +658,6 @@ class Change(Base, Uploadable, Commentable):
         """
         Upload the changed file to its location, generate a diff if it's not.
         """
-        
         self.uploader.set_contents(tmp_contents_filepath, self.url)
         
         #doing this inline for now. At some point this will be split out and done async

@@ -239,4 +239,34 @@ class TestProject(TestController):
         assert tree[0].children[0].children[0].children[0].full_path == u"/this/is/a/foobar"
         assert tree[0].children[0].children[0].children[0].children[0].full_path == u"/this/is/a/foobar/too"
 
+    def test_get_files(self):
+        """
+        Test the generation of the project files structure.
+        """
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+        self.login(user)
 
+        r = self.client_async(api_url('project', 'get_files', project=project.eid), {})
+        assert r.results == {}
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/this/is/a/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/this/is/a/foobar/too/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+
+        r = self.client_async(api_url('project', 'get_files', project=project.eid), {})
+
+        assert len(r.results) == 2
+        assert set(r.results.keys()) == set(['/this/is/a/foobar.gif', '/this/is/a/foobar/too/foobar.gif'])
+
+        assert r.results.values()
+        for value in r.results.values():
+            assert set(value.keys()) == set(["path", "changes", "eid", "full_path", "name"])
+            changes = value['changes']
+            assert len(changes) == 1
+            assert set(changes[0].keys()) == set(["change_description", "number_comments_open", "creator", "url", "extracts", "number_comments", "version", "change_eid", "created_date", "thumbnail_url", "size", "digest"])

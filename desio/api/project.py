@@ -263,3 +263,15 @@ def get_directories(real_user, user, project):
     directories = project.get_entities(only_type=projects.Directory.TYPE)
     return project, directories
 
+
+@enforce()
+@authorize(CanReadProject())
+def get_files(real_user, user, project, since=None):
+    """
+    Get all files in the project and return them, if since is passed
+    then only files with changes after since.
+
+    The serializer will append all the changes to each file
+    """
+    files = project.get_entities(only_type=projects.File.TYPE)
+    return project, files
