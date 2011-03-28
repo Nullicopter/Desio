@@ -1,3 +1,7 @@
+/**
+ * KEEP background image references out of this file!
+ */
+
 .form-chunk{
     margin: 0 0 20px 0;
 }

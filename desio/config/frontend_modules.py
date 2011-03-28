@@ -118,8 +118,8 @@ JS = {
 
 CSS = {
     'core': ('build/core.css', [
-        'main.css',
-        'forms.css',
+        'core/main.css',
+        'core/forms.css',
         'core/notifications.css',
         'core/tables.css',
         'core/navigation.css',
@@ -154,13 +154,13 @@ CSS = {
         'test/qunit.css',
     ]),
     
-    'ie': ('build/ie.css', ['ie.css']),
+    'ie': ('build/ie.css', ['core/ie.css']),
     
-    'controllers.admin': ('build/controllers/admin.css', [
+    'controllers.admin': ('build/controllers.admin.css', [
         'controllers/admin.css'
     ]),
         
-    'controllers.organization': ('build/controllers/organization.css', [
+    'controllers.organization': ('build/controllers.organization.css', [
         'controllers/organization.css'
     ]),
     
