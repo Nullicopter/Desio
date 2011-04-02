@@ -93,8 +93,11 @@ def relative_date(date, now=None):
     """
     now = now or datetime.utcnow()
     
+    td = (date - now)
+    total_seconds = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+    
     ret = {}
-    ret['mstotal'] = int((date - now).total_seconds() * 1000.0)
+    ret['mstotal'] = int(total_seconds * 1000.0)
     ret['ispast'] = ret['mstotal'] < 0
     ret['mstotal'] = abs(ret['mstotal'])
     
