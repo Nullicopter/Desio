@@ -53,7 +53,13 @@ def load_environment(global_conf, app_conf):
     # Setup the SQLAlchemy database engine
     config['pylons.app_globals'].sa_default_engine = engine_from_config(config, 'sqlalchemy.default.', proxy=TimerProxy())
     init_model(config['pylons.app_globals'].sa_default_engine)
-
+    
+    config['pylons.errorware']['smtp_username'] = config.get('smtp_username')
+    config['pylons.errorware']['smtp_password'] = config.get('smtp_password')
+    config['pylons.errorware']['smtp_use_tls'] = config.get('smtp_use_tls')
+    config['pylons.errorware']['smtp_port'] = config.get('smtp_port')
+    
+    'errors?', config['pylons.errorware']
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
     fs.setup_directories(config)
