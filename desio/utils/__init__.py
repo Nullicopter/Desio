@@ -181,3 +181,16 @@ def is_testing():
         _is_testing = asbool(pylons.config.get('is_testing', 'false'))
 
     return _is_testing
+
+_is_production = None
+def is_production():
+    """
+    are we currently in test mode?
+    """
+    global _is_production
+
+    if _is_production is None:
+        # cache value
+        _is_production = asbool(pylons.config.get('is_production', 'false'))
+
+    return _is_production

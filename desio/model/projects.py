@@ -674,11 +674,16 @@ class Change(Base, Uploadable, Commentable):
         if not is_testing():
             import subprocess
             commit()
+            
+            ini_file = os.path.join(proj_root, 'development.ini')
+            if utils.is_production():
+                ini_file = os.path.join(proj_root, 'production.ini')
+            
             proj_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             cmd = [
                 'python',
                 os.path.join(proj_root, 'desio', 'backend', 'run_extract.py'),
-                os.path.join(proj_root, 'development.ini'),
+                ini_file,
                 self.eid,
                 os.path.join(self.uploader.base_path, tmp_contents_filepath)
             ]
