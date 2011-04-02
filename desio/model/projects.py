@@ -675,11 +675,12 @@ class Change(Base, Uploadable, Commentable):
             import subprocess
             commit()
             
+            proj_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            
             ini_file = os.path.join(proj_root, 'development.ini')
             if utils.is_production():
                 ini_file = os.path.join(proj_root, 'production.ini')
             
-            proj_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             cmd = [
                 'python',
                 os.path.join(proj_root, 'desio', 'backend', 'run_extract.py'),
