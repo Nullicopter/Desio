@@ -169,6 +169,12 @@ def file_size(bytes, decimals=0):
     s = '%.'+str(decimals)+'f'
     return (s % (cur,)) + '' + labels[i]
 
+def ignore_fireworks():
+    """
+    Can we export to fireworks on this machine?
+    """
+    return asbool(pylons.config.get('ignore_fireworks', 'false'))
+
 _is_testing = None
 def is_testing():
     """

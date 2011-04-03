@@ -56,7 +56,9 @@ class Client(object):
             res.append(r)
             r = self._sock.recv(1)
         
-        return ''.join(res)
+        out = ''.join(res)
+        print out
+        return out
     
     def call(self, obj, function, *args, **kw):
         """
@@ -93,4 +95,21 @@ class Fireworks(Client):
     
     def connect(self, port=12124):
         super(Fireworks, self).connect('127.0.0.1', port)
+
+if __name__ == '__main__':
+    import sys, os, os.path, urllib
+    #inp, out = sys.argv[1:]
+    #inp, out = os.path.abspath(inp), os.path.abspath(out)
+    
+    inp = os.path.abspath(sys.argv[1])
+    
+    dirs = os.listdir('/Volumes')
+    dir = urllib.quote(dirs[0])
+    
+    c = Fireworks()
+    c.connect()
+    
+    x = c.call('fw', 'runScript', 'file:///'+ dir + '/' + inp)
+    print x
+
     

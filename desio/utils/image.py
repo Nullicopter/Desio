@@ -47,8 +47,9 @@ convert -depth 16 -background white eps/headphones.eps -trim +repage converted/h
 
 from magickwand.image import Image
 from magickwand import api, wand
-import tempfile
+import tempfile, urllib
 import os.path
+from desio.utils import adobe, ignore_fireworks
 
 EXTRACT_TYPE_THUMBNAIL = u'thumbnail'
 EXTRACT_TYPE_FULL = u'full'
@@ -67,19 +68,20 @@ class Extractor(object):
     src_format = 'Unknown'
     dest_format = 'PNG'
     
-    def __init__(self, image, out_filename=None):
+    def __init__(self, image, out_filename=None, filename=None):
         self.image = image
         self.out_filename = out_filename
+        self.filename = filename
     
     @classmethod
-    def _get_tmp_file(cls, type, out_filename=None):
+    def _get_tmp_file(cls, type, out_filename=None, dest_format=None):
         if out_filename:
             ofn = out_filename
             ofn = os.path.join(os.path.dirname(ofn), type +'_'+ os.path.basename(ofn))
             f = open(ofn, 'wb')
             name = f.name
         else:
-            f, name = tempfile.mkstemp('.'+cls.dest_format)
+            f, name = tempfile.mkstemp('.'+(dest_format or cls.dest_format))
             
             #why is this returning an int on my machine? Supposed to be a file pointer.
             if isinstance(f, int):
@@ -204,8 +206,8 @@ class GenericExtractor(Extractor):
     """
     This is for basic files like gif, jpg, etc. It will just thumbnail the images.
     """
-    def __init__(self, image, out_filename=None):
-        super(GenericExtractor, self).__init__(image, out_filename)
+    def __init__(self, image, out_filename=None, filename=None):
+        super(GenericExtractor, self).__init__(image, out_filename, filename)
         
         self.image = image
         self.src_format = image.format
@@ -284,6 +286,73 @@ class PNGExtractor(Extractor):
         """
         return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
 
+class FWPNGExtractor(Extractor):
+    
+    src_format = 'Unknown'
+    dest_format = 'PNG'
+    
+    @classmethod
+    def preprocess(cls, filename):
+        if ignore_fireworks(): return False
+        
+        f = open(filename, 'rb')
+        head = f.read(500)
+        
+        isit = 'Fireworks' in head
+        
+        return isit
+    
+    def extract(self, density=None, **kw):
+        """
+        Will return a list of all extracted files
+        """
+        import os, os.path
+        from mako.template import Template
+        from mako.runtime import Context
+        from StringIO import StringIO
+        
+        vol = urllib.quote(os.listdir('/Volumes')[0])
+        prefix = 'file:///'+ vol
+        
+        temp_dir = tempfile.mkdtemp()
+        eid = 'FILE'
+        
+        data = {
+            'in_file': prefix + os.path.abspath(self.filename),
+            'out_dir': prefix + temp_dir + '/',
+            'eid': eid
+        }
+        
+        #script template
+        here = os.path.dirname(os.path.dirname(__file__))
+        script = os.path.join(here, 'backend', 'fireworks_export.js')
+        mytemplate = Template(filename=script)
+        buf = StringIO()
+        ctx = Context(buf, **data)
+        mytemplate.render_context(ctx)
+        val = buf.getvalue()
+        
+        script, scname = self._get_tmp_file(None, dest_format='js')
+        script.write(val)
+        script.close()
+        
+        c = adobe.Fireworks()
+        c.connect()
+        
+        special_script = prefix + scname
+        x = c.call('fw', 'runScript', special_script)
+        
+        os.remove(scname)
+        
+        #now there should be files.
+        files = [ExtractedFile(os.path.join(temp_dir, f), EXTRACT_TYPE_FULL) for f in os.listdir(temp_dir) if 'png' in f]
+        
+        if files:
+            self.image = Image(files[0].filename)
+            files += self.thumbnail()
+            self.image.destroy()
+        
+        return files
 
 EXTRACTORS = {
     'PSD': PSDExtractor,
@@ -295,28 +364,40 @@ EXTRACTORS = {
     'JPEG': GenericExtractor,
 }
 
+PREPROCESSORS = [
+    FWPNGExtractor
+]
+
 def extract(filename, out_filename=None, **kw):
     """
     :param filename: the input filename
     :param out_filename: output filename. if blank, will use temp files.
     """
-    try:
-        img = Image(filename)
-    except:
-        import sys
-        print sys.exc_info()
-        raise
+    img = None
+    extractor_class = None
     
-    print img.format
-    extractor_class = EXTRACTORS.get(img.format)
+    for pp in PREPROCESSORS:
+        if pp.preprocess(filename):
+            extractor_class = pp
+            break
+    
+    if not extractor_class:
+        try:
+            img = Image(filename)
+        except:
+            import sys
+            print sys.exc_info()
+            raise
+        
+        extractor_class = EXTRACTORS.get(img.format)
     
     if extractor_class:
-        extractor = extractor_class(img, out_filename)
+        extractor = extractor_class(img, out_filename, filename)
         ext = extractor.extract(**kw)
-        img.destroy()
+        if img and hasattr(img, 'destroy'): img.destroy()
         return ext
     
-    img.destroy()
+    if img and hasattr(img, 'destroy'): img.destroy()
     raise Exception('Wrong format: %s' % img.format)
 
 if __name__ == '__main__':
