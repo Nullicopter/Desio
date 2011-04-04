@@ -46,7 +46,7 @@
                 % for i, f in enumerate(files):
                     <% ch = f.get_change() %>
                     <div class="file ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
-                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
+                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.base_url+ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
                     </div>
                 % endfor
                 </div>

@@ -61,7 +61,6 @@ def load_environment(global_conf, app_conf):
     config['pylons.errorware']['smtp_use_tls'] = config.get('smtp_use_tls')
     config['pylons.errorware']['smtp_port'] = config.get('smtp_port')
     
-    'errors?', config['pylons.errorware']
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
     fs.setup_directories(config)

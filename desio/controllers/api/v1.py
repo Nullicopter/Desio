@@ -19,7 +19,7 @@ def out_file(filenchange):
 
 def out_change_extract(extract):
     edict = itemize(extract, 'id', 'order_index', 'extract_type', 'url', 'description')
-    edict['url'] = '/' + edict['url']
+    edict['url'] = extract.base_url + edict['url']
     return edict
 
 def out_change(change, with_extracts=True):
@@ -29,8 +29,8 @@ def out_change(change, with_extracts=True):
     out['change_eid'] = change.eid
     out['version'] = change.version
     out['created_date'] = fdatetime(out['created_date'])
-    out['url'] = '/'+out['url']
-    out['thumbnail_url'] = '/'+out['thumbnail_url']
+    out['url'] = change.base_url + out['url']
+    out['thumbnail_url'] = change.base_url + out['thumbnail_url']
     out['creator'] = user.get().output(change.creator)
 
     if with_extracts:

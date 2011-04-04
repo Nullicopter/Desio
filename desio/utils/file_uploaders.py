@@ -1,6 +1,7 @@
 import os, sys
 import urlparse
 import shutil
+import pylons
 
 class LocalUploader(object):
     """
@@ -9,8 +10,13 @@ class LocalUploader(object):
     def __init__(self, base_url):
         parsed = urlparse.urlsplit(base_url)
         self.base_path = parsed.path
+    
+    @classmethod
+    def base_url(cls):
+        return pylons.config['pylons_url'].strip() + '/'
+        #return '/'
 
-    def set_contents(self, from_filepath, to_filepath):
+    def set_contents(self, from_filepath, to_filepath, name=None):
         """
         Store the content from local_filepath in the local filesystem
         at self.path
@@ -34,7 +40,11 @@ class S3Uploader(object):
         self.bucket = parsed.netloc.split(".", 1)[0]
         self.base_path = parsed.path
 
-    def set_contents(self, local_filepath, remote_filepath):
+    @classmethod
+    def base_url(cls):
+        return pylons.config['aws_s3_url'].strip() + '/'
+    
+    def set_contents(self, local_filepath, remote_filepath, name=None):
         """
         Upload content to S3 in self.bucket at self.path
         """
@@ -48,13 +58,13 @@ class S3Uploader(object):
             self.s3 = S3Connection(aws_access_key_id=self.aws_api_key,
                                    aws_secret_access_key=self.aws_secret_key)
         bucket = self.s3.get_bucket(self.bucket_name)
-
-        headers = {}
-        headers['Content-Type'] = "application/octet-stream"
-
+        
         if remote_filepath.startswith("/"):
             remote_filepath = remote_filepath[1:]
-        k = Key(self.bucket)
+        k = Key(bucket)
         k.key = remote_filepath
-        k.set_contents_from_filename(local_filepath, headers, replace=True)
+        k.set_metadata('Content-Type', "application/octet-stream")
+        if name:
+            k.set_metadata('Content-Disposition', str('attachment; filename=%s' % name))
+        k.set_contents_from_filename(local_filepath, replace=True)
         k.set_acl('public-read')

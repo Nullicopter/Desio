@@ -490,7 +490,11 @@ class Uploadable(object):
         'file': fu.LocalUploader,
         's3': fu.S3Uploader
     }
-
+    
+    @property
+    def base_url(self):
+        return self.uploader.base_url()
+    
     @property
     def uploader(self):
         """
@@ -619,6 +623,16 @@ class Change(Base, Uploadable, Commentable):
             return q.scalar()
     
     @property
+    def download_url(self):
+        if isinstance(self.uploader, fu.LocalUploader):
+            from desio.lib import helpers as h
+            path = os.path.join(self.entity.path, self.entity.name)
+            if path.startswith('/'):
+                path = path[1:]
+            return h.url_for(controller='organization/project', action='view', slug=self.entity.project.slug, path=path, download=True)
+        return self.base_url + self.url
+    
+    @property
     def url(self):
         """
         The url/path to the specific File change recorded in history.
@@ -658,10 +672,10 @@ class Change(Base, Uploadable, Commentable):
         """
         Upload the changed file to its location, generate a diff if it's not.
         """
-        self.uploader.set_contents(tmp_contents_filepath, self.url)
-        
         #doing this inline for now. At some point this will be split out and done async
-        self._gen_extracts(self.url)
+        self._gen_extracts(tmp_contents_filepath)
+        
+        self.uploader.set_contents(tmp_contents_filepath, self.url, name=self.entity.name)
     
     def _gen_extracts(self, tmp_contents_filepath):
         """
@@ -687,14 +701,14 @@ class Change(Base, Uploadable, Commentable):
                 os.path.join(proj_root, 'desio', 'backend', 'run_extract.py'),
                 ini_file,
                 self.eid,
-                os.path.join(self.uploader.base_path, tmp_contents_filepath)
+                tmp_contents_filepath
             ]
             subprocess.call(cmd)
         else:
             #not running this as an external process so we dont have to commit.
             from desio.backend import run_extract
             print 'Generating extracts for testing env'
-            run_extract.gen_extracts(self, os.path.join(self.uploader.base_path, tmp_contents_filepath))
+            run_extract.gen_extracts(self, tmp_contents_filepath)
     
 class ChangeExtract(Base, Uploadable, Commentable):
     """

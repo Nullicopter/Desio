@@ -31,6 +31,8 @@
 </%def>
 
 <%def name="sidepanel()">
+    <%
+    %>
     <div class="info ${not c.user_role and 'no-role' or ''}">
         % if c.file.description:
             <p id="description">${c.file.description}</p>
@@ -38,7 +40,7 @@
         
         % if c.user_role:
             <ul>
-                <li><a id="download-link" href="${h.url_for(download=True)}" class="action icon-download">Download</a></li>
+                <li><a id="download-link" href="${c.head_change.download_url}" class="action icon-download">Download</a></li>
                 <li><a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="action icon-share">Share this file</a></li>
             </ul>
         % endif

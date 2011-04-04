@@ -100,7 +100,7 @@ class ProjectController(OrganizationBaseController):
         if not ch:
             abort(404)
         
-        if config['files_storage'].startswith('file://'):
+        if config['files_storage'].startswith('file'):
             
             headers = [
                     ('Content-Disposition', 'attachment; filename=%s' % entity.name)
