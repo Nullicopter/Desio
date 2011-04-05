@@ -1,12 +1,12 @@
 """Pylons environment configuration"""
-import os
-
-import pylons
+import os, atexit
+import pylons, turbomail
 
 from mako.lookup import TemplateLookup
 from pylons.configuration import PylonsConfig
 from pylons.error import handle_mako_error
 from sqlalchemy import engine_from_config
+from paste.deploy.converters import asbool
 
 import desio.lib.app_globals as app_globals
 import desio.lib.helpers
@@ -15,6 +15,39 @@ from desio.model import init_model
 from desio.utils import fs
 
 from pylons_common.sqlalchemy.proxy import TimerProxy
+
+def setup_turbomail(config):
+    from turbomail.control import interface
+    
+    cmap = {
+        'smtp_server': 'mail.smtp.server',
+        'smtp_username': 'mail.smtp.username',
+        'smtp_password': 'mail.smtp.password',
+        'smtp_use_tls': 'mail.smtp.tls'
+    }
+    
+    boolkeys = (
+        'mail.smtp.tls',
+        'mail.tls',
+        'mail.smtp.debug',
+        'mail.debug'
+    )
+    
+    for k, v in config.items():
+        if k in cmap and cmap[k] not in config:
+            config[cmap[k]] = v
+    
+    for k, v in config.items():
+        if k.endswith('.on') or (k in boolkeys):
+            config[k] = asbool(v)
+    
+    if config.get('mail.on'):
+        interface.start(config)
+
+@atexit.register
+def teardown_turbomail():
+    from turbomail.control import interface
+    interface.stop()
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -64,5 +97,6 @@ def load_environment(global_conf, app_conf):
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
     fs.setup_directories(config)
+    setup_turbomail(config)
     
     return config

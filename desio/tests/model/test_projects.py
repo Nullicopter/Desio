@@ -33,7 +33,7 @@ class TestProjects(TestController):
         assert project.id
         assert project.eid
         assert project.organization == org
-
+        self.flush()
 
     def test_simple_project_methods(self):
         """
@@ -62,7 +62,8 @@ class TestProjects(TestController):
         assert project.name == "%s-%s" % (project.eid, u"helloooo")
         assert project.last_modified_date > current
         assert project.last_modified == project.last_modified_date
-
+        self.flush()
+        
     def test_filetree_creation_and_navigation(self):
         """
         Test that on file creation the entire directory structure
@@ -102,6 +103,7 @@ class TestProjects(TestController):
         assert project.get_entities(u'/', order_by_field='name', desc=False)[0].name == 'foobar2.gif'
 
         assert project.last_modified > project.last_modified_date
+        self.flush()
         
     def test_changes(self):
         """
@@ -169,6 +171,7 @@ class TestProjects(TestController):
         
         num = change.get_number_comments(status=STATUS_OPEN)
         assert num == 2
+        self.flush()
         
     def test_extracts(self):
         """
@@ -199,6 +202,7 @@ class TestProjects(TestController):
             assert e.url
             
         assert foundthumb
+        self.flush()
     
     def test_membership(self):
         """
@@ -279,3 +283,4 @@ class TestProjects(TestController):
         #test fail
         assert project.remove_user(rando) == False
         assert project.set_role(rando, PROJECT_ROLE_READ) == False
+        self.flush()

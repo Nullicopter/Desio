@@ -2,6 +2,7 @@ from desio.lib.base import *
 from desio.model import users
 from desio import api
 from desio.api import IsNotLoggedIn, authorize
+from desio.utils import email
 
 import pylons
 
@@ -36,5 +37,9 @@ class CreateController(BaseController):
         org = api.organization.create(user, user, **org_params)
         
         self.commit()
+        
+        email.send(user, 'new_organization.txt', {
+            'organization': org
+        })
         
         return {'url': auth.login(user) or pylons.config.get('subdomain_url') % (org.subdomain)}

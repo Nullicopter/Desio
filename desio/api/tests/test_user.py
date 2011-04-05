@@ -81,7 +81,7 @@ class TestUser(TestController):
         assert u.first_name == 'omgwow'
         assert u.is_active == True
         assert u.role == 'user'
-        assert 'London' in u.default_timezone
+        assert 'London' in u.default_timezone or 'UTC' in u.default_timezone
         
         u = api.user.edit(a, a, own, last_name='yeah')
         assert u.id == own.id

@@ -29,7 +29,11 @@ def gen_diffs(prev_change, current_raw_extracts):
     dler = urllib.URLopener()
     res = []
     for i in range(min(len(prev_extracts), len(current_raw_extracts))):
-        url = prev_extracts[i].base_url + prev_extracts[i].url
+        if pylons.config['files_storage'].startswith('file'):
+            url = pylons.config['files_storage'] +'/'+ prev_extracts[i].url
+        else:
+            url = prev_extracts[i].base_url + prev_extracts[i].url
+        print 'downloading', url
         prev_fname, _ = dler.retrieve(url)
         cur_fname = current_raw_extracts[i].filename
         

@@ -10,6 +10,8 @@ from desio.tests import *
 class TestAccountController(TestController):
     def test_all(self):
         
+        assert not self.get_sent_mails()
+        
         # test registering
         response = self.get(url_for(controller='auth', action='register'))
         assert '="register"' in response
@@ -18,6 +20,9 @@ class TestAccountController(TestController):
         post_vars = {'default_timezone' : u'-8', 'password' : u'secret', 'confirm_password' : u'secret', 'email' : username}
         response = self.client_async(url_for(controller='auth', action='register'), post_vars)
         response = response.results.url == '/'
+        
+        sent_mails = self.get_sent_mails()
+        assert 1 == len(sent_mails)
         
         user = Session.query(users.User).filter_by(username=username).first()
         assert user

@@ -14,11 +14,12 @@ setup(
     url='',
     install_requires=[
         "Pylons>=1.0",
-        "SQLAlchemy<0.7",
+        "SQLAlchemy==0.6.6",
         "python-memcached==1.44",
         "sqlalchemy-migrate==0.6",
         "pytz==2010e",
-        "formencode>=1.2.1"
+        "formencode>=1.2.1",
+        'turbomail>=3.0'
     ],
     setup_requires=["PasteScript>=1.6.3"],
     packages=find_packages(exclude=['ez_setup']),

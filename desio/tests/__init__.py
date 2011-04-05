@@ -27,6 +27,8 @@ from pylons_common.lib.utils import objectify
 from pylons_common.lib.exceptions import ClientException, CompoundException
 import simplejson as json
 
+from turbomail.control import interface
+
 import formencode
 
 from desio.model.meta import Session
@@ -34,6 +36,9 @@ from desio.lib.helpers import url_for, api_url
 
 # Invoke websetup with the current config file
 SetupCommand('setup-app').run([pylons.test.pylonsapp.config['__file__']])
+
+from turbomail.transports.debug import DebugTransportFactory
+from turbomail.managers.immediate import ImmediateManager
 
 environ = {}
 
@@ -92,11 +97,28 @@ class TestController(TestRollback):
         
         TestRollback.__init__(self, *args, **kwargs)
     
+    def setUp(self):
+        super(TestController, self).setUp()
+        
+        config = {
+            'mail.on': True,
+            'mail.manager': 'immediate',
+            'mail.transport': 'debug'
+        }
+        interface.start(config)
+    
+    def tearDown(self):
+        super(TestController, self).tearDown()
+        interface.stop()
+    
     def get_auth_kw(self):
         
         kw = dict(extra_environ = { 'REMOTE_ADDR' : '127.0.0.1' })
         
         return kw
+    
+    def get_sent_mails(self):
+        return interface.manager.transport and interface.manager.transport.get_sent_mails() or None
     
     def login(self, user, password=None, **kw):
         kw.update(self.get_auth_kw())

@@ -1,6 +1,7 @@
 from desio import api
 from desio.lib.base import *
 from desio.model import users
+from desio.utils import email
 
 import formencode
 import formencode.validators as fv
@@ -52,6 +53,8 @@ class AuthController(BaseController):
         user = api.user.create(**dict(request.params))
         
         self.commit()
+        
+        email.send(user, 'registered.txt', {})
         
         return {'url': auth.login(user) or '/'}
     
