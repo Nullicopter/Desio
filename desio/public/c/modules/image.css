@@ -1,6 +1,7 @@
 /**** JCROP ****/
 /* Fixes issue here http://code.google.com/p/jcrop/issues/detail?id=1 */
-.jcrop-holder { text-align: left; }
+.jcrop-holder { text-align: left; background-color: transparent !important;}
+.jcrop-holder img {background: #fff;}
 
 .jcrop-vline, .jcrop-hline
 {
@@ -20,7 +21,12 @@
 	*height: 9px;
 }
 
-.jcrop-tracker { width: 100%; height: 100%; }
+.jcrop-tracker { width: 100%; height: 100%;}
+.jcrop-overlay {
+    width: 100%; height: 100%;
+    background: #000;
+    opacity: 0;
+}
 
 .custom .jcrop-vline,
 .custom .jcrop-hline

@@ -157,6 +157,16 @@ $.Jcrop = function(obj,opt, imageObj)
 		.insertBefore($img)
 		.append($img_holder,$hdl_holder)
 	;/*}}}*/
+    
+    var $ovr = $('<div />')/*{{{*/
+        .width(pct(100)).height(pct(100))
+        .addClass('jcrop-overlay')
+		.css({
+			position: 'absolute',
+			zIndex: 280
+		})
+		.insertBefore($img)
+    ;/*}}}*/
 
 	var bound = options.boundary;
 	var $trk = newTracker().width(boundx+(bound*2)).height(boundy+(bound*2))
@@ -567,7 +577,8 @@ $.Jcrop = function(obj,opt, imageObj)
 		function show()/*{{{*/
 		{
 			$sel.show();
-			$img.css('opacity',options.bgOpacity);
+            $ovr.css('opacity',(1-options.bgOpacity));
+			//$img.css('opacity',options.bgOpacity);
 			awake = true;
 		};
 		/*}}}*/
@@ -575,7 +586,8 @@ $.Jcrop = function(obj,opt, imageObj)
 		{
 			disableHandles();
 			$sel.hide();
-			$img.css('opacity',1);
+            $ovr.css('opacity', 0);
+			//$img.css('opacity',1);
 			awake = false;
             options.onRelease();
 		};

@@ -28,6 +28,10 @@
     font-weight: bold;
 }
 
+.file a:hover, .processing-file a:hover{
+    text-decoration: none;
+}
+
 .file, .processing-file{
     width: 252px;
     margin: 0 0 10px 10px;
@@ -38,6 +42,7 @@
     overflow: hidden;
     background: #fff;
     border: 1px solid #e5e5e5;
+    text-decoration: none;
 }
 .file .cover-bar{
     position: absolute;

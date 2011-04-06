@@ -41,7 +41,7 @@ class UniqueSubdomain(fv.FancyValidator):
         if subd:
             raise fv.Invalid('That subdomain already exists :(', value, state)
         
-        return value
+        return value.lower()
 
 class RoleStatusForm(formencode.Schema):
     role = fv.OneOf(ORGANIZATION_ROLES, not_empty=True)

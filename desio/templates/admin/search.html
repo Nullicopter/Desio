@@ -33,6 +33,9 @@
                             ${org.name}
                         </a>
                     </span>
+                    -
+                    <% url = pylons.config['subdomain_url'] % org.subdomain %>
+                    <a href="${url}">${url}</a>
                 </div>
                 
                 <div>

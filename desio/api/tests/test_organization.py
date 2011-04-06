@@ -37,6 +37,13 @@ class TestOrganization(TestController):
         assert orgu.status == STATUS_APPROVED
         
         o = {
+            'subdomain': u'SomeCompany',
+            'name': u'My company',
+        }
+        org = api.organization.create(u,u, **o)
+        assert org.subdomain == 'somecompany'
+        
+        o = {
             'subdomain': u'mycompany2',
             'name': u'My company',
         }

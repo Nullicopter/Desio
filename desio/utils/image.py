@@ -252,11 +252,11 @@ class PostscriptExtractor(Extractor):
             #print 'density change', self.image.size
         
         self.image.iterator_reset()
+        
         images = []
-        l = True
-        while l:
+        while self.image.iterator_next():
             images.append(self._write_file(EXTRACT_TYPE_FULL))
-            l = self.image.iterator_next()
+        
         self.image.iterator_reset()
         
         return images + self.thumbnail()
