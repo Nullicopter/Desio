@@ -18,7 +18,7 @@ ID_PARAM = 'project'
 EDIT_FIELDS = ['name', 'description']
 ADMIN_EDIT_FIELDS = ['status']
 
-ROLES = [projects.PROJECT_ROLE_READ, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN]
+ROLES = [projects.APP_ROLE_READ, projects.APP_ROLE_WRITE, projects.APP_ROLE_ADMIN]
 ROLE_STATUSES = [STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED]
 
 class RoleStatusForm(formencode.Schema):
@@ -120,11 +120,11 @@ def get(real_user, user, organization, project=None):
 
 @enforce(u=users.User, role=unicode, status=unicode)
 @authorize(CanAdminProject(), Exists('project', 'u'))
-def attach_user(real_user, user, project, u, role=users.ORGANIZATION_ROLE_USER):#, status=STATUS_APPROVED): #maybe later
+def attach_user(real_user, user, project, u, role=users.APP_ROLE_READ):#, status=STATUS_APPROVED): #maybe later
 
     params = validate(RoleStatusForm, role=role, status=STATUS_APPROVED)
     
-    pu = project.get_project_user(u, status=None)
+    pu = project.get_user_connection(u, status=None)
     if pu:
         raise ClientException('User already attached', INVALID)
     
@@ -161,7 +161,7 @@ def set_user_role(real_user, user, project, u, role):
 @authorize(CanReadProject())
 def get_users(real_user, user, project, status=STATUS_APPROVED):
     
-    return project.get_project_users(status=status)
+    return project.get_user_connections(status=status)
 
 def _get_files_for_dir(project, dirobj):
     if not dir: return None

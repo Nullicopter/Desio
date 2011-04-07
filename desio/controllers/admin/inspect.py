@@ -48,7 +48,7 @@ class InspectController(AdminController):
             {'attr': 'last_login_date'},
         ]
         
-        c.user_orgs = c.obj.get_organization_users(status=None)
+        c.user_orgs = c.obj.get_user_connections(status=None)
         
         return self.render('/admin/inspect/user.html')
     

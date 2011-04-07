@@ -11,14 +11,11 @@ from desio.model.meta import Session, Base
 
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
-from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush
+from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush, Roleable
+from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
 from desio.utils import file_uploaders as fu, image, is_testing, digests
 
 from collections import defaultdict as dd
-
-PROJECT_ROLE_ADMIN = u'admin'
-PROJECT_ROLE_READ = u'read'
-PROJECT_ROLE_WRITE = u'write'
 
 def get_unique_slug(organization, name, max=100):
     import re
@@ -57,9 +54,9 @@ class ProjectUser(Base):
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
     
     def __repr__(self):
-        return u'ProjectUser(%s, org:%s, u:%s)' % (self.id, self.project_id, self.user_id)
+        return u'ProjectUser(%s, proj:%s, u:%s)' % (self.id, self.project_id, self.user_id)
 
-class Project(Base):
+class Project(Base, Roleable):
     """
     A Project represents a revisioned tree of files
     """
@@ -87,6 +84,9 @@ class Project(Base):
     # no duplicate name inside the same organization, it would be hard
     # to distinguish them
     __table_args__ = (sa.UniqueConstraint('organization_id', 'name'), {})
+    
+    connection_class = ProjectUser
+    object_name = 'project'
 
     def __init__(self, **kwargs):
         super(Project, self).__init__(**kwargs)
@@ -95,7 +95,7 @@ class Project(Base):
 
         creator = kwargs.get('creator')
         if creator:
-            self.attach_user(creator, PROJECT_ROLE_ADMIN)
+            self.attach_user(creator, APP_ROLE_ADMIN)
 
     @property
     def last_modified(self):
@@ -229,76 +229,45 @@ class Project(Base):
     ### User connection stuff
     
     def get_role(self, user, status=STATUS_APPROVED):
+        
         org_role = self.organization.get_role(user)
-        if not org_role: return None
+        #if not org_role: return None
         
-        #we prolly should standardize roles in the model...
+        # we prolly should standardize roles in the model...
         # this is technically an organization role, but they are the same string.
-        if org_role == PROJECT_ROLE_ADMIN: return PROJECT_ROLE_ADMIN
+        if org_role == APP_ROLE_ADMIN: return APP_ROLE_ADMIN
         
-        orgu = self.get_project_user(user, status)
+        orgu = self.get_user_connection(user, status)
         if orgu:
             return orgu.role
         else:
-            if self.organization.is_read_open:
-                return PROJECT_ROLE_READ
+            if org_role and self.organization.is_read_open:
+                return APP_ROLE_READ
         return None
-    
-    def set_role(self, user, role):
-        """
-        Sets a role on an existing user.
-        
-        Maybe this should implicitly add a user?
-        """
-        orgu = self.get_project_user(user)
-        if orgu:
-            orgu.role = role
-            return True
-        return False
-    
-    def get_project_user(self, user, status=STATUS_APPROVED):
-        """
-        Find a single user's membership within this org
-        """
-        q = Session.query(ProjectUser).filter(ProjectUser.user_id==user.id)
-        if status:
-            q = q.filter(ProjectUser.status==status)
-        return q.filter(ProjectUser.project_id==self.id).first()
-    
-    def get_project_users(self, status=None):
-        """
-        Get all memberships in this org.
-        """
-        q = Session.query(ProjectUser).filter(ProjectUser.project_id==self.id)
-        if status and isinstance(status, basestring):
-            q = q.filter(ProjectUser.status==status)
-        if status and isinstance(status, (list, tuple)):
-            q = q.filter(ProjectUser.status.in_(status))
-        return q.all()
-    
-    def attach_user(self, user, role=PROJECT_ROLE_READ, status=STATUS_APPROVED):
-        org_user = Session.query(ProjectUser) \
-                    .filter(ProjectUser.project==self) \
-                    .filter(ProjectUser.user==user).first()
-        if org_user:
-            org_user.role = role
-            org_user.status = status
-            return org_user
-        
-        org_user = ProjectUser(user=user, project=self, role=role, status=status)
-        Session.add(org_user)
-        return org_user
-    
-    def remove_user(self, user):
-        q = Session.query(ProjectUser).filter(ProjectUser.project_id==self.id)
-        q = q.filter(ProjectUser.user_id==user.id)
-        orgu = q.first()
-        if orgu:
-            Session.delete(orgu)
-            return True
-        return False
 
-class Entity(Base):
+class EntityUser(Base):
+    """
+    Stores a user's role within a project
+    """
+    __tablename__ = "entity_users"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    
+    role = sa.Column(sa.Unicode(16), nullable=False)
+    status = sa.Column(sa.Unicode(16), nullable=False)
+    
+    user = relationship("User", backref=backref("entity_users", cascade="all"))
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
+    
+    entity = relationship("Entity", backref=backref("entity_users", cascade="all"))
+    entity_id = sa.Column(sa.Integer, sa.ForeignKey('entities.id'), nullable=False, index=True)
+    
+    created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
+    
+    def __repr__(self):
+        return u'EntityUser(%s, entity:%s, u:%s)' % (self.id, self.entity_id, self.user_id)
+
+class Entity(Base, Roleable):
     """
     An Entity contained in a project
     """
@@ -322,6 +291,9 @@ class Entity(Base):
 
     __table_args__ = (sa.UniqueConstraint('path', 'name', 'project_id', 'type'), {})
     __mapper_args__ = {'polymorphic_on': type}
+    
+    connection_class = EntityUser
+    object_name = 'entity'
 
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
@@ -398,8 +370,24 @@ class Entity(Base):
         self.status = STATUS_EXISTS
         self.name = self.name.split(u"-", 1)[1]
         self.update_activity()
+    
+    ##
+    ### User connection stuff
+    
+    def get_role(self, user, status=STATUS_APPROVED):
         
+        proj_role = self.project.get_role(user)
+        #if not org_role: return None
         
+        # we prolly should standardize roles in the model...
+        # this is technically an organization role, but they are the same string.
+        if proj_role == APP_ROLE_ADMIN: return APP_ROLE_ADMIN
+        
+        eu = self.get_user_connection(user, status)
+        if eu:
+            return eu.role
+        return None
+    
 class Directory(Entity):
     """
     A directory, mainly used to display directories and ease the querying.

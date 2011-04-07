@@ -129,9 +129,9 @@ class HasRole(IsLoggedIn):
         
         return True
 
-ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
-ORGANIZATION_ROLE_CREATOR = 'creator'
-ORGANIZATION_ROLE_USER = ROLE_USER
+APP_ROLE_ADMIN = ROLE_ADMIN
+APP_ROLE_WRITE = 'creator'
+APP_ROLE_READ = ROLE_USER
 
 class HasObjRole(IsLoggedIn):
     def __init__(self, roles, param=None, get_from=None):
@@ -195,7 +195,7 @@ class CanReadOrg(HasObjRole):
     """
     def __init__(self, param='organization', **kw):
         super(CanReadOrg, self).__init__(
-            [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN],
+            [users.APP_ROLE_READ, users.APP_ROLE_WRITE, users.APP_ROLE_ADMIN],
             param=param, **kw)
     
     def check(self, real_user, user, **kwargs):
@@ -209,7 +209,7 @@ class CanContributeToOrg(HasObjRole):
     """
     def __init__(self, param='organization', **kw):
         super(CanContributeToOrg, self).__init__(
-            [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR],
+            [users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE],
             param=param, **kw)
 
 class CanAdminOrg(HasObjRole):
@@ -218,7 +218,7 @@ class CanAdminOrg(HasObjRole):
     can read/write all projects.
     """
     def __init__(self, param='organization', **kw):
-        super(CanAdminOrg, self).__init__([users.ORGANIZATION_ROLE_ADMIN], param=param, **kw)
+        super(CanAdminOrg, self).__init__([users.APP_ROLE_ADMIN], param=param, **kw)
 
 ##
 ### Project auth decorators
@@ -230,7 +230,7 @@ class CanReadProject(HasObjRole):
     """
     def __init__(self, param='project', **kw):
         super(CanReadProject, self).__init__(
-            [projects.PROJECT_ROLE_READ, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
+            [projects.APP_ROLE_READ, projects.APP_ROLE_WRITE, projects.APP_ROLE_ADMIN],
             param=param, **kw)
     
     def check(self, real_user, user, **kwargs):
@@ -244,7 +244,7 @@ class CanWriteProject(HasObjRole):
     """
     def __init__(self, param='project', **kw):
         super(CanWriteProject, self).__init__(
-            [projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_ADMIN],
+            [projects.APP_ROLE_WRITE, projects.APP_ROLE_ADMIN],
             param=param, **kw)
 
 class CanAdminProject(HasObjRole):
@@ -253,7 +253,7 @@ class CanAdminProject(HasObjRole):
     can read/write all projects.
     """
     def __init__(self, param='project', **kw):
-        super(CanAdminProject, self).__init__([projects.PROJECT_ROLE_ADMIN], param=param, **kw)
+        super(CanAdminProject, self).__init__([projects.APP_ROLE_ADMIN], param=param, **kw)
 
 class MustOwn(IsLoggedIn):
     

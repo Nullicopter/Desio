@@ -174,7 +174,7 @@ class OrganizationBaseController(BaseController):
             abort(404)
         
         def tohome(*a, **k):
-            orgu = c.organization.get_organization_user(u, status=None)
+            orgu = c.organization.get_user_connection(u, status=None)
             if orgu and orgu.status == STATUS_PENDING:
                 return '/pending'
             
@@ -183,8 +183,8 @@ class OrganizationBaseController(BaseController):
         auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(ru, u, organization=c.organization)
         
         c.user_role = c.organization.get_role(c.user)
-        c.is_org_admin = c.user_role in [users.ORGANIZATION_ROLE_ADMIN]
-        c.is_org_creator = c.user_role in [users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR]
+        c.is_org_admin = c.user_role in [users.APP_ROLE_ADMIN]
+        c.is_org_creator = c.user_role in [users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE]
         c.is_org_user = True #if we get here this is always true. prolly stupid to have in here
 
 """
@@ -211,7 +211,7 @@ class CanReadOrgRedirect(HasOrgRole):
     """
     def __init__(self, **kw):
         super(CanReadOrgRedirect, self).__init__(
-            users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_USER,
+            users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE, users.APP_ROLE_READ,
             **kw)
 
 class CanContributeToOrgRedirect(HasOrgRole):
@@ -220,7 +220,7 @@ class CanContributeToOrgRedirect(HasOrgRole):
     """
     def __init__(self, **kw):
         super(CanContributeToOrgRedirect, self).__init__(
-            users.ORGANIZATION_ROLE_ADMIN, users.ORGANIZATION_ROLE_CREATOR, **kw)
+            users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE, **kw)
 
 class CanAdminOrgRedirect(HasOrgRole):
     """
@@ -228,7 +228,7 @@ class CanAdminOrgRedirect(HasOrgRole):
     can read/write all projects.
     """
     def __init__(self, **kw):
-        super(CanAdminOrgRedirect, self).__init__(users.ORGANIZATION_ROLE_ADMIN, **kw)
+        super(CanAdminOrgRedirect, self).__init__(users.APP_ROLE_ADMIN, **kw)
 
 """
 Project role decorators
@@ -254,7 +254,7 @@ class CanReadProjectRedirect(HasProjectRole):
     """
     def __init__(self, **kw):
         super(CanReadProjectRedirect, self).__init__(
-            projects.PROJECT_ROLE_ADMIN, projects.PROJECT_ROLE_WRITE, projects.PROJECT_ROLE_READ,
+            projects.APP_ROLE_ADMIN, projects.APP_ROLE_WRITE, projects.APP_ROLE_READ,
             **kw)
 
 class CanWriteProjectRedirect(HasProjectRole):
@@ -263,7 +263,7 @@ class CanWriteProjectRedirect(HasProjectRole):
     """
     def __init__(self, **kw):
         super(CanWriteProjectRedirect, self).__init__(
-            projects.PROJECT_ROLE_ADMIN, projects.PROJECT_ROLE_WRITE, **kw)
+            projects.APP_ROLE_ADMIN, projects.APP_ROLE_WRITE, **kw)
 
 class CanAdminProjectRedirect(HasProjectRole):
     """
@@ -271,4 +271,4 @@ class CanAdminProjectRedirect(HasProjectRole):
     can read/write all projects.
     """
     def __init__(self, **kw):
-        super(CanAdminProjectRedirect, self).__init__(projects.PROJECT_ROLE_ADMIN, **kw)
+        super(CanAdminProjectRedirect, self).__init__(projects.APP_ROLE_ADMIN, **kw)

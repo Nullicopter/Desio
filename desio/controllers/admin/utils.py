@@ -30,7 +30,7 @@ class UtilsController(BaseController):
         unapproved = fh.create_user(username=u'jack@unloved.com', email=u'jack@unloved.com', password=pw)
         self.flush()
         
-        org.attach_user(creator, role=users.ORGANIZATION_ROLE_CREATOR, status=STATUS_APPROVED)
+        org.attach_user(creator, role=users.APP_ROLE_WRITE, status=STATUS_APPROVED)
         for u in [jim, kyle, joe, jethro]:
             org.attach_user(u, status=STATUS_APPROVED)
         org.attach_user(unapproved)
@@ -43,12 +43,12 @@ class UtilsController(BaseController):
         
         self.flush()
         
-        p1.attach_user(jim, projects.PROJECT_ROLE_READ);
-        p1.attach_user(kyle, projects.PROJECT_ROLE_WRITE);
-        p1.attach_user(joe, projects.PROJECT_ROLE_ADMIN);
+        p1.attach_user(jim, projects.APP_ROLE_READ);
+        p1.attach_user(kyle, projects.APP_ROLE_WRITE);
+        p1.attach_user(joe, projects.APP_ROLE_ADMIN);
         
-        p2.attach_user(jim, projects.PROJECT_ROLE_ADMIN);
-        p2.attach_user(jethro, projects.PROJECT_ROLE_WRITE);
+        p2.attach_user(jim, projects.APP_ROLE_ADMIN);
+        p2.attach_user(jethro, projects.APP_ROLE_WRITE);
         
         self.flush()
         

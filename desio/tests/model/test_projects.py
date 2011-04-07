@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from desio.model import fixture_helpers as fh
 from desio.model import projects as p, STATUS_APPROVED, STATUS_PENDING, STATUS_COMPLETED, STATUS_OPEN, STATUS_INACTIVE, STATUS_REMOVED
-from desio.model.projects import PROJECT_ROLE_READ, PROJECT_ROLE_WRITE, PROJECT_ROLE_ADMIN
+from desio.model.projects import APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN
 from desio.tests import *
 from desio.utils import image
 
@@ -188,7 +188,7 @@ class TestProjects(TestController):
         
         extracts = change.change_extracts
         
-        assert len(extracts) == 3
+        assert len(extracts) == 2
         foundthumb = False
         for e in extracts:
             if e.extract_type == image.EXTRACT_TYPE_THUMBNAIL:
@@ -230,49 +230,49 @@ class TestProjects(TestController):
         Testing: 
         def get_role(self, user, status=STATUS_APPROVED)
         def set_role(self, user, role)
-        def get_project_user(self, user, status=None)
-        def get_project_users(self, status=None)
-        def attach_user(self, user, role=PROJECT_ROLE_READ, status=STATUS_APPROVED)
+        def get_user_connection(self, user, status=None)
+        def get_user_connections(self, status=None)
+        def attach_user(self, user, role=APP_ROLE_READ, status=STATUS_APPROVED)
         def remove_user(self, user)
         """
         
         #this guy is not on the user, but he is an admin!
-        assert project.get_role(org_owner) == PROJECT_ROLE_ADMIN
+        assert project.get_role(org_owner) == APP_ROLE_ADMIN
         
         assert project.creator == owner
-        assert project.get_role(owner) == PROJECT_ROLE_ADMIN
+        assert project.get_role(owner) == APP_ROLE_ADMIN
         
         assert project.get_role(rando_no_org) == None
-        assert project.get_role(rando) == PROJECT_ROLE_READ
+        assert project.get_role(rando) == APP_ROLE_READ
         
         #test attach
-        pu = project.attach_user(write, PROJECT_ROLE_WRITE)
+        pu = project.attach_user(write, APP_ROLE_WRITE)
         self.flush()
-        assert pu.role == PROJECT_ROLE_WRITE
+        assert pu.role == APP_ROLE_WRITE
         assert pu.project == project
         assert pu.user == write
         assert pu.status == STATUS_APPROVED
-        assert project.get_role(write) == PROJECT_ROLE_WRITE
-        assert project.get_project_user(write).role == PROJECT_ROLE_WRITE
+        assert project.get_role(write) == APP_ROLE_WRITE
+        assert project.get_user_connection(write).role == APP_ROLE_WRITE
         
         #test set role
-        project.attach_user(admin, PROJECT_ROLE_WRITE)
+        project.attach_user(admin, APP_ROLE_WRITE)
         self.flush()
-        assert project.set_role(admin, PROJECT_ROLE_ADMIN)
+        assert project.set_role(admin, APP_ROLE_ADMIN)
         self.flush()
-        assert project.get_role(admin) == PROJECT_ROLE_ADMIN
+        assert project.get_role(admin) == APP_ROLE_ADMIN
         
         #test get project users
-        pus = project.get_project_users(status=STATUS_APPROVED)
+        pus = project.get_user_connections(status=STATUS_APPROVED)
         assert len(pus) == 3 #owner, write, admin
         
         #test is_read_open == false
         org.is_read_open = False
         self.flush()
         assert project.get_role(read) == None
-        project.attach_user(read, PROJECT_ROLE_READ)
+        project.attach_user(read, APP_ROLE_READ)
         self.flush()
-        assert project.get_role(read) == PROJECT_ROLE_READ
+        assert project.get_role(read) == APP_ROLE_READ
         
         #test remove
         assert project.remove_user(read)
@@ -282,5 +282,5 @@ class TestProjects(TestController):
         
         #test fail
         assert project.remove_user(rando) == False
-        assert project.set_role(rando, PROJECT_ROLE_READ) == False
+        assert project.set_role(rando, APP_ROLE_READ) == False
         self.flush()

@@ -13,7 +13,7 @@ import formencode.validators as fv
 ID_PARAM = 'organization'
 
 ROLES = [users.ROLE_USER, users.ROLE_ADMIN, users.ROLE_ENGINEER]
-ORGANIZATION_ROLES = [users.ORGANIZATION_ROLE_USER, users.ORGANIZATION_ROLE_CREATOR, users.ORGANIZATION_ROLE_ADMIN]
+APP_ROLES = [users.APP_ROLE_READ, users.APP_ROLE_WRITE, users.APP_ROLE_ADMIN]
 ROLE_STATUSES = [STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED]
 EDIT_FIELDS = ['name', 'url', 'is_read_open']
 ADMIN_EDIT_FIELDS = ['is_active', 'subdomain']
@@ -44,7 +44,7 @@ class UniqueSubdomain(fv.FancyValidator):
         return value.lower()
 
 class RoleStatusForm(formencode.Schema):
-    role = fv.OneOf(ORGANIZATION_ROLES, not_empty=True)
+    role = fv.OneOf(APP_ROLES, not_empty=True)
     status = fv.OneOf(ROLE_STATUSES, not_empty=True)
 
 class EditForm(formencode.Schema):
@@ -74,7 +74,7 @@ def create(real_user, user, **params):
     Session.add(org)
     
     #connect user to org as admin of org
-    org.attach_user(user, role=users.ORGANIZATION_ROLE_ADMIN, status=STATUS_APPROVED)
+    org.attach_user(user, role=users.APP_ROLE_ADMIN, status=STATUS_APPROVED)
     
     Session.flush()
     return org
@@ -139,22 +139,22 @@ def is_unique(subdomain):
 
 @enforce(u=users.User, role=unicode, status=unicode)
 @authorize(IsLoggedIn(), Exists('organization', 'u'))
-def attach_user(real_user, user, organization, u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
+def attach_user(real_user, user, organization, u, role=users.APP_ROLE_READ, status=STATUS_PENDING):
 
     params = validate(RoleStatusForm, role=role, status=status)
     
-    orgu = organization.get_organization_user(u, status=None)
+    orgu = organization.get_user_connection(u, status=None)
     if orgu:
         raise ClientException('User already attached', INVALID)
     
     role = organization.get_role(user)
-    if role == users.ORGANIZATION_ROLE_ADMIN:
+    if role == users.APP_ROLE_ADMIN:
         #special. We adhere to role and status vars
         orgu = organization.attach_user(u, role=params.role, status=params.status)
     else:
         # anyone can attempt to attach themselves, but they will be pending approval in
         # read group only
-        orgu = organization.attach_user(u, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING)
+        orgu = organization.attach_user(u, role=users.APP_ROLE_READ, status=STATUS_PENDING)
     
     return orgu
 
@@ -175,8 +175,8 @@ def attachment_approval(real_user, user, organization, u, status=STATUS_APPROVED
 @enforce(u=users.User, role=unicode)
 @authorize(CanAdminOrg(), Exists('u'))
 def set_user_role(real_user, user, organization, u, role):
-    if role not in users.ORGANIZATION_ROLES:
-        raise ClientException('Role must be one of %s' % users.ORGANIZATION_ROLES, field='role')
+    if role not in users.APP_ROLES:
+        raise ClientException('Role must be one of %s' % users.APP_ROLES, field='role')
     
     return organization.set_role(u, role)
 
@@ -184,4 +184,4 @@ def set_user_role(real_user, user, organization, u, role):
 @authorize(CanReadOrg())
 def get_users(real_user, user, organization, status=None):
     
-    return organization.get_organization_users(status=status)
+    return organization.get_user_connections(status=status)

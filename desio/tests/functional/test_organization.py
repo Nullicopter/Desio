@@ -44,7 +44,7 @@ class TestOrganizationAuthController(TestController):
         
         user = api.user.get(username='bleh@omg.com')
         
-        orgu = org.get_organization_user(user)
+        orgu = org.get_user_connection(user)
         
         assert orgu
         assert orgu.status == STATUS_PENDING

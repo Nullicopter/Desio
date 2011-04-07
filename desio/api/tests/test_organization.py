@@ -1,6 +1,6 @@
 from desio.api import authorize, enforce, FieldEditor, convert_date
 from desio.model import fixture_helpers as fh, Session, users, STATUS_APPROVED, STATUS_PENDING
-from desio.model.users import ORGANIZATION_ROLE_ADMIN, ORGANIZATION_ROLE_USER, ORGANIZATION_ROLE_CREATOR 
+from desio.model.users import APP_ROLE_ADMIN, APP_ROLE_READ, APP_ROLE_WRITE 
 from desio import api
 from desio.tests import *
 
@@ -33,7 +33,7 @@ class TestOrganization(TestController):
         orgu = u.organization_users[0]
         assert orgu.user_id == u.id
         assert orgu.organization_id == org.id
-        assert orgu.role == users.ORGANIZATION_ROLE_ADMIN
+        assert orgu.role == users.APP_ROLE_ADMIN
         assert orgu.status == STATUS_APPROVED
         
         o = {
@@ -113,27 +113,27 @@ class TestOrganization(TestController):
         org = fh.create_organization(user=admin)
         self.flush()
         
-        assert org.get_role(admin) == ORGANIZATION_ROLE_ADMIN
+        assert org.get_role(admin) == APP_ROLE_ADMIN
         
         #anyone can attach themselves, but unless admin, they will be user:pending
-        assert api.organization.attach_user(user, user, org, user, role=ORGANIZATION_ROLE_ADMIN, status=STATUS_APPROVED)
+        assert api.organization.attach_user(user, user, org, user, role=APP_ROLE_ADMIN, status=STATUS_APPROVED)
         self.flush()
-        assert org.get_role(user, status=STATUS_PENDING) == ORGANIZATION_ROLE_USER
+        assert org.get_role(user, status=STATUS_PENDING) == APP_ROLE_READ
         
         #approve
         assert api.organization.attachment_approval(admin, admin, org, user)
         self.flush()
-        assert org.get_role(user) == ORGANIZATION_ROLE_USER
+        assert org.get_role(user) == APP_ROLE_READ
         
         #approve creator automatically cause I'M AN ADMIN, BITCH
-        assert api.organization.attach_user(admin, admin, org, creator, role=ORGANIZATION_ROLE_CREATOR, status=STATUS_APPROVED)
+        assert api.organization.attach_user(admin, admin, org, creator, role=APP_ROLE_WRITE, status=STATUS_APPROVED)
         self.flush()
-        assert org.get_role(creator) == ORGANIZATION_ROLE_CREATOR
+        assert org.get_role(creator) == APP_ROLE_WRITE
         
         #creator tries to add rando. CANNOT
-        assert api.organization.attach_user(creator, creator, org, rando, role=ORGANIZATION_ROLE_ADMIN, status=STATUS_APPROVED)
+        assert api.organization.attach_user(creator, creator, org, rando, role=APP_ROLE_ADMIN, status=STATUS_APPROVED)
         self.flush()
-        assert org.get_role(rando, status=STATUS_PENDING) == ORGANIZATION_ROLE_USER
+        assert org.get_role(rando, status=STATUS_PENDING) == APP_ROLE_READ
         
         #everyone tries to approve, and all fail but admin's attempt
         assert self.throws_exception(lambda: api.organization.attachment_approval(user, user, org, rando)).code == FORBIDDEN
@@ -146,4 +146,4 @@ class TestOrganization(TestController):
         
         assert api.organization.attachment_approval(admin, admin, org, rando)
         self.flush()
-        assert org.get_role(rando) == ORGANIZATION_ROLE_USER
+        assert org.get_role(rando) == APP_ROLE_READ

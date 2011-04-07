@@ -2,12 +2,12 @@
 <%!
 import pylons
 from desio.config.frontend_modules import JS, CSS
-from desio.model.projects import PROJECT_ROLE_READ, PROJECT_ROLE_WRITE, PROJECT_ROLE_ADMIN
+from desio.model.projects import APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN
 
 roles = [
-    {'key': PROJECT_ROLE_READ, 'value': 'Reader'},
-    {'key': PROJECT_ROLE_WRITE, 'value': 'Contributor'},
-    {'key': PROJECT_ROLE_ADMIN, 'value': 'Admin'}
+    {'key': APP_ROLE_READ, 'value': 'Reader'},
+    {'key': APP_ROLE_WRITE, 'value': 'Contributor'},
+    {'key': APP_ROLE_ADMIN, 'value': 'Admin'}
 ]
 %>
     

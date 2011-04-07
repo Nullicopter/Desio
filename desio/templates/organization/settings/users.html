@@ -4,12 +4,12 @@
 
 <%!
     from desio.model import STATUS_PENDING, STATUS_REJECTED, STATUS_APPROVED
-    from desio.model.users import ORGANIZATION_ROLE_ADMIN, ORGANIZATION_ROLE_CREATOR, ORGANIZATION_ROLE_USER
+    from desio.model.users import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
     
     roles = [
-        {'key': ORGANIZATION_ROLE_USER, 'value': 'Normal User'},
-        {'key': ORGANIZATION_ROLE_CREATOR, 'value': 'Creator'},
-        {'key': ORGANIZATION_ROLE_ADMIN, 'value': 'Admin'}
+        {'key': APP_ROLE_READ, 'value': 'Normal User'},
+        {'key': APP_ROLE_WRITE, 'value': 'Creator'},
+        {'key': APP_ROLE_ADMIN, 'value': 'Admin'}
     ]
 %>
 <%def name="header()">

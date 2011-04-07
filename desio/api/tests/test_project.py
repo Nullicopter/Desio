@@ -30,7 +30,7 @@ class TestProject(TestController):
         orgu = u.organization_users[0]
         assert orgu.user_id == u.id
         assert orgu.organization_id == org.id
-        assert orgu.role == users.ORGANIZATION_ROLE_ADMIN
+        assert orgu.role == users.APP_ROLE_ADMIN
         assert orgu.status == STATUS_APPROVED
 
         p = {'name': u' Hella Project! ye$ah   man_',
@@ -170,21 +170,21 @@ class TestProject(TestController):
         self.flush();
         
         """
-        def attach_user(real_user, user, project, u, role=users.ORGANIZATION_ROLE_USER)
+        def attach_user(real_user, user, project, u, role=users.APP_ROLE_READ)
         def remove_user(real_user, user, project, u)
         def set_user_role(real_user, user, project, u, role)
         def get_users(real_user, user, project, status=None)
         """
         
-        assert api.project.attach_user(org_owner, org_owner, project, write, projects.PROJECT_ROLE_WRITE)
+        assert api.project.attach_user(org_owner, org_owner, project, write, projects.APP_ROLE_WRITE)
         self.flush()
         
-        assert project.get_role(write) == projects.PROJECT_ROLE_WRITE
+        assert project.get_role(write) == projects.APP_ROLE_WRITE
         
-        assert api.project.set_user_role(owner, owner, project, write, projects.PROJECT_ROLE_ADMIN)
+        assert api.project.set_user_role(owner, owner, project, write, projects.APP_ROLE_ADMIN)
         self.flush()
         
-        assert project.get_role(write) == projects.PROJECT_ROLE_ADMIN
+        assert project.get_role(write) == projects.APP_ROLE_ADMIN
         
         pus = api.project.get_users(org_owner, org_owner, project)
         assert len(pus) == 2
@@ -195,19 +195,19 @@ class TestProject(TestController):
         assert project.get_role(write) == None
         
         #attach write again
-        assert api.project.attach_user(org_owner, org_owner, project, write, projects.PROJECT_ROLE_WRITE)
+        assert api.project.attach_user(org_owner, org_owner, project, write, projects.APP_ROLE_WRITE)
         self.flush()
         
-        ex = self.throws_exception(lambda: api.project.attach_user(write, write, project, read, projects.PROJECT_ROLE_READ))
+        ex = self.throws_exception(lambda: api.project.attach_user(write, write, project, read, projects.APP_ROLE_READ))
         assert 'project' == ex.field
         ex = self.throws_exception(lambda: api.project.remove_user(read, read, project, write))
         assert 'project' == ex.field
-        ex = self.throws_exception(lambda: api.project.set_user_role(read, read, project, write, projects.PROJECT_ROLE_READ))
+        ex = self.throws_exception(lambda: api.project.set_user_role(read, read, project, write, projects.APP_ROLE_READ))
         assert 'project' == ex.field
         
-        ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, project, None, projects.PROJECT_ROLE_READ))
+        ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, project, None, projects.APP_ROLE_READ))
         assert ex.code == NOT_FOUND
-        ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, None, read, projects.PROJECT_ROLE_READ))
+        ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, None, read, projects.APP_ROLE_READ))
         assert ex.code == NOT_FOUND
         ex = self.throws_exception(lambda: api.project.attach_user(owner, owner, project, read, None))
         assert 'role' in ex.error_dict

@@ -7,18 +7,19 @@ import hashlib
 
 from datetime import datetime
 
-from pylons_common.lib import exceptions, date, utils
-from desio.model import STATUS_APPROVED, STATUS_REJECTED, STATUS_PENDING
+from pylons_common.lib import exceptions as ex, date, utils
+from desio.model import Roleable, STATUS_APPROVED, STATUS_REJECTED, STATUS_PENDING
+from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
 
 ROLE_USER = u'user'
 ROLE_ADMIN = u'admin'
 ROLE_ENGINEER = u'engineer'
 
-ORGANIZATION_ROLE_ADMIN = ROLE_ADMIN
-ORGANIZATION_ROLE_CREATOR = 'creator'
-ORGANIZATION_ROLE_USER = ROLE_USER
+INVITE_TYPE_ORGANIZATION = 'organization'
+INVITE_TYPE_PROJECT = 'project'
+INVITE_TYPE_ENTITY = 'entity'
 
-ORGANIZATION_ROLES = [ORGANIZATION_ROLE_ADMIN, ORGANIZATION_ROLE_CREATOR, ORGANIZATION_ROLE_USER]
+INVITE_TYPES = [INVITE_TYPE_ORGANIZATION, INVITE_TYPE_PROJECT, INVITE_TYPE_ENTITY]
 
 now = date.now
 
@@ -33,7 +34,7 @@ def hash_password(clear_pass):
 
 class OrganizationUser(Base):
     """
-    Stores a user preference
+    Stores a user's role in an org
     """
     __tablename__ = "organization_users"
 
@@ -53,7 +54,7 @@ class OrganizationUser(Base):
     def __repr__(self):
         return u'OrganizationUser(%s, org:%s, u:%s)' % (self.id, self.organization_id, self.user_id)
 
-class Organization(Base):
+class Organization(Base, Roleable):
     """
     Stores a user preference
     """
@@ -78,21 +79,23 @@ class Organization(Base):
     created_date = sa.Column(sa.DateTime, nullable=False, default=now)
     updated_date = sa.Column(sa.DateTime, nullable=False, onupdate=now, default=now)
     
+    connection_class = OrganizationUser
+    object_name = 'organization'
+    
     def __repr__(self):
         return u'Organization(%s, %s)' % (self.id, self.subdomain)
     
     def get_role(self, user, status=STATUS_APPROVED):
-        orgu = self.get_organization_user(user, status)
+        orgu = self.get_user_connection(user, status)
         if orgu:
             return orgu.role
         return None
     
-    def set_role(self, user, role):
-        orgu = self.get_organization_user(user)
-        if orgu:
-            orgu.role = role
-            return True
-        return False
+    def attach_user(self, user, role=APP_ROLE_READ, status=STATUS_PENDING):
+        return super(Organization, self).attach_user(user, role=role, status=status)
+    
+    def get_user_connection(self, user, status=None):
+        return super(Organization, self).get_user_connection(user, status=status)
     
     def get_projects(self, user):
         from desio.model import projects
@@ -101,67 +104,10 @@ class Organization(Base):
         # this is kind of hairy. If org.is_read_open, the user can see all projects, otherwise,
         # we get based on connections
         
-        if not self.is_read_open and self.get_role(user) != ORGANIZATION_ROLE_ADMIN:
+        if not self.is_read_open and self.get_role(user) != APP_ROLE_ADMIN:
             q = q.join(projects.ProjectUser).filter(sa.and_(projects.ProjectUser.user==user, projects.ProjectUser.status==STATUS_APPROVED))
         
         return q.order_by(sa.desc(projects.Project.last_modified_date)).all()
-    
-    def get_organization_user(self, user, status=None):
-        """
-        Find a single user's membership within this org
-        """
-        q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==user.id)
-        if status:
-            q = q.filter(OrganizationUser.status==status)
-        return q.filter(OrganizationUser.organization_id==self.id).first()
-    
-    def get_organization_users(self, status=None):
-        """
-        Get all memberships in this org.
-        """
-        q = Session.query(OrganizationUser).filter(OrganizationUser.organization_id==self.id)
-        if status and isinstance(status, basestring):
-            q = q.filter(OrganizationUser.status==status)
-        if status and isinstance(status, (list, tuple)):
-            q = q.filter(OrganizationUser.status.in_(status))
-        return q.all()
-    
-    def set_user_status(self, user, status):
-        # could check pending?
-        org_user = self.get_organization_user(user)
-        if not org_user:
-            return False
-        
-        org_user.status = status
-        return org_user
-    
-    def approve_user(self, user):
-        return self.set_user_status(user, STATUS_APPROVED)
-    
-    def reject_user(self, user):
-        return self.set_user_status(user, STATUS_REJECTED)
-    
-    def attach_user(self, user, role=ORGANIZATION_ROLE_USER, status=STATUS_PENDING):
-        org_user = Session.query(OrganizationUser) \
-                    .filter(OrganizationUser.organization==self) \
-                    .filter(OrganizationUser.user==user).first()
-        if org_user:
-            org_user.role = role
-            org_user.status = status
-            return org_user
-        
-        org_user = OrganizationUser(user=user, organization=self, role=role, status=status)
-        Session.add(org_user)
-        return org_user
-    
-    def remove_user(self, user):
-        q = Session.query(OrganizationUser).filter(OrganizationUser.organization_id==self.id)
-        q = q.filter(OrganizationUser.user_id==user.id)
-        orgu = q.first()
-        if orgu:
-            Session.delete(orgu)
-            return True
-        return False
 
 class UserPreference(Base):
     """
@@ -347,9 +293,9 @@ class User(Base):
         return offset
     
     def get_organizations(self, status=STATUS_APPROVED):
-        return [r.organization for r in self.get_organization_users(status=status)]
+        return [r.organization for r in self.get_user_connections(status=status)]
     
-    def get_organization_users(self, status=STATUS_APPROVED):
+    def get_user_connections(self, status=STATUS_APPROVED):
         q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==self.id)
         if status:
             q = q.filter(OrganizationUser.status==status)
@@ -360,7 +306,7 @@ class User(Base):
             return True
         for thing in things:
             if thing and not self.owns(thing):
-                raise exceptions.ClientException("User must be an admin or else own this %s." % thing.__class__.__name__, exceptions.FORBIDDEN)
+                raise ex.ClientException("User must be an admin or else own this %s." % thing.__class__.__name__, ex.FORBIDDEN)
     
     def owns(self, thing):
         """
@@ -378,3 +324,113 @@ class User(Base):
                     return False
             return True
         return False
+
+class Invite(Base):
+    """
+    Stores an invite to a user.
+    """
+    __tablename__ = "invites"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    eid = sa.Column(sa.Unicode(22), unique=True, default=utils.uuid)
+    
+    role = sa.Column(sa.Unicode(16), nullable=False)
+    status = sa.Column(sa.Unicode(16), nullable=False)
+    type = sa.Column(sa.Unicode(16), nullable=False, index=True)
+    
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
+    user = relation("User", primaryjoin=user_id==User.id, backref=backref("sent_invites", cascade="all"))    
+    
+    invited_user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=True, index=True)
+    invited_user = relation("User", primaryjoin=invited_user_id==User.id, backref=backref("received_invites", cascade="all"))
+    
+    invited_email = sa.Column(sa.Unicode(256), unique=True, index=True, nullable=False)
+    
+    #any project, org, or entity id
+    object_id = sa.Column(sa.Integer, nullable=False, index=True)
+    
+    created_date = sa.Column(sa.DateTime, nullable=False, default=now)
+    
+    def __init__(self, *args, **kw):
+        super(Invite, self).__init__(*args, **kw)
+        
+        self._setup_lookups()
+    
+    def __repr__(self):
+        return u'Invite(%s, u:%r, invited:%s, to:%s%s)' % (self.id, self.user, self.invited_email, self.type, self.object_id)
+    
+    @classmethod
+    def _setup_lookups(cls):
+        from desio.model import projects
+        cls.fetch_types = {
+            INVITE_TYPE_ORGANIZATION: Organization,
+            INVITE_TYPE_PROJECT: projects.Project,
+            INVITE_TYPE_ENTITY: projects.Entity
+        }
+        
+        cls.put_types = {
+            Organization.__name__: INVITE_TYPE_ORGANIZATION,
+            projects.Project.__name__: INVITE_TYPE_PROJECT,
+            projects.File.__name__: INVITE_TYPE_ENTITY,
+            projects.Directory.__name__: INVITE_TYPE_ENTITY
+        }
+    
+    @classmethod
+    def create(cls, user, email, obj, role=APP_ROLE_READ):
+        """
+        Invites a user to an object.
+        
+        Params are supposed to be:
+            user invites email to obj with role
+        
+        This will find the user if he already exists.
+        """
+        cls._setup_lookups()
+        
+        invited = Session.query(User).filter_by(email=email).first()
+        
+        if invited and obj.get_role(invited):
+            raise ex.AppException('User has already been added to this %s' % type, ex.DUPLICATE)
+        
+        if role not in APP_ROLES:
+            raise ex.AppException('Check your role(%s) param' % (type, role), ex.INVALID)
+        
+        if not obj or not user or type(obj).__name__ not in cls.put_types:
+            raise ex.AppException('Check your user and org params. They must not be None.' % (type, role), ex.INVALID)
+        
+        inv = Invite(role=role, type=cls.put_types[type(obj).__name__], invited_email=email,
+                     user=user, invited_user=invited,
+                     object_id=obj.id, status=STATUS_PENDING)
+        
+        return inv
+    
+    @property
+    def object(self):
+        return Session.query(self.fetch_types[self.type]).filter_by(id=self.object_id).first()
+    
+    def reject(self):
+        self.status = STATUS_REJECTED
+    
+    def accept(self, user=None):
+        """
+        Accept an invite. Will attach the user to the object with an approved status.
+        """
+        
+        if self.status != STATUS_PENDING:
+            raise ex.AppException('Invite %r already accepted' % self, ex.INVALID)
+        
+        if not self.invited_user:
+            
+            if not user:
+                raise ex.AppException('Specify user to Invite.accept()', ex.INVALID)
+            if user.email.lower() != self.invited_email.lower():
+                raise ex.AppException("User's email does not match invite's email in Invite.accept()", ex.INVALID)
+            
+            self.invited_user = user
+        
+        self.status = STATUS_APPROVED
+        
+        obj = self.object
+        
+        obj.attach_user(self.invited_user, self.role, status=STATUS_APPROVED)
+        

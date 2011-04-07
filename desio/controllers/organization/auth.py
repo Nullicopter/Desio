@@ -30,7 +30,7 @@ class AuthController(AuthBaseController):
         
         user = api.user.create(**dict(request.params))
         
-        api.organization.attach_user(user, user, c.organization, user, role=users.ORGANIZATION_ROLE_USER, status=STATUS_PENDING)
+        api.organization.attach_user(user, user, c.organization, user, role=users.APP_ROLE_READ, status=STATUS_PENDING)
         
         self.commit()
         

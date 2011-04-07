@@ -38,8 +38,8 @@ class TestFile(TestController):
         
         project.organization.attach_user(guy_in_project, status=STATUS_APPROVED)
         project.organization.attach_user(reader, status=STATUS_APPROVED)
-        assert api.project.attach_user(user, user, project, guy_in_project, projects.PROJECT_ROLE_WRITE)
-        assert api.project.attach_user(user, user, project, reader, projects.PROJECT_ROLE_READ)
+        assert api.project.attach_user(user, user, project, guy_in_project, projects.APP_ROLE_WRITE)
+        assert api.project.attach_user(user, user, project, reader, projects.APP_ROLE_READ)
         
         filepath = file_path('ffcc00.gif')
         change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")

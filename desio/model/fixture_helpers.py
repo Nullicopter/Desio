@@ -49,7 +49,7 @@ def create_user(is_admin=False, **kw):
     Session.flush()
     return user
 
-def create_organization(user=None, role=users.ORGANIZATION_ROLE_ADMIN, status=STATUS_APPROVED, **kw):
+def create_organization(user=None, role=users.APP_ROLE_ADMIN, status=STATUS_APPROVED, **kw):
     """
     create an org and will attach a user to it. If no user specified, will make one.
     """
@@ -68,7 +68,7 @@ def create_organization(user=None, role=users.ORGANIZATION_ROLE_ADMIN, status=ST
     
     return org
 
-def create_project(user=None, organization=None, role=users.ORGANIZATION_ROLE_ADMIN, **kw):
+def create_project(user=None, organization=None, role=users.APP_ROLE_ADMIN, **kw):
     kw.setdefault("name", create_unique_str(u'project'))
     kw.setdefault("description", create_unique_str(u"description"))
     kw.setdefault("status", STATUS_APPROVED)

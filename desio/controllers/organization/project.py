@@ -28,8 +28,8 @@ def has_project():
             
             if c.project:
                 c.project_role = c.project.get_role(c.user)
-                c.is_project_admin = c.user_role in [projects.PROJECT_ROLE_ADMIN]
-                c.is_project_writer = c.user_role in [projects.PROJECT_ROLE_ADMIN, projects.PROJECT_ROLE_WRITE]
+                c.is_project_admin = c.user_role in [projects.APP_ROLE_ADMIN]
+                c.is_project_writer = c.user_role in [projects.APP_ROLE_ADMIN, projects.APP_ROLE_WRITE]
                 c.is_project_reader = c.project_role != None
             
             return fn(**kwargs)

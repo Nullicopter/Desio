@@ -23,8 +23,9 @@ import pylons.test
 from pylons_common.lib.log import create_logger
 logger = create_logger('desio.tests')
 
+from pylons_common.lib import exceptions as err
 from pylons_common.lib.utils import objectify
-from pylons_common.lib.exceptions import ClientException, CompoundException
+from pylons_common.lib.exceptions import ClientException, CompoundException, AppException
 import simplejson as json
 
 from turbomail.control import interface
