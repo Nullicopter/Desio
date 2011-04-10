@@ -7,9 +7,3 @@
 Hey ${user.human_name}, welcome to Binder!
 
 You just created your own space for ${organization.name} which you can access at ${url_for(subdomain=organization.subdomain, controller='organization/home', action='index')}.
-
-If you have any questions, dont be afraid to ask! support@binder.io
-
-Best,
-
-The Binder.io Team

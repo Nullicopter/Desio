@@ -97,6 +97,8 @@ JS = {
     ]),
     
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
+    'controllers.invite': ('build/controllers/invite.js', ['controllers/invite.js']),
+    
     'controllers.admin': ('build/controllers/admin.js', [
         'controllers/admin/base.js',
         'controllers/admin/report.js'

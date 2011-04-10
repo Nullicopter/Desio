@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanContributeToOrg, CanReadOrg, MustOwn, Or, Exists
+                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
 import sqlalchemy as sa

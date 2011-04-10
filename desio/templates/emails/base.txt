@@ -1,2 +1,10 @@
 
 ${next.body()}
+
+Binder.io is an awesome collaborative tool for your team's visual designs.
+
+If you have any questions, concerns, comments, feedback, or would just like to gush with love, dont be afraid to get in touch! Shoot an email over to ben@binder.io
+
+Best,
+
+The Binder.io Team

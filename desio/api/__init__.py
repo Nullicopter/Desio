@@ -1,5 +1,5 @@
 from desio.lib.base import h, logger
-from desio.model import Session, users, projects, STATUS_APPROVED
+from desio.model import Session, users, projects, STATUS_APPROVED, APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN
 from desio.model.users import ROLE_ADMIN, ROLE_USER
 import sqlalchemy as sa
 from pylons.controllers.util import abort
@@ -32,6 +32,7 @@ def enforce(**types):
     types.setdefault('real_user', users.User)
     types.setdefault('organization', users.Organization)
     types.setdefault('project', projects.Project)
+    types.setdefault('entity', projects.Entity)
     
     return base_enforce(Session, **types)
     
@@ -129,10 +130,6 @@ class HasRole(IsLoggedIn):
         
         return True
 
-APP_ROLE_ADMIN = ROLE_ADMIN
-APP_ROLE_WRITE = 'creator'
-APP_ROLE_READ = ROLE_USER
-
 class HasObjRole(IsLoggedIn):
     def __init__(self, roles, param=None, get_from=None):
         """
@@ -189,71 +186,103 @@ class HasObjRole(IsLoggedIn):
         
         return True
 
-class CanReadOrg(HasObjRole):
-    """
-    They can read all the projects they have access to. They can see org activity, etc.
-    """
-    def __init__(self, param='organization', **kw):
-        super(CanReadOrg, self).__init__(
-            [users.APP_ROLE_READ, users.APP_ROLE_WRITE, users.APP_ROLE_ADMIN],
+class CanReadObj(HasObjRole):
+    def __init__(self, param=None, **kw):
+        super(CanReadObj, self).__init__(
+            [APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN],
             param=param, **kw)
     
     def check(self, real_user, user, **kwargs):
         if real_user.is_admin(): return True
         
-        return super(CanReadOrg, self).check(real_user, user, **kwargs)
+        return super(CanReadObj, self).check(real_user, user, **kwargs)
 
-class CanContributeToOrg(HasObjRole):
+class CanWriteObj(HasObjRole):
+    def __init__(self, param=None, **kw):
+        super(CanWriteObj, self).__init__(
+            [APP_ROLE_ADMIN, APP_ROLE_WRITE],
+            param=param, **kw)
+
+class CanAdminObj(HasObjRole):
+    def __init__(self, param=None, **kw):
+        super(CanAdminObj, self).__init__([APP_ROLE_ADMIN], param=param, **kw)
+
+##
+### Org auth decorators
+##
+
+class CanReadOrg(CanReadObj):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
+    def __init__(self, param='organization', **kw):
+        super(CanReadOrg, self).__init__(param=param, **kw)
+    
+class CanWriteOrg(CanWriteObj):
     """
     They can create and modify projects and membership in projects.
     """
     def __init__(self, param='organization', **kw):
-        super(CanContributeToOrg, self).__init__(
-            [users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE],
-            param=param, **kw)
+        super(CanWriteOrg, self).__init__(param=param, **kw)
 
-class CanAdminOrg(HasObjRole):
+class CanAdminOrg(CanAdminObj):
     """
     They are an organization admin. They can edit CC information, organization membership, they
     can read/write all projects.
     """
     def __init__(self, param='organization', **kw):
-        super(CanAdminOrg, self).__init__([users.APP_ROLE_ADMIN], param=param, **kw)
+        super(CanAdminOrg, self).__init__(param=param, **kw)
 
 ##
 ### Project auth decorators
 ##
 
-class CanReadProject(HasObjRole):
+class CanReadProject(CanReadObj):
     """
-    They can read all the projects they have access to. They can see org activity, etc.
+    They can read the project's files and comments
     """
     def __init__(self, param='project', **kw):
-        super(CanReadProject, self).__init__(
-            [projects.APP_ROLE_READ, projects.APP_ROLE_WRITE, projects.APP_ROLE_ADMIN],
-            param=param, **kw)
+        super(CanReadProject, self).__init__(param=param, **kw)
+
+class CanWriteProject(CanWriteObj):
+    """
+    They can add files to projects
+    """
+    def __init__(self, param='project', **kw):
+        super(CanWriteProject, self).__init__(param=param, **kw)
+
+class CanAdminProject(CanAdminObj):
+    """
+    can admin this project. 
+    """
+    def __init__(self, param='project', **kw):
+        super(CanAdminProject, self).__init__(param=param, **kw)
     
-    def check(self, real_user, user, **kwargs):
-        if real_user.is_admin(): return True
-        
-        return super(CanReadProject, self).check(real_user, user, **kwargs)
+##
+### Entity auth decorators
+##
 
-class CanWriteProject(HasObjRole):
+class CanReadEntity(CanReadObj):
     """
-    They can create and modify projects and membership in projects.
+    They can read this file
     """
-    def __init__(self, param='project', **kw):
-        super(CanWriteProject, self).__init__(
-            [projects.APP_ROLE_WRITE, projects.APP_ROLE_ADMIN],
-            param=param, **kw)
+    def __init__(self, param='entity', **kw):
+        super(CanReadEntity, self).__init__(param=param, **kw)
 
-class CanAdminProject(HasObjRole):
+class CanWriteEntity(CanWriteObj):
     """
-    They are an organization admin. They can edit CC information, organization membership, they
-    can read/write all projects.
+    Can change this file
     """
-    def __init__(self, param='project', **kw):
-        super(CanAdminProject, self).__init__([projects.APP_ROLE_ADMIN], param=param, **kw)
+    def __init__(self, param='entity', **kw):
+        super(CanWriteEntity, self).__init__(param=param, **kw)
+
+class CanAdminEntity(CanAdminObj):
+    """
+    can admin this file 
+    """
+    def __init__(self, param='entity', **kw):
+        super(CanAdminEntity, self).__init__(param=param, **kw)
+    
 
 class MustOwn(IsLoggedIn):
     
@@ -444,3 +473,4 @@ import organization
 import project
 import error
 import file
+import invite

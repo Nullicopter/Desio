@@ -5,9 +5,3 @@
 </%def>
 
 Hey ${user.human_name}, welcome to Binder!
-
-If you have any questions, dont be afraid to ask! support@binder.io
-
-Best,
-
-The Binder.io Team

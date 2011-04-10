@@ -13,7 +13,7 @@ class InspectController(AdminController):
         auth.get_real_user()
         
     def user(self, *a, **kw):
-        c.obj = api.user.get(c.real_user, c.user, request.params.get('eid'))
+        c.obj = api.user.get(request.params.get('eid'))
         c.title = 'User %s:%s' % (c.obj.id, c.obj.username)
         
         """

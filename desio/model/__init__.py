@@ -18,6 +18,13 @@ APP_ROLE_READ = 'read'
 
 APP_ROLES = [APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ]
 
+APP_ROLE_INDEX = {
+    APP_ROLE_ADMIN: 3,
+    APP_ROLE_WRITE: 2,
+    APP_ROLE_READ: 1,
+    None: 0
+}
+
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     Session.configure(bind=engine)

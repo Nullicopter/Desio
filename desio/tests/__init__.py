@@ -127,6 +127,10 @@ class TestController(TestRollback):
         resp = self.post(url_for(controller='auth', action='login'),
                          dict(username=user.username, password=password or u'testpassword'), **kw)
     
+    def logout(self):
+        
+        resp = self.post(url_for(controller='auth', action='logout'),{})
+    
     def pretend(self, user, **kw):
         resp = self.get(url_for(controller='auth', action='pretend', username=user.username))
     

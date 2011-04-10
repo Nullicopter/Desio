@@ -206,7 +206,7 @@ class TestProjects(TestController):
     
     def test_membership(self):
         """
-        Test user connection BS
+        Test user connection BS, everyone is in the org
         """
         org_owner = fh.create_user()
         owner = fh.create_user()
@@ -215,6 +215,7 @@ class TestProjects(TestController):
         read = fh.create_user()
         write = fh.create_user()
         admin = fh.create_user()
+        
         org = fh.create_organization(user=org_owner)
         project = fh.create_project(user=owner, organization=org, name=u"helloooo")
         
@@ -284,3 +285,102 @@ class TestProjects(TestController):
         assert project.remove_user(rando) == False
         assert project.set_role(rando, APP_ROLE_READ) == False
         self.flush()
+    
+    def test_membership_complex(self):
+        
+        org_owner = fh.create_user()
+        owner = fh.create_user()
+        
+        u = [fh.create_user() for i in range(5)]
+        
+        org = fh.create_organization(user=org_owner)
+        org.attach_user(owner, status=STATUS_APPROVED)
+        
+        project1 = fh.create_project(user=org_owner, organization=org, name=u"helloooo")
+        project2 = fh.create_project(user=org_owner, organization=org, name=u"jioasdjio")
+        
+        change1 = project1.add_change(org_owner, u"/main/project/arnold/foobar.gif", file_path('ffcc00.gif'), u"this is a new change")
+        change2 = project1.add_change(owner, u"/main/project/arnold/foobarblah.gif", file_path('ffcc00.gif'), u"this is a new change 2")
+        change3 = project2.add_change(owner, u"/main/project/arnold/meh.gif", file_path('ffcc00.gif'), u"this is a new change 3")
+        
+        file1, file2, file3 = change1.entity, change2.entity, change3.entity
+        
+        # this means anyone in the org has minimum read privileges
+        org.is_read_open = True
+        
+        self.flush()
+        
+        assert org.get_role(u[0]) == None
+        assert project1.get_role(u[0]) == None
+        assert file1.get_role(u[0]) == None
+        
+        # only org_owner and owner are in the org. Everyone else is an invite.
+        
+        # attach to project read
+        project1.attach_user(u[0], APP_ROLE_READ)
+        self.flush()
+        
+        assert org.get_role(u[0]) == None
+        assert project1.get_role(u[0]) == APP_ROLE_READ
+        assert project2.get_role(u[0]) == None
+        assert file1.get_role(u[0]) == APP_ROLE_READ
+        assert file2.get_role(u[0]) == APP_ROLE_READ
+        assert file3.get_role(u[0]) == None
+        
+        # attach to file 
+        file1.attach_user(u[1], APP_ROLE_WRITE)
+        self.flush()
+        
+        assert org.get_role(u[1]) == None
+        assert project1.get_role(u[1]) == None
+        assert project2.get_role(u[1]) == None
+        assert file1.get_role(u[1]) == APP_ROLE_WRITE
+        assert file2.get_role(u[1]) == None
+        assert file3.get_role(u[1]) == None
+        
+        # attach to file write, project read
+        project1.attach_user(u[2], APP_ROLE_READ)
+        file1.attach_user(u[2], APP_ROLE_WRITE)
+        self.flush()
+        
+        assert org.get_role(u[2]) == None
+        assert project1.get_role(u[2]) == APP_ROLE_READ
+        assert project2.get_role(u[2]) == None
+        assert file1.get_role(u[2]) == APP_ROLE_WRITE
+        assert file2.get_role(u[2]) == APP_ROLE_READ
+        assert file3.get_role(u[2]) == None
+        
+        # attach to file read, project write, org admin
+        org.attach_user(u[2], APP_ROLE_READ, status=STATUS_APPROVED)
+        self.flush()
+        
+        assert org.get_role(u[2]) == APP_ROLE_READ
+        assert project1.get_role(u[2]) == APP_ROLE_READ
+        assert project2.get_role(u[2]) == APP_ROLE_READ
+        assert file1.get_role(u[2]) == APP_ROLE_WRITE
+        assert file2.get_role(u[2]) == APP_ROLE_READ
+        assert file3.get_role(u[2]) == APP_ROLE_READ
+        
+        # attach to file read, project write
+        project1.attach_user(u[3], APP_ROLE_WRITE)
+        file1.attach_user(u[3], APP_ROLE_READ)
+        self.flush()
+        
+        assert org.get_role(u[3]) == None
+        assert project1.get_role(u[3]) == APP_ROLE_WRITE
+        assert project2.get_role(u[3]) == None
+        assert file1.get_role(u[3]) == APP_ROLE_WRITE
+        assert file2.get_role(u[3]) == APP_ROLE_WRITE
+        assert file3.get_role(u[3]) == None
+        
+        # attach to file read, project write, org admin
+        org.attach_user(u[3], APP_ROLE_ADMIN, status=STATUS_APPROVED)
+        self.flush()
+        
+        assert org.get_role(u[3]) == APP_ROLE_ADMIN
+        assert project1.get_role(u[3]) == APP_ROLE_ADMIN
+        assert project2.get_role(u[3]) == APP_ROLE_ADMIN
+        assert file1.get_role(u[3]) == APP_ROLE_ADMIN
+        assert file2.get_role(u[3]) == APP_ROLE_ADMIN
+        assert file3.get_role(u[3]) == APP_ROLE_ADMIN
+        

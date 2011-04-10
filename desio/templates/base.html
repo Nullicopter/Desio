@@ -23,26 +23,29 @@ if c.organization:
     <div id="header-inner"><hgroup>
         <div id="header-right">
         
-            <%
-            real_user = a.get_real_user()
-            user = a.get_user()
-            %>
-            % if real_user:
-                <span class="user real-user" title="${real_user.username}">${real_user.human_name}</span>
-                % if user and user.id != real_user.id:
-                    <span class="pretend-user user">[p: ${user.username}
-                    <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
+            <%def name="header_right()">
+                <%
+                real_user = a.get_real_user()
+                user = a.get_user()
+                %>
+                % if real_user:
+                    <span class="user real-user" title="${real_user.username}">${real_user.human_name}</span>
+                    % if user and user.id != real_user.id:
+                        <span class="pretend-user user">[p: ${user.username}
+                        <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
+                    % endif
+                    % if a.is_admin():
+                    |
+                    <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
+                    % endif
+                    |
+                    <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
+                % else:
+                    <a href="${h.url_for(controller='auth', action='login')}">login</a>
+                    | <a href="${h.url_for(controller='auth', action='register')}">register</a>
                 % endif
-                % if a.is_admin():
-                |
-                <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
-                % endif
-                |
-                <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
-            % else:
-                <a href="${h.url_for(controller='auth', action='login')}">login</a>
-                | <a href="${h.url_for(controller='auth', action='register')}">register</a>
-            % endif
+            </%def>
+            ${self.header_right()}
             
         </div>
         

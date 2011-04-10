@@ -1042,7 +1042,9 @@ Q.ViewFilePage = Q.Page.extend({
         headerName: '.file-meta .name',
         headerTime: '.file-meta .time',
         downloadLink: '#download-link',
-        shareDialog: '#share-dialog'
+        shareDialog: '#share-dialog',
+        shareEmail: '#email',
+        inviteForm: '#invite-form'
     },
     events:{
         'click #add-comment-link': 'addCommentClick',
@@ -1063,7 +1065,7 @@ Q.ViewFilePage = Q.Page.extend({
             collapseInitially: this.settings.collapseInitially
         });
         
-        this.shareDialog = this.n.shareDialog.Dialog({width: 600});
+        this.setupInvites();
         
         this.versions = new Q.FileVersions([]);
         this.selectedVersion = new Q.SingleSelectionModel('version');
@@ -1132,6 +1134,19 @@ Q.ViewFilePage = Q.Page.extend({
         this.selectedVersion.bind('change:version', this.viewVersion);
         
         $.log(this.comments);
+    },
+    
+    setupInvites: function(){
+        //share stuff
+        this.n.shareEmail.inputHint();
+        this.shareDialog = this.n.shareDialog.Dialog({width: 600});
+        
+        this.n.inviteForm.AsyncForm({
+            onSuccess: function(data){
+                Q.notify(data.results.invited_email + ' has been invited!');
+                this.val('email', '');
+            }
+        });
     },
     
     popShareDialog: function(){

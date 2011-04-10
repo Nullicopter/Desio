@@ -53,6 +53,7 @@ def create(**params):
     numusers = len(Session.query(users.User).all())
 
     scrubbed = validate(RegisterForm, **params)
+    logger.info(scrubbed)
 
     user = users.User()
     Session.add(user)

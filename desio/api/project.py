@@ -2,7 +2,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanContributeToOrg, CanReadOrg, Exists, Or
+                    CanWriteOrg, CanReadOrg, Exists, Or
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 import os.path
@@ -50,7 +50,7 @@ class UniqueName(fv.FancyValidator):
         return value
 
 @enforce(name=unicode, description=unicode)
-@authorize(CanContributeToOrg())
+@authorize(CanWriteOrg())
 def create(real_user, user, organization, **params):
     """
     Creates a project.

@@ -15,9 +15,9 @@ ROLE_USER = u'user'
 ROLE_ADMIN = u'admin'
 ROLE_ENGINEER = u'engineer'
 
-INVITE_TYPE_ORGANIZATION = 'organization'
-INVITE_TYPE_PROJECT = 'project'
-INVITE_TYPE_ENTITY = 'entity'
+INVITE_TYPE_ORGANIZATION = u'organization'
+INVITE_TYPE_PROJECT = u'project'
+INVITE_TYPE_ENTITY = u'entity'
 
 INVITE_TYPES = [INVITE_TYPE_ORGANIZATION, INVITE_TYPE_PROJECT, INVITE_TYPE_ENTITY]
 
@@ -344,7 +344,7 @@ class Invite(Base):
     invited_user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=True, index=True)
     invited_user = relation("User", primaryjoin=invited_user_id==User.id, backref=backref("received_invites", cascade="all"))
     
-    invited_email = sa.Column(sa.Unicode(256), unique=True, index=True, nullable=False)
+    invited_email = sa.Column(sa.Unicode(256), index=True, nullable=False)
     
     #any project, org, or entity id
     object_id = sa.Column(sa.Integer, nullable=False, index=True)
@@ -355,6 +355,7 @@ class Invite(Base):
         super(Invite, self).__init__(*args, **kw)
         
         self._setup_lookups()
+        self._object = None
     
     def __repr__(self):
         return u'Invite(%s, u:%r, invited:%s, to:%s%s)' % (self.id, self.user, self.invited_email, self.type, self.object_id)
@@ -387,18 +388,22 @@ class Invite(Base):
         """
         cls._setup_lookups()
         
-        invited = Session.query(User).filter_by(email=email).first()
-        
-        if invited and obj.get_role(invited):
-            raise ex.AppException('User has already been added to this %s' % type, ex.DUPLICATE)
-        
         if role not in APP_ROLES:
             raise ex.AppException('Check your role(%s) param' % (type, role), ex.INVALID)
         
         if not obj or not user or type(obj).__name__ not in cls.put_types:
             raise ex.AppException('Check your user and org params. They must not be None.' % (type, role), ex.INVALID)
         
-        inv = Invite(role=role, type=cls.put_types[type(obj).__name__], invited_email=email,
+        type_ = cls.put_types[type(obj).__name__].strip()
+        
+        invited = Session.query(User).filter_by(email=email).first()
+        invites = Session.query(Invite).filter_by(invited_email=email, object_id=obj.id, type=type_)
+        invites = invites.filter(Invite.status.in_([STATUS_APPROVED, STATUS_PENDING])).first()
+        
+        if (invited and obj.get_role(invited)) or invites:
+            raise ex.AppException('User has already been added to this %s' % type(obj).__name__, ex.DUPLICATE)
+        
+        inv = Invite(role=role, type=type_, invited_email=email,
                      user=user, invited_user=invited,
                      object_id=obj.id, status=STATUS_PENDING)
         
@@ -406,7 +411,10 @@ class Invite(Base):
     
     @property
     def object(self):
-        return Session.query(self.fetch_types[self.type]).filter_by(id=self.object_id).first()
+        if not getattr(self, '_object', None):
+            self._setup_lookups()
+            self._object = Session.query(self.fetch_types[self.type.strip()]).filter_by(id=self.object_id).first()
+        return self._object
     
     def reject(self):
         self.status = STATUS_REJECTED

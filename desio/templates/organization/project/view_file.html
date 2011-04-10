@@ -4,6 +4,14 @@
 <%!
     import simplejson as json
     from desio import utils
+    
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+    
+    roles = [
+        {'key': APP_ROLE_READ, 'value': 'can only comment'},
+        {'key': APP_ROLE_READ, 'value': 'can create new versions'},
+        {'key': APP_ROLE_READ, 'value': 'is an admin on this file'}
+    ]
 %>
 <%def name="header()">
     ${parent.header()}
@@ -12,6 +20,7 @@
     % if not c.user_role:
         div.reply-box{display: none !important;}
     % endif
+    #email{width: 225px;}
     </style>
     
     <script type="text/javascript">
@@ -125,11 +134,33 @@
 </div>
 
 <div id="share-dialog" class="dialog" title="Share">
-    <p>Share this link with folks who are not a member of your organization.
+    % if c.file.get_role(c.user) == APP_ROLE_ADMIN:
+        <p>You can invite somone to this file and allow them to collaborate with you on just
+        this one file. Enter their email and role, then click send!</p>
+        
+        <div>
+            <form action="${h.api_url('invite', 'create', entity=c.file.eid)}" id="invite-form">
+                <p>${f.text('email', title='Enter an email address', autocomplete='off', selectedValue=APP_ROLE_READ)}
+                who ${f.dropdown('role', roles)}</p>
+                ${f.submit('Send', className='primary b114')}
+            </form>
+        </div>
+        
+        <div class="divider"></div>
+    % endif
+    
+    <p>
+        % if c.file.get_role(c.user) == APP_ROLE_ADMIN:
+            Or, share
+        % else:
+            Share
+        % endif
+    this link with folks who are not a member of your organization.
     They will be able to view all the versions and the comments, but will not
     be able to contribute to the discission.</p>
     
     <pre>${h.get_domain(c.organization.subdomain)}${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}</pre>
+
 </div>
 
 <script id="tab-template" class="jstemplate" type="text/template">

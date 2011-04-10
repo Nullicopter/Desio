@@ -12,7 +12,7 @@ from desio.model.meta import Session, Base
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
 from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush, Roleable
-from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, APP_ROLE_INDEX
 from desio.utils import file_uploaders as fu, image, is_testing, digests
 
 from collections import defaultdict as dd
@@ -231,19 +231,15 @@ class Project(Base, Roleable):
     def get_role(self, user, status=STATUS_APPROVED):
         
         org_role = self.organization.get_role(user)
-        #if not org_role: return None
+        proj_role = None
+        eu = self.get_user_connection(user, status)
+        if eu:
+            proj_role = eu.role
         
-        # we prolly should standardize roles in the model...
-        # this is technically an organization role, but they are the same string.
-        if org_role == APP_ROLE_ADMIN: return APP_ROLE_ADMIN
+        if APP_ROLE_INDEX[org_role] > APP_ROLE_INDEX[APP_ROLE_READ] or self.organization.is_read_open:
+            return max(proj_role, org_role, key=lambda r: APP_ROLE_INDEX[r])
         
-        orgu = self.get_user_connection(user, status)
-        if orgu:
-            return orgu.role
-        else:
-            if org_role and self.organization.is_read_open:
-                return APP_ROLE_READ
-        return None
+        return proj_role
 
 class EntityUser(Base):
     """
@@ -377,16 +373,12 @@ class Entity(Base, Roleable):
     def get_role(self, user, status=STATUS_APPROVED):
         
         proj_role = self.project.get_role(user)
-        #if not org_role: return None
-        
-        # we prolly should standardize roles in the model...
-        # this is technically an organization role, but they are the same string.
-        if proj_role == APP_ROLE_ADMIN: return APP_ROLE_ADMIN
-        
+        ent_role = None
         eu = self.get_user_connection(user, status)
         if eu:
-            return eu.role
-        return None
+            ent_role = eu.role
+        
+        return max(proj_role, ent_role, key=lambda r: APP_ROLE_INDEX[r])
     
 class Directory(Entity):
     """

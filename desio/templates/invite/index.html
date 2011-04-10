@@ -1,0 +1,70 @@
+<%inherit file="/base.html"/>
+<%namespace name="f" file="/forms.html"/>
+<%namespace name="r" file="/require.html"/>
+
+<%!
+    import pylons
+    from desio.model.users import INVITE_TYPE_ENTITY, INVITE_TYPE_ORGANIZATION, INVITE_TYPE_PROJECT
+    from desio.model import STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+    
+    invite_type = {
+        INVITE_TYPE_ENTITY: 'file',
+        INVITE_TYPE_ORGANIZATION: 'organization',
+        INVITE_TYPE_PROJECT: 'project'
+    }
+    
+%>
+
+<%def name="header_right()">
+</%def>
+
+<%def name="header()">
+    ${parent.header()}
+    ${r.require('controllers.invite')}
+    <style>
+        #page-inner, #header-inner, #footer-inner{width: 400px !important;}
+        #invite-container{background: #fff; border: 1px solid #e5e5e5; padding: 15px;}
+        
+        #invite-container p:first-child{ margin-top: 0px; }
+        #invite-container form {margin-top: 25px;}
+        
+        .text {width: 355px;} 
+        
+        .buttons {height: 34px;}
+        .button {float: left;}
+        .secondary.button {margin-left: 10px;}
+        
+    </style>
+    <script type="text/javascript">
+        new Q.InvitePage().readyrun();
+    </script>
+</%def>
+
+<h1>You've been invited!</h1>
+
+<div id="invite-container">
+% if c.invite.status == STATUS_PENDING and not c.invite.invited_user:
+        
+        <p>You've been invited to ${invite_type[c.invite.type]} <b>${c.invite.object.name}</b>.
+        To accept with username <b>${c.invite.invited_email}</b>, simply tell us your name
+        and give a password. We'll get you going ASAP.</p>
+        
+        <form action="${h.url_for(controller='invite', action='index', id=c.invite.eid)}" method="post">
+            ${f.hidden('default_timezone')}
+            ${f.text_chunk('name', label="What's your name?", title='eg. Tyler Durden', autocomplete='off')}
+            ${f.password_chunk('password')}
+            ${f.password_chunk('confirm_password', label="Confirm Your Password")}
+            
+            <div class="buttons">
+            ${f.submit('Accept', className="button primary b114")}
+            </div>
+        </form>
+% else:
+    <p>This invite has been <b>${c.invite.status}</b>
+    % if c.invite.invited_user:
+        by ${c.invite.invited_user.human_name}.
+    % endif
+    </p>
+% endif
+
+</div>

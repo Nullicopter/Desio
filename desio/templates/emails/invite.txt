@@ -1,0 +1,32 @@
+<%inherit file="base.txt"/>
+
+<%def name="subject()">
+    You've been invited to ${invite.object.name} on Binder.io
+</%def>
+
+% if invite.invited_user:
+Hey ${user.human_name},
+% else:
+Hello, 
+% endif
+
+% if invite.type == 'organization':
+You've been invited to collaborate on some designs in Binder.io.
+
+${invitee.human_name} has invited you to their organization ${invite.object.name} at ${url_for(subdomain=invite.object.subdomain)}.
+% elif invite.type == 'project':
+You've been invited to collaborate on some designs in Binder.io.
+
+${invitee.human_name} has invited you to their project ${invite.object.name} at ${url_for(subdomain=invite.object.organization.subdomain)}.
+% else:
+You've been invited to collaborate on a design in Binder.io.
+
+${invitee.human_name} has invited you to their design ${invite.object.name}.
+% endif
+
+% if invite.invited_user:
+To accept this invitation, visit ${url_for(controller='invite', action='index', id=invite.eid)} 
+% else:
+To accept this invitation, visit ${url_for(controller='invite', action='index', id=invite.eid)}
+% endif
+

@@ -42,6 +42,8 @@ def make_map(config):
     
     map.connect('/create', controller='organization/create', action='index', conditions=no_subdomain)
     
+    map.connect('/invite/{id}', controller='invite', action='index', conditions=no_subdomain)
+    
     # in the application with subdomain
     map.connect('/', controller='organization/home', action='index', conditions=has_subdomain)
     

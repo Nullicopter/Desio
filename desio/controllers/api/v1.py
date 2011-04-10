@@ -11,6 +11,12 @@ def fdatetime(dt):
         return dt.strftime(DATE_FORMAT)
     return None
 
+def out_invite(inv):
+    out = itemize(inv, 'eid', 'role', 'type', 'invited_email')
+    out['object'] = inv.object.eid
+    
+    return out
+
 def out_file(filenchange):
     f, change = filenchange
     out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
@@ -74,6 +80,11 @@ class error:
     class explode: pass
     class explode_no_auth: pass
     class jserror: pass
+
+class invite:
+    class create:
+        def output(self, i):
+            return out_invite(i)
 
 class user:
     class pretend: pass
