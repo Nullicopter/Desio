@@ -86,10 +86,18 @@ class Organization(Base, Roleable):
         return u'Organization(%s, %s)' % (self.id, self.subdomain)
     
     def get_role(self, user, status=STATUS_APPROVED):
+        if user == self.creator: return APP_ROLE_ADMIN
+        
         orgu = self.get_user_connection(user, status)
         if orgu:
             return orgu.role
         return None
+    
+    def remove_user(self, user):
+        if user == self.creator:
+            raise ex.ClientException('You cannot remove the organization creator.', ex.INVALID)
+        
+        super(Organization, self).remove_user(user)
     
     def attach_user(self, user, role=APP_ROLE_READ, status=STATUS_PENDING):
         return super(Organization, self).attach_user(user, role=role, status=status)

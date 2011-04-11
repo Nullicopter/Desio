@@ -26,6 +26,17 @@
     background-position: bottom left;
 }
 
+.icon-delete{
+    height: 20px;
+    line-height: 20px;
+    padding-left: 20px;
+    background: transparent url(../../i/icons/x.png) no-repeat top left;
+    display: block;
+}
+.icon-delete:hover{
+    background-position: bottom left;
+}
+
 .dialog{display: none;}
 
 .divider{border:0; border-bottom: 1px solid #ddd; height: 1px; margin: 20px 0;}

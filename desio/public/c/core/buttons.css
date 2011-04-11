@@ -5,14 +5,15 @@
 	background-repeat: no-repeat;
 	background-position: top left;
 	border: 0;
-    height: 34px;
+    height: 33px;
+    padding-top: 1px;
     font-weight: normal;
     text-shadow: 1px 1px 1px #666;
     text-align: center;
     font-size: 10pt;
     line-height: 33px;
 }
-input.primary, input.secondary{padding-bottom: 2px;}
+input.primary, input.secondary{padding-bottom: 2px; height: 34px;}
 
 .primary:hover, .secondary:hover{background-position: center left;}
 .primary.disabled, .secondary.disabled,
@@ -32,7 +33,15 @@ input.primary, input.secondary{padding-bottom: 2px;}
     text-shadow: 1px 1px 1px #fff;
 }
 .secondary.disabled{ color: #888; }
+/****/
 
+.icon-button .icon{
+    margin: 6px 8px 0 8px;
+}
+.icon-button:hover .icon{
+    background-position: bottom left;
+}
+.icon-button:hover{background-position: top left;}
 
 /****/
 .primary.bleft, .secondary.bleft{ float: left; }

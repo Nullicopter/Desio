@@ -8,12 +8,15 @@
 ##     ('Reports', h.url_for(controller='admin/report', action='index')),
 ##     # add more!
 ## ] %>
-<%def name="tabs(tab_def, current, id='tabs', className='tabs')">
+<%def name="tabs(tab_def, current, id='tabs', className='tabs', bg=False)">
 
     <%def name="tab(label, url, first=False, index=None)">
         <% cur = current == label %>
         <a rel="${index}" class="tab ${first and 'first' or ''} ${cur and 'current' or ''}" href="${url}">
             <span>${label}</span>
+            % if bg:
+                <div class="bg"></div>
+            % endif
         </a>
     </%def>
     <div id="${id}" class="${className}">

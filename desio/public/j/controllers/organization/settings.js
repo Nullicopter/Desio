@@ -27,21 +27,40 @@ Q.GeneralSettingsPage = Q.Page.extend({
 
 Q.UserSettingsPage = Q.Page.extend({
     n: {
-        users: '#users'
+        users: '#users',
+        inviteForm: '#invite-form'
     },
     events: {
         'click .actions a': 'userActionClick',
         'change .role select': 'roleChange'
     },
     
+    template: '#invited-template',
+    
     init: function(settings){
         this._super(settings);
     },
     
     run: function(){
+        var self = this;
         this._super.apply(this, arguments);
         
         this.loader = this.n.users.Loader({});
+        
+        this.n.inviteForm.AsyncForm({
+            submitters: '#invite-form a',
+            onSuccess: function(data){
+                
+                Q.notify(data.results.invited_email + ' was successfully invited.');
+                
+                var h = _.template($(self.template).html(), data.results);
+                
+                $('.user-list').prepend($(h));
+                
+                this.val('email', '');
+            }
+        });
+        $('#invite-form input').inputHint();
     },
     
     roleChange: function(e){

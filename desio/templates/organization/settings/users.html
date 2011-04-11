@@ -8,14 +8,19 @@
     
     roles = [
         {'key': APP_ROLE_READ, 'value': 'Normal User'},
-        {'key': APP_ROLE_WRITE, 'value': 'Creator'},
+        {'key': APP_ROLE_WRITE, 'value': 'Collaborator'},
         {'key': APP_ROLE_ADMIN, 'value': 'Admin'}
     ]
 %>
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
-    #users .user{border: 1px solid #ccc; padding: 10px; margin: 5px 0;}
+    #invite input, #invite a, #invite select{float: left; margin-right: 10px; display: block;}
+    #invite input {margin-top: 3px;}
+    #invite .select {margin-top: 9px;}
+    #invite-form{height: 34px; margin: 0 0 10px 0;}
+    #invite h3 {margin-bottom: 5px;}
+    #invite .email{width: 300px;}
     </style>
     <script type="text/javascript">
         new Q.UserSettingsPage({
@@ -24,23 +29,34 @@
     </script>
 </%def>
 
-<h1>${c.title}</h1>
+##<% url = h.subdomain_url(c.organization.subdomain, controller='organization/auth', action='register') %>
+##<p>Add new users by having them register at
+##    <a href="${url}">${url}</a>, then come back here and approve them!</p>
 
-<% url = h.subdomain_url(c.organization.subdomain, controller='organization/auth', action='register') %>
-<p>Add new users by having them register at
-    <a href="${url}">${url}</a>, then come back here and approve them!</p>
-
-<div id="users">
+<div id="invite">
+    <h3>Invite more users</h3>
+    <form id="invite-form" action="${h.api_url('invite', 'create', organization=c.organization.eid)}" method="post">
+        ${f.text('email', id=None, className='email', title='Email Address', autocomplete='off')}
+        ${f.dropdown('role', id=None, values=roles, selectedValue=APP_ROLE_READ)}
+        <a href="#" class="icon-button secondary b79">
+            <div class="icon icon-plus">Add</div>
+        </a>
+    </form>
+</div>
+<div class="user-list">
+% for i in c.invites:
+    <div class="user">
+        <div class="actions">Invite Pending</div>
+        <div class="name">${i.invited_email}</div>
+    </div>
+    
+% endfor
 % for ou in c.users:
     <div class="user" data-user="${ou.user.id}" >
-        <div>${ou.user.human_name}</div>
         
-        <div class="role ${ou.status == STATUS_PENDING and 'hidden' or ''}">
-            % if c.organization.creator == ou.user:
-                ${ou.role} and Organization Creator
-            % else:
-                ${f.dropdown('role', id=None, values=roles, selectedValue=ou.role)}
-            % endif
+        <div class="actions ${ou.status == STATUS_PENDING and 'hidden' or ''}">
+            <a href="${h.api_url('organization', 'remove_user', organization=c.organization.id, u=ou.user.id)}" class="remove icon-delete">
+            </a>
         </div>
         
         % if c.organization.creator != ou.user:
@@ -56,15 +72,29 @@
                 </div>
             % endif
             
-            <div class="actions ${ou.status == STATUS_PENDING and 'hidden' or ''}">
-                <a href="${h.api_url('organization', 'remove_user', organization=c.organization.id, u=ou.user.id)}" class="remove">
-                    remove
-                </a>
-            </div>
-            
+        % endif
+        
+        <div class="role ${ou.status == STATUS_PENDING and 'hidden' or ''}">
+            % if c.organization.creator == ou.user:
+                Organization Creator
+            % else:
+                ${f.dropdown('role', id=None, values=roles, selectedValue=ou.role)}
+            % endif
+        </div>
+        
+        <div class="name">${ou.user.human_name}</div>
+        
+        % if ou.user.human_name != ou.user.email:
+            <div class="email"><a href="mailto:${ou.user.email}">${ou.user.email}</a></div>
         % endif
     </div>
 % endfor
 </div>
 
+<script id="invited-template" class="jstemplate" type="text/template">
+    <div class="user">
+        <div class="actions">Invite Pending</div>
+        <div class="name">{{invited_email}}</div>
+    </div>
+</script>
 

@@ -11,13 +11,21 @@ Hello,
 % endif
 
 % if invite.type == 'organization':
+<%
+org_url = url_for(controller='organization/home', action='index', subdomain=invite.object.subdomain)
+%>
 You've been invited to collaborate on some designs in Binder.io.
 
-${invitee.human_name} has invited you to their organization ${invite.object.name} at ${url_for(subdomain=invite.object.subdomain)}.
+${invitee.human_name} has invited you to their organization ${invite.object.name} at ${org_url}.
+
 % elif invite.type == 'project':
+<%
+org_url = url_for(controller='organization/home', action='index', subdomain=invite.object.organization.subdomain)
+%>
 You've been invited to collaborate on some designs in Binder.io.
 
-${invitee.human_name} has invited you to their project ${invite.object.name} at ${url_for(subdomain=invite.object.organization.subdomain)}.
+${invitee.human_name} has invited you to their project ${invite.object.name} at ${org_url}.
+
 % else:
 You've been invited to collaborate on a design in Binder.io.
 

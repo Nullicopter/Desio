@@ -4,6 +4,7 @@
 #content-header h1{
     margin: 0;
     font-size: 16pt;
+    font-weight: normal;
 }
 #content-header h1 .path-separator{
     color: #cbcbcb;
@@ -11,6 +12,7 @@
     vertical-align:middle;
     line-height: 31px;
     padding: 0 6px 0 9px;
+    font-weight: bold;
 }
 #content-header h1 a, #content-header h1 a:active{color: #333; font-weight: normal}
 #content-header h1 a:first-child{font-weight: bold}
@@ -68,6 +70,40 @@
     display: block;
 }
 
+/**** dir-tree for sidepanel stuff ****/
+
+.dir-tree, #sidepanel-nav .tab{position: relative;}
+.dir-tree .bg, #sidepanel-nav .tab .bg{
+    position: absolute;
+    right: -11px;
+    top: -1px;
+    display: none;
+    width: 318px;
+    height: 39px;
+    background: transparent url(../../../i/site/arrow_bg.png) no-repeat top right;
+}
+.dir-tree.current>.bg, #sidepanel-nav .tab.current>.bg{
+    display: block;
+}
+
+.dir-tree h3{margin: 0;}
+.children .dir-tree h3{border-top: 1px solid #E0DDD4;}
+.children .dir-tree.current>h3{border-top: none;}
+.dir-tree h3 a, #sidepanel-nav .tab{
+    display:block;
+    height: 35px;
+    line-height: 38px;
+    font-weight: normal;
+    color: #333;
+    font-size: 12pt;
+}
+.dir-tree .children{margin: 0 0 0 20px;}
+
+.dir-tree.current>h3 a, #sidepanel-nav .tab.current{
+    font-weight: bold;
+    color: #000;
+}
+
 /**** collapse stuff ****/
 
 #sidepanel-collapse{
@@ -95,6 +131,28 @@
 }
 /*confusing, but consistent*/
 #content.collapsed{margin-left: 0px;}
+
+/**** USERs attached to things ****/
+
+.user-list{
+    border-top: 1px solid #CCC9C0;
+    border-bottom: 1px solid #CCC9C0;
+}
+.user-list .user:first-child{
+    border-top: none;
+}
+.user-list .user{
+    border-top: 1px solid #E0DDD4;
+    min-height: 17px;
+    padding: 10px 0;
+}
+.user-list .user .name{
+    font-size: 12pt;
+    font-weight: bold;
+}
+
+.user-list .user .role{margin-right: 10px;}
+.user-list .user .actions, .user-list .user .role{float: right;}
 
 /**** PROJECT TAB ****/
 #sidepanel .projects {

@@ -193,39 +193,6 @@
 }
 #root-directory h2{margin: 0 0 10px 0}
 
-.dir-tree{position: relative;}
-.dir-tree .bg{
-    position: absolute;
-    right: -11px;
-    top: -1px;
-    display: none;
-    width: 318px;
-    height: 39px;
-    background: transparent url(../../../i/site/arrow_bg.png) no-repeat top right;
-}
-.dir-tree.current>.bg{
-    display: block;
-}
-
-.dir-tree h3{margin: 0;}
-.children .dir-tree h3{border-top: 1px solid #E0DDD4;}
-.children .dir-tree.current>h3{border-top: none;}
-.dir-tree h3 a{
-    display:block;
-    height: 35px;
-    line-height: 38px;
-    font-weight: normal;
-    color: #333;
-}
-.dir-tree .children{margin: 0 0 0 20px;}
-
-.dir-tree.current>h3 a{
-    font-weight: bold;
-}
-.dir-tree.current{
-    
-}
-
 /*** other ***/
 
 #project-settings-link{
