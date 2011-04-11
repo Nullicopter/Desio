@@ -51,6 +51,7 @@
         
         <form action="${h.url_for(controller='invite', action='index', id=c.invite.eid)}" method="post">
             ${f.hidden('default_timezone')}
+            ${f.hidden('mode', value='register_user')}
             ${f.text_chunk('name', label="What's your name?", title='eg. Tyler Durden', autocomplete='off')}
             ${f.password_chunk('password')}
             ${f.password_chunk('confirm_password', label="Confirm Your Password")}
@@ -59,6 +60,22 @@
             ${f.submit('Show me it', className="button primary b114")}
             </div>
         </form>
+
+% elif c.invite.status == STATUS_PENDING and c.invite.invited_user:
+        
+        <p>You've been invited to ${invite_type[c.invite.type]} <b>${c.invite.object.name}</b>.
+        To accept with username <b>${c.invite.invited_user.username}</b>, simply login.</p>
+        
+        <form action="${h.url_for(controller='invite', action='index', id=c.invite.eid)}" method="post">
+            ${f.hidden('mode', value='login_user')}
+            ${f.hidden('username', value=c.invite.invited_user.username)}
+            ${f.password_chunk('password', label='Your Password')}
+            
+            <div class="buttons">
+            ${f.submit('Show me it', className="button primary b114")}
+            </div>
+        </form>
+        
 % else:
     <div>This invite has been <b>${c.invite.status}</b>
     % if c.invite.invited_user:

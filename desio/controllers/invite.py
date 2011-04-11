@@ -23,6 +23,7 @@ class InviteController(BaseController):
         if invite.status == STATUS_PENDING:
             
             url = self._get_url(invite)
+            invite.invited_user = invite.invited_user or self._get_user(invite.invited_email)
             
             if auth.get_user() and c.user.email.lower() != invite.invited_email.lower():
                 logger.info('%s logged in already, logging out and redirecting' % c.user)
@@ -50,17 +51,24 @@ class InviteController(BaseController):
             url = self._get_url(invite)
             user = auth.get_user()
             
-            if not user:
+            if not user: 
                 
-                params = extract(request.params, 'name', 'password', 'confirm_password', 'default_timezone')
-                params['email'] = params['username'] = invite.invited_email
+                #check to see if this guy exists already
+                user = invite.invited_user or self._get_user(invite.invited_email)
+                if user:
+                    self.flush()
+                    auth.authenticate(user.username, request.params.get('password'), False)
+                else:
+                    params = extract(request.params, 'name', 'password', 'confirm_password', 'default_timezone')
+                    params['email'] = params['username'] = invite.invited_email
+                    
+                    logger.info('No user, creating one with %s' % params)
+                    
+                    user = api.user.create(**params)
+                    self.flush()
+                    
+                    auth.login(user, False)
                 
-                logger.info('No user, creating one with %s' % params)
-                
-                user = api.user.create(**params)
-                self.flush()
-                
-                auth.login(user, False)
             else:
                 logger.info('User already logged in %s, not creating' % (user))
             
@@ -71,10 +79,14 @@ class InviteController(BaseController):
                 raise exceptions.ClientException('Logout Please', exceptions.INVALID)
             
             self.commit()
-            
+        
+        logger.info('Accept invite: redirecting to %s' % url)
         return {'url': url or '/'}
         
-        
+    
+    def _get_user(self, username):
+        return Session.query(users.User).filter_by(username=username).first()
+    
     def _get_url(self, invite):
         
         url = None
@@ -83,11 +95,12 @@ class InviteController(BaseController):
                                   controller='organization/project', slug=invite.object.project.slug, action='view') + invite.object.full_path
         
         elif invite.type == INVITE_TYPE_PROJECT:
-            url = h.subdomain_url(invite.object.project.organization.subdomain,
-                                  controller='organization/project', slug=invite.object.project.slug, action='view')
+            url = h.subdomain_url(invite.object.organization.subdomain,
+                                  controller='organization/project', slug=invite.object.slug, action='view')
         
-        elif invite.type == INVITE_TYPE_PROJECT:
-            url = h.subdomain_url(invite.object.project.organization.subdomain)
+        elif invite.type == INVITE_TYPE_ORGANIZATION:
+            url = h.subdomain_url(invite.object.subdomain,
+                                  controller='organization/home', action='index')
         
         return url
         
