@@ -69,7 +69,8 @@ ${self.post_content()}
 <div id="footer"><footer>
     <div id="footer-inner">
         <p>
-            binder.io
+            <%def name="footer()">binder.io</%def>
+            ${self.footer()}
         </p>
     </div>
 </footer></div>

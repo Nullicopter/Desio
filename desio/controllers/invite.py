@@ -27,13 +27,13 @@ class InviteController(BaseController):
             if auth.get_user() and c.user.email.lower() != invite.invited_email.lower():
                 logger.info('%s logged in already, logging out and redirecting' % c.user)
                 auth.logout()
-                h.redirect(h.url_for(action='index', id=id))
+                redirect(h.url_for(action='index', id=id))
             
             elif auth.get_user(): #user is logged in and has the same email
                 logger.info('%s logged in already, has same email address as ' % invite.invited_email)
                 invite.accept(c.user)
                 self.commit()
-                h.redirect(url)
+                redirect(url)
 
         return self.render('/invite/index.html')
     
