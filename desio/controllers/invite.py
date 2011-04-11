@@ -59,6 +59,8 @@ class InviteController(BaseController):
                 
                 user = api.user.create(**params)
                 self.flush()
+                
+                auth.login(user, False)
             else:
                 logger.info('User already logged in %s, not creating' % (user))
             

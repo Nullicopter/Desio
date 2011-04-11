@@ -23,7 +23,7 @@ import formencode
 
 from pylons.controllers import WSGIController
 
-from desio.model import meta, users, projects
+from desio.model import meta, users, projects, APP_ROLE_ADMIN, APP_ROLE_READ, APP_ROLE_WRITE
 from desio.model.meta import Session
 
 class BaseController(WSGIController):
@@ -173,19 +173,25 @@ class OrganizationBaseController(BaseController):
         except ClientException, e:
             abort(404)
         
+        c.user_role = c.organization.get_role(c.user)
+        c.is_org_admin = c.user_role in [APP_ROLE_ADMIN]
+        c.is_org_creator = c.user_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]
+        c.is_org_user = True #if we get here this is always true. prolly stupid to have in here
+        
+        self._check_role()
+    
+    def _check_role(self):
+        from desio import api
+        from desio.model import STATUS_PENDING
+        
         def tohome(*a, **k):
-            orgu = c.organization.get_user_connection(u, status=None)
+            orgu = c.organization.get_user_connection(c.user, status=None)
             if orgu and orgu.status == STATUS_PENDING:
                 return '/pending'
             
             return config.get('pylons_url') or '/'
         
-        auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(ru, u, organization=c.organization)
-        
-        c.user_role = c.organization.get_role(c.user)
-        c.is_org_admin = c.user_role in [users.APP_ROLE_ADMIN]
-        c.is_org_creator = c.user_role in [users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE]
-        c.is_org_user = True #if we get here this is always true. prolly stupid to have in here
+        auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(c.real_user, c.user, organization=c.organization)
 
 """
 This may be confusing. Here are some authorization classes, specific to the controllers.
@@ -211,7 +217,7 @@ class CanReadOrgRedirect(HasOrgRole):
     """
     def __init__(self, **kw):
         super(CanReadOrgRedirect, self).__init__(
-            users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE, users.APP_ROLE_READ,
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ,
             **kw)
 
 class CanContributeToOrgRedirect(HasOrgRole):
@@ -220,7 +226,7 @@ class CanContributeToOrgRedirect(HasOrgRole):
     """
     def __init__(self, **kw):
         super(CanContributeToOrgRedirect, self).__init__(
-            users.APP_ROLE_ADMIN, users.APP_ROLE_WRITE, **kw)
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, **kw)
 
 class CanAdminOrgRedirect(HasOrgRole):
     """
@@ -228,7 +234,7 @@ class CanAdminOrgRedirect(HasOrgRole):
     can read/write all projects.
     """
     def __init__(self, **kw):
-        super(CanAdminOrgRedirect, self).__init__(users.APP_ROLE_ADMIN, **kw)
+        super(CanAdminOrgRedirect, self).__init__(APP_ROLE_ADMIN, **kw)
 
 """
 Project role decorators
@@ -254,7 +260,7 @@ class CanReadProjectRedirect(HasProjectRole):
     """
     def __init__(self, **kw):
         super(CanReadProjectRedirect, self).__init__(
-            projects.APP_ROLE_ADMIN, projects.APP_ROLE_WRITE, projects.APP_ROLE_READ,
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ,
             **kw)
 
 class CanWriteProjectRedirect(HasProjectRole):
@@ -263,7 +269,7 @@ class CanWriteProjectRedirect(HasProjectRole):
     """
     def __init__(self, **kw):
         super(CanWriteProjectRedirect, self).__init__(
-            projects.APP_ROLE_ADMIN, projects.APP_ROLE_WRITE, **kw)
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, **kw)
 
 class CanAdminProjectRedirect(HasProjectRole):
     """
@@ -271,4 +277,48 @@ class CanAdminProjectRedirect(HasProjectRole):
     can read/write all projects.
     """
     def __init__(self, **kw):
-        super(CanAdminProjectRedirect, self).__init__(projects.APP_ROLE_ADMIN, **kw)
+        super(CanAdminProjectRedirect, self).__init__(APP_ROLE_ADMIN, **kw)
+
+
+"""
+Entity role decorators
+"""
+
+class HasEntityRole(object):
+    """
+    """
+    def __init__(self, *roles, **kw):
+        self.roles = roles
+        self.url = kw.get('url') or '/'
+    
+    def check(self, real_user, user, entity=None, **kwargs):
+        
+        if entity and entity.get_role(user) in self.roles:
+            return True
+        
+        redirect(self.url)
+
+class CanReadEntityRedirect(HasEntityRole):
+    """
+    They can read all the projects they have access to. They can see org activity, etc.
+    """
+    def __init__(self, **kw):
+        super(CanReadEntityRedirect, self).__init__(
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ,
+            **kw)
+
+class CanWriteEntityRedirect(HasEntityRole):
+    """
+    They can create and modify projects and membership in projects.
+    """
+    def __init__(self, **kw):
+        super(CanWriteEntityRedirect, self).__init__(
+            APP_ROLE_ADMIN, APP_ROLE_WRITE, **kw)
+
+class CanAdminEntityRedirect(HasEntityRole):
+    """
+    They are an organization admin. They can edit CC information, organization membership, they
+    can read/write all projects.
+    """
+    def __init__(self, **kw):
+        super(CanAdminEntityRedirect, self).__init__(APP_ROLE_ADMIN, **kw)

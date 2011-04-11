@@ -79,6 +79,8 @@ class Roleable(object):
         """
         Find a single user's membership within this org
         """
+        if not user: return None
+        
         q = Session.query(self.connection_class).filter(self.connection_class.user_id==user.id)
         if status:
             q = q.filter(self.connection_class.status==status)

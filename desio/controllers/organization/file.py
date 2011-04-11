@@ -34,8 +34,6 @@ class FileController(BaseController):
         
         if not c.organization:
             abort(404, 'org')
-        
-        c.user_role = c.user and c.organization.get_role(c.user) or None
     
     def view(self, project=None, file=None):
         #import pdb; pdb.set_trace()
@@ -44,6 +42,8 @@ class FileController(BaseController):
         
         c.file = Session.query(projects.File).filter_by(eid=file, project=c.project, type=projects.File.type).first()
         if not c.file: abort(404)
+        
+        c.user_role = c.user and c.file.get_role(c.user) or None
         
         if c.user_role:
             url = h.url_for(controller='organization/project', slug=c.project.slug, action='view') + c.file.full_path

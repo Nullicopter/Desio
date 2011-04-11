@@ -60,11 +60,11 @@
             </div>
         </form>
 % else:
-    <p>This invite has been <b>${c.invite.status}</b>
+    <div>This invite has been <b>${c.invite.status}</b>
     % if c.invite.invited_user:
         by ${c.invite.invited_user.human_name}.
     % endif
-    </p>
+    </div>
 % endif
 
 </div>

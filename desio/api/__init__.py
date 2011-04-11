@@ -168,8 +168,15 @@ class HasObjRole(IsLoggedIn):
         if not obj and self.get_from:
             
             for fr in self.get_from:
+                
+                fr = fr.split('.')
+                
                 #no. can we get it from another kwarg?
-                from_obj = kwargs.get(fr)
+                from_obj = kwargs.get(fr[0])
+                for i in range(1, len(fr)):
+                    from_obj = getattr(from_obj, fr[i])
+                
+                #from_obj = kwargs.get(fr)
                 if from_obj and hasattr(from_obj, self.param):
                     obj = getattr(from_obj, self.param)
                 

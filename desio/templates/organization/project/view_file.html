@@ -25,7 +25,7 @@
     
     <script type="text/javascript">
     new Q.ViewFilePage({
-        userRole: ${c.user_role and '"%s"' % c.user_role or 'null' | n},
+        userRole: ${c.file_role and '"%s"' % c.file_role or 'null' | n},
         url: '${c.real_user and h.api_url('file', 'upload', project=c.project.eid) or ''}',
         versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
@@ -47,7 +47,7 @@
             <p id="description">${c.file.description}</p>
         % endif
         
-        % if c.user_role:
+        % if c.file_role:
             <ul>
                 <li><a id="download-link" href="${c.head_change.download_url}" class="action icon-download">Download</a></li>
                 <li><a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="action icon-share">Share this file</a></li>

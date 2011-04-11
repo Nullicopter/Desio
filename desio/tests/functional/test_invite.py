@@ -47,10 +47,13 @@ class TestInviteController(TestController):
         })
         
         assert response.results.url
+        print response.results.url
         
         Session.refresh(invite)
         assert invite.status == STATUS_APPROVED
         assert invite.invited_user
-        
+
+        response = self.get(response.results.url, sub_domain=org.subdomain)
+        print response
         
         

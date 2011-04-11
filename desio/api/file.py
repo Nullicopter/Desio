@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists
+                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
 import sqlalchemy as sa
@@ -16,7 +16,6 @@ from pylons_common.lib.exceptions import *
 ID_PARAM = 'file'
 
 @enforce(path=unicode, version=unicode)
-@authorize(CanReadProject())
 def get(real_user, user, project, path, version=None):
     """
     Get a file and the latest change. If a version is specified, return that change.
@@ -27,6 +26,8 @@ def get(real_user, user, project, path, version=None):
         f = project.get_file(path)
     except AppException, e:
         raise ClientException(e.msg, code=e.code, field='path')
+    
+    CanReadEntity().check(real_user, user, entity=f)
     
     #if they want all, give them all changes plus the file in each
     if version == 'all':
@@ -41,7 +42,7 @@ def get(real_user, user, project, path, version=None):
     return f, f.get_change(version)
 
 @enforce(binbody=bool)
-@authorize(CanReadProject())
+@authorize(CanWriteProject())
 def upload(real_user, user, project, **kw):
     """
     File is binary in the request body.
@@ -77,7 +78,9 @@ def upload(real_user, user, project, **kw):
     return change.entity, change
 
 @enforce(body=unicode, x=int, y=int, width=int, height=int, change=projects.Change, extract=projects.ChangeExtract, in_reply_to=projects.Comment)
-@authorize(Or(Exists('change'), Exists('extract'), Exists('in_reply_to')), CanReadProject(get_from=['change', 'extract', 'in_reply_to']))
+@authorize(
+    Or(Exists('change'), Exists('extract'), Exists('in_reply_to')),
+    Or(CanReadProject(get_from=['change', 'extract', 'in_reply_to']), CanReadEntity(get_from=['change', 'extract.change', 'in_reply_to.change'])))
 def add_comment(real_user, user, body, change=None, extract=None, in_reply_to=None, **kw):
     """
     Add a comment for either a change or an extract.
@@ -109,7 +112,10 @@ def set_comment_completion_status(real_user, user, comment, status=None, **kw):
     return comment.set_completion_status(user, scrubbed.status)
 
 @enforce(change=projects.Change, extract=projects.ChangeExtract, file=projects.File)
-@authorize(Or(Exists('change'), Exists('extract'), Exists('file')), CanReadProject(get_from=['change', 'file', 'extract']))
+@authorize(
+    Or( Exists('change'), Exists('extract'), Exists('file') ),
+    Or( CanReadProject(get_from=['change', 'file', 'extract']), CanReadEntity(get_from=['change', 'extract.change']), CanReadEntity(param='file') )
+)
 def get_comments(real_user, user, change=None, extract=None, file=None):
     """
     Get all comments related to the commentable object passed

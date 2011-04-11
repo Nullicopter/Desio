@@ -24,7 +24,8 @@ def has_project():
         @zipargs(fn)
         def new(**kwargs):
             
-            kwargs['project'] = c.project = api.project.get(c.real_user, c.user, c.organization, project=kwargs.get('slug'))
+            #kwargs['project'] = c.project = api.project.get(c.real_user, c.user, c.organization, project=kwargs.get('slug'))
+            kwargs['project'] = c.project = Session.query(projects.Project).filter_by(organization=c.organization, slug=kwargs.get('slug') or '_NO_').first()
             
             if c.project:
                 c.project_role = c.project.get_role(c.user)
@@ -41,6 +42,9 @@ class ProjectController(OrganizationBaseController):
     """
     """
     
+    def _check_role(self):
+        return True
+
     def _split_path_components(self, project, obj):
         com = [project.name]
         
@@ -58,7 +62,6 @@ class ProjectController(OrganizationBaseController):
         return self.render('/organization/project/new.html')
     
     @has_project()
-    @authorize(CanReadProjectRedirect())
     def view(self, slug=None, path=u'/', project=None, **kw):
         
         print path
@@ -75,10 +78,14 @@ class ProjectController(OrganizationBaseController):
             
             view_dir = entity.type == projects.Directory.TYPE
         
-        c.projects = api.project.get(c.real_user, c.user, c.organization)
+        path_components = self._split_path_components(project, entity)
+        
+        if c.user_role:
+            c.projects = api.project.get(c.real_user, c.user, c.organization)
+            c.path_components = path_components
+        
         c.project = project
-        c.path_components = self._split_path_components(project, entity)
-        c.title = c.path_components[-1]
+        c.title = path_components[-1]
         
         if view_dir:
             return self._view_directory(entity, project, path, c.path_components)
@@ -87,6 +94,7 @@ class ProjectController(OrganizationBaseController):
                 return self._download_file(entity, project, path, c.path_components)
             return self._view_file(entity, project, path, c.path_components)
     
+    @authorize(CanReadEntityRedirect())
     def _download_file(self, entity, project, path, path_components):
         import pylons
         
@@ -110,7 +118,8 @@ class ProjectController(OrganizationBaseController):
                 headers)
             
             return dl_app(request.environ, self.start_response)
-        
+    
+    @authorize(CanReadEntityRedirect())
     def _view_file(self, entity, project, path, path_components):
         
         c.sidepanel_tab = c.title
@@ -122,7 +131,8 @@ class ProjectController(OrganizationBaseController):
         
         #we could pass in the current version
         c.file, c.head_change = file[0]
-        print c.file.path
+        
+        c.file_role = c.file.get_role(c.user)
         
         comments = api.file.get_comments(c.real_user, c.user, change=c.head_change)
         c.comments = v1.file.get_comments().output(comments)
@@ -131,6 +141,7 @@ class ProjectController(OrganizationBaseController):
         
         return self.render('/organization/project/view_file.html')
     
+    @authorize(CanReadProjectRedirect())
     def _view_directory(self, entity, project, path, path_components):
         
         c.sidepanel_tab = project.name

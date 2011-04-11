@@ -312,8 +312,10 @@ Q.ImageView = Q.View.extend({
     changeDiffMode: function(m){
         m = m.get();
         if(m == 'show'){
-            if(this.settings.diff)
+            if(this.settings.diff){
                 this.$('img').attr('src', this.settings.diff.url);
+                this.$('img').addClass('diff');
+            }
             else{
                 this.$('.no-diff').show();
             }
@@ -324,6 +326,7 @@ Q.ImageView = Q.View.extend({
         else{
             this.$('img').attr('src', this.model.get('url'));
             this.$('.no-diff').hide();
+            this.$('img').removeClass('diff');
         }
     },
     
@@ -660,14 +663,14 @@ Q.CommentView = Q.View.extend({
         this.container.addClass('status-'+status);
         
         var ttips = this.tooltips;
-        if(!(window.USER_ROLE == 'creator' || window.USER_ROLE == 'admin'))
+        if(!(window.USER_ROLE == 'write' || window.USER_ROLE == 'admin'))
             ttips = this.noobtooltips;
         
         ind.attr('title', ttips[status]);
     },
     
     onClickComplete: function(){
-        if(!(window.USER_ROLE == 'creator' || window.USER_ROLE == 'admin')) return false;
+        if(!(window.USER_ROLE == 'write' || window.USER_ROLE == 'admin')) return false;
         
         var cv = this.model.get('completion_status');
         this.setPinStatus(this.model.statusToggle[cv.status]);
