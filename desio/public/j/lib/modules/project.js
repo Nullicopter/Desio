@@ -42,8 +42,9 @@ Q.ProjectUser = Backbone.Model.extend({
 
 Q.ProjectUserView = Q.View.extend({
     tagName: 'div',
-    className: 'project-user',
+    className: 'user',
     template: '#project-user-template',
+    inviteTemplate: '#project-invite-template',
     events: {
         'change .role select': 'roleChange',
         'click .remove': 'remove'
@@ -55,16 +56,24 @@ Q.ProjectUserView = Q.View.extend({
     
     render: function() {
         var ma = this.model.attributes;
-        var attr = {
-            uid: ma.user.id,
-            username: ma.user.username,
-            email: ma.user.email,
-            name: ma.user.name,
-            role: ma.role
-        };
         
-        $(this.el).html(_.template($(this.template).html(), attr));
-        $(this.el).find('select').val(attr.role);
+        if(ma.invite){
+            var attr = {
+                name: ma.user.name
+            };
+            $(this.el).html(_.template($(this.inviteTemplate).html(), attr));
+        }
+        else{
+            var attr = {
+                uid: ma.user.id,
+                username: ma.user.username,
+                email: ma.user.email,
+                name: ma.user.name,
+                role: ma.role
+            };
+            $(this.el).html(_.template($(this.template).html(), attr));
+            $(this.el).find('select').val(attr.role);
+        }
         return this;
     },
     
@@ -88,6 +97,8 @@ Q.ProjectUserAddForm = Q.AsyncForm.extend('ProjectUserAddForm', {
     init: function(container, settings){
         settings.defaultData = {u: '', role: 'read'};
         this._super(container, settings);
+        
+        this.getElement('u').inputHint();
     },
     
     _onSubmit: function(){
@@ -101,6 +112,22 @@ Q.ProjectUserAddForm = Q.AsyncForm.extend('ProjectUserAddForm', {
             this.user = m;
             this.val('u', m.user.id);
             this.settings.model.add(new Q.ProjectUser(m));
+        }
+        else if(this.settings.inviteUrl && this.settings.sync){
+            var c = confirm(data.u + ' is not a member of your organization yet.\n\nDo you want to invite them to this project?');
+            
+            if(c){
+                var m = {user: {name: data.u}, invite: true};
+                this.settings.model.add(new Q.ProjectUser(m));
+                
+                $.postJSON(this.settings.inviteUrl, {email: data.u, role: data.role}, function(data){
+                    Q.notify(data.results.invited_email+' has been successfully invited to this project.');
+                });
+                return false;
+            }
+        }
+        else if(!this.settings.sync && data.u){
+            alert(data.u + " is not a member of your organization yet.\n\nAfter you create the project, you can invite other people who arent already members of your organization from the project's settings pages.");
         }
         
         return this.settings.sync;

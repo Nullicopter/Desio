@@ -172,7 +172,7 @@ class ProjectController(OrganizationBaseController):
         
         c.sidepanel_tab = project.name
         c.tab = 'Users'
-        c.title = project.name + ' Settings'
+        c.title = 'Users'
         c.project_user_module_params = modules.project.project_user_module(c.real_user, c.user, c.organization, project=project)
         return self.render('/organization/project/settings/users.html')
     
@@ -184,6 +184,6 @@ class ProjectController(OrganizationBaseController):
         
         c.sidepanel_tab = project.name
         c.tab = 'General'
-        c.title = project.name + ' Settings'
+        c.title = 'General'
         
         return self.render('/organization/project/settings/general.html')

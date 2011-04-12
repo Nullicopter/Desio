@@ -158,6 +158,8 @@ CSS = {
     
     'ie': ('build/ie.css', ['core/ie.css']),
     
+    'skinny_page': ('build/skinny_page.css', ['modules/skinny_page.css']),
+    
     'controllers.admin': ('build/controllers.admin.css', [
         'controllers/admin.css'
     ]),

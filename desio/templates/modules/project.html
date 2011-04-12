@@ -5,8 +5,8 @@ from desio.config.frontend_modules import JS, CSS
 from desio.model.projects import APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN
 
 roles = [
-    {'key': APP_ROLE_READ, 'value': 'Reader'},
-    {'key': APP_ROLE_WRITE, 'value': 'Contributor'},
+    {'key': APP_ROLE_READ, 'value': 'Normal User'},
+    {'key': APP_ROLE_WRITE, 'value': 'Collaborator'},
     {'key': APP_ROLE_ADMIN, 'value': 'Admin'}
 ]
 %>
@@ -20,30 +20,37 @@ roles = [
     % if users:
         <div id="add-project-user">
             <form action="${h.api_url('project', 'attach_user', project=project_id)}" method="post">
-                email: 
-                ${f.text('u', id='user-email')} is a 
+                ${f.text('u', id='user-email', title='john.doe@example.com', autocomplete='off')} 
                 ${f.dropdown('role', id=None, values=roles)}
-                ${f.submit('add')}
+                <input type="submit" value="Add" class="secondary b79" />
             </form>
         </div>
         
-        <div id="project-users">
+        <div id="project-users" class='user-list'>
             <form method="post">
             </form>
         </div>
         
         <script id="project-user-template" class="jstemplate" type="text/template">
-            <div class="name">{{name}}</div>
+            <div class="actions">
+                <a href="${h.api_url('project', 'remove_user', project=project_id)}&u={{uid}}" class="remove icon-delete">
+                </a>
+            </div>
             
             <div class="role">
                 ${f.dropdown('role', id=None, values=roles)}
             </div>
             
+            <div class="name">{{name}}</div>
+            
+        </script>
+        <script id="project-invite-template" class="jstemplate" type="text/template">
             <div class="actions">
-                <a href="${h.api_url('project', 'remove_user', project=project_id)}&u={{uid}}" class="remove">
-                    remove
-                </a>
+                Invitation Pending
             </div>
+            
+            <div class="name">{{name}}</div>
+            
         </script>
     % else:
         <p>There are no other users to add :(. Have them

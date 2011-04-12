@@ -126,6 +126,7 @@ def attach_user(real_user, user, project, u, role=users.APP_ROLE_READ):#, status
     
     pu = project.get_user_connection(u, status=None)
     if pu:
+        print pu
         raise ClientException('User already attached', INVALID)
     
     orgu = project.attach_user(u, role=params.role, status=params.status)

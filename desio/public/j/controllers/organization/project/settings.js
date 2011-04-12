@@ -15,17 +15,6 @@ Q.BaseSettingsPage = Q.Page.extend({
         this.n.sidepanel.Sidepanel({
             collapsable: false
         });
-        
-        var root = new Q.Directory({
-            name: '',
-            path: '/', full_path: '/',
-            children: this.settings.tree.directories
-        });
-        
-        this.rootObject = root;
-        
-        this.root = this.n.root.DirectoryTreeView({model: root});
-        this.root.render();
     }
 })
 Q.ProjectUserSettingsPage = Q.BaseSettingsPage.extend({

@@ -1,42 +1,46 @@
 <%inherit file="../base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="com" file="/common.html"/>
-<%
-tab_def = [
-    ('General', h.url_for(controller='organization/project', action='settings_general', slug=c.project.slug), True),
-    ('Users', h.url_for(controller='organization/project', action='settings_users', slug=c.project.slug)),
-] %>
 
 <%def name="header()">
     ${parent.header()}
-    ${r.require('file')}
+    ${r.require('skinny_page')}
+    <style>
+        #sidepanels{width: 260px;}
+    </style>
 </%def>
 
 <%def name="sidepanel()">
     <div class="info">
-        % if c.project.description:
-            <p id="description">${c.project.description}</p>
-        % endif
-    </div>
-    
-    <div id="root-directory">
-        <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}">Project Home</a></h3>
-        <h2>Directories</h2>
-        <div class="children">
+        <div class="description">
+            Here you can edit the settings for <b>${c.project.name}</b>.
         </div>
     </div>
     
+    <%
+    tab_def = [
+        
+        ('General', h.url_for(controller='organization/project', action='settings_general', slug=c.project.slug), True),
+        ('Users', h.url_for(controller='organization/project', action='settings_users', slug=c.project.slug)),
+        
+    ] %>
+    ${com.tabs(tab_def, c.tab, id='sidepanel-nav', className='sidepanel-nav', bg=True)}
+    
     <ul id="secondary-links">
-        <li><a class="current" href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}">Project Settings</a></li>
+        <li><a href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}">Back to your project</a></li>
     </ul>
     
 </%def>
 
-${com.tabs(tab_def, c.tab)}
-${next.body()}
+<%def name="content_header()">
+    <%
+    bread = [
+        '<a href="%s">%s</a>' % (h.url_for(controller='organization/project', action='view', slug=c.project.slug), c.project.name),
+        'Settings',
+        c.title
+    ] %>
+    ${'<span class="path-separator">/</span>'.join(bread) | n}
+</%def>
 
-<script id="dir-tree-template" class="jstemplate" type="text/template">
-    <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">{{name}}</a></h3>
-    <div class="children">
-    </div>
-</script>
+${next.body()}
+<div class="clear"></div>

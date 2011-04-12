@@ -4,10 +4,9 @@
 
 <%def name="js_includes()">
     ${parent.js_includes()}
-    ${r.require('controllers.organization.settings')}
+    ${r.require('controllers.organization.settings', 'skinny_page')}
     <style>
-        #sidepanels{width: 290px;}
-        #page-inner, #header-inner, #footer-inner{width: 960px !important;}
+        #sidepanels{width: 260px;}
     </style>
 </%def>
 
