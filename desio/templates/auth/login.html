@@ -7,12 +7,34 @@
 
 <%def name="header()">
     ${parent.header()}
+    <style>
+        #page-inner, #header-inner, #footer-inner{width: 400px !important;}
+        #login-container{background: #fff; border: 1px solid #e5e5e5; padding: 15px;}
+        
+        .text {width: 355px;}
+        
+    </style>
+    
+    <script type="text/javascript">
+        $(function(){
+            form = $('form').Form();
+            form.focusFirst();
+        });
+    </script>
+    
+</%def>
+
+<%def name="header_right()">
 </%def>
 
 <h1>Login</h1>
 
-<form action="${h.url_for(controller='auth', action='login')}" method="post">
-    ${f.text_chunk('username', label="Email")}
-    ${f.password_chunk('password')}
-    ${f.submit('Login')}
-</form>
+<div id="login-container">
+    <form action="${h.url_for(controller='auth', action='login')}" method="post">
+        ${f.text_chunk('username', label="Email")}
+        ${f.password_chunk('password')}
+        ${f.submit('Login', className="primary b114")}
+    </form>
+</div>
+
+<%def name="footer()"><img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/></%def>
