@@ -48,7 +48,6 @@ if c.organization:
                     <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
                 % else:
                     <a href="${h.url_for(controller='auth', action='login')}">login</a>
-                    | <a href="${h.url_for(controller='auth', action='register')}">register</a>
                 % endif
             </%def>
             ${self.header_right()}

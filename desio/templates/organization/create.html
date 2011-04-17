@@ -1,4 +1,4 @@
-<%inherit file="/bones.html"/>
+<%inherit file="/base.html"/>
 <%namespace name="f" file="/forms.html"/>
 <%namespace name="r" file="/require.html"/>
 
@@ -10,20 +10,14 @@
     ${parent.header()}
     ${r.require('controllers.organization')}
     <style type="text/css">
-        body{background: #f4eed5;}
-        #small-page{width: 500px; margin: 0 auto;}
-        #small-page h1{text-shadow: #fff 1px 1px 0px;}
+        #page-inner, #header-inner, #footer-inner{width: 500px !important;}
+        
         #create-box {
             background: #fff;
-            -moz-border-radius: 10px;
-            -moz-box-shadow: 0px 1px 8px #ccbea3;
+            border: 1px solid #e5e5e5; 
             padding: 15px 20px;
         }
         
-        #create-box h2{margin-top: 0; color: #470114;}
-        #create-box h2{
-            font-family: 'Gill Sans MT','Gill Sans', Helvetica, Arial;
-        }
         #create-box h3{
             font-size: 13pt;
             font-weight: normal;
@@ -33,8 +27,7 @@
         #create-box .form-chunk{
             margin-bottom: 15px;
         }
-        #create-box input{
-            font-family: 'Gill Sans MT','Gill Sans', Helvetica, Arial;
+        #create-box .text{
             font-size: 13pt;
             padding: 8px 9px;
             width: 280px;
@@ -48,29 +41,28 @@
     </script>
 </%def>
 
-<div id="small-page">
-    <h1>binder.io</h1>
-    
-    <div id="create-box">
-        <h2>Create an Account</h2>
-        <form action="${h.url_for(controller='organization/create', action='index')}" method="post">
-            <h3>A little bit about your company</h3>
-            ${f.text_chunk('company_name', title="Your company's name", label='')}
-            
-            ${f.form_chunk_start('subdomain', label='')}
-            ${f.text('subdomain', title="yourdomain.binder.io")}
-            ${f.form_chunk_end()}
-            
-            <h3>Now, a little bit about you</h3>
-            ${f.text_chunk('name', title='Your Name', label='')}
-            ${f.text_chunk('email', title='Email address', label='')}
-            
-            <h3>Your super secret password. Twice.</h3>
-            ${f.password_chunk('password', title='Password', label='')}
-            ${f.password_chunk('confirm_password', title='Type that password again!', label='')}
-            ${f.hidden('default_timezone')}
-            
-            ${f.submit('Create an account')}
-        </form>
-    </div>
+<h2>Create an Account</h2>
+
+<div id="create-box">
+    <form action="${h.url_for(controller='organization/create', action='index')}" method="post">
+        <h3>A little bit about your company</h3>
+        ${f.text_chunk('company_name', title="Your company's name", label='')}
+        
+        ${f.form_chunk_start('subdomain', label='')}
+        ${f.text('subdomain', title="yourdomain.binder.io")}
+        ${f.form_chunk_end()}
+        
+        <h3>Now, a little bit about you</h3>
+        ${f.text_chunk('name', title='Your Name', label='')}
+        ${f.text_chunk('email', title='Email address', label='')}
+        
+        <h3>Your super secret password. Twice.</h3>
+        ${f.password_chunk('password', title='Password', label='')}
+        ${f.password_chunk('confirm_password', title='Type that password again!', label='')}
+        ${f.hidden('default_timezone')}
+        
+        ${f.submit('Create', className='primary b114')}
+    </form>
 </div>
+
+<%def name="footer()"><img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/></%def>

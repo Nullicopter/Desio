@@ -3,10 +3,6 @@
 
 
 Q.CreatePage = Q.Page.extend({
-    init: function(settings){
-        settings.pageSelector = '#small-page';
-        this._super(settings);
-    },
     
     run: function(){
         this._super.apply(this, arguments);
