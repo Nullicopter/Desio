@@ -48,7 +48,7 @@
         </div>
     </div>
     
-    % if c.project_role == APP_ROLE_WRITE:
+    % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
     <div class="new-button">
         <a class="icon-plus action" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">New Directory</a>
     </div>

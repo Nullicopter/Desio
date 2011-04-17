@@ -28,7 +28,7 @@
 <%def name="project_sidepanel()">
     
     <div class="info">
-        <p class="description">Below are your projects, they are blah blah blah whatever.</p>
+        <p class="description">Below are your projects.</p>
     </div>
     <p></p>
     % if c.projects:
@@ -46,16 +46,18 @@
         % endfor
         </div>
         
-        % if c.user_role == APP_ROLE_WRITE:
+        % if c.user_role in [APP_ROLE_WRITE, APP_ROLE_ADMIN]:
             <div class="new-button">
                 <a id="new-project-link" class="icon-plus action" href="${h.url_for(controller='organization/project', action='new')}">New Project</a>
             </div>
         % endif
     % else:
         <p>
-            No projects yet
             % if c.is_org_creator:
+                Hey, you dont have any projects yet.
                 <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
+            % else:
+                This organization has no projects yet.
             % endif
         </p>
     % endif

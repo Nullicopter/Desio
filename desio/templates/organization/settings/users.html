@@ -37,7 +37,7 @@
     <h3>Invite more users</h3>
     <form id="invite-form" action="${h.api_url('invite', 'create', organization=c.organization.eid)}" method="post">
         ${f.text('email', id=None, className='email', title='Email Address', autocomplete='off')}
-        ${f.dropdown('role', id=None, values=roles, selectedValue=APP_ROLE_READ)}
+        ${f.dropdown('role', id=None, values=roles, selectedValue=APP_ROLE_WRITE)}
         <a href="#" class="icon-button secondary b79">
             <div class="icon icon-plus">Add</div>
         </a>

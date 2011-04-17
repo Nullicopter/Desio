@@ -4,6 +4,7 @@
 
 <%!
     from desio import utils
+    from desio.model import STATUS_APPROVED
 %>
 <%def name="js_includes()">
     ${parent.js_includes()}
@@ -36,7 +37,35 @@
     All Projects
 </%def>
 
-% if c.projects:
+<%
+    users = [uc.user_id for uc in c.organization.get_user_connections(status=STATUS_APPROVED) if uc.user_id != c.organization.creator_id]
+%>
+
+% if c.is_org_admin and not users:
+    <p>
+        It's looking pretty lonely in here.
+        You should <a href="${h.url_for(controller='organization/settings', action='users')}">invite some folks</a>.
+    </p>
+% endif
+
+% if c.project_data:
+    <% pfiles = [f for p, f in c.project_data if f] %>
+    % if not pfiles:
+        % if c.is_org_creator:
+        <p>
+            We haven't found any activity in any of your projects yet. You should head over to
+            <a href="${h.url_for(controller='organization/project', action='view', slug=c.projects[0].slug)}">
+                one of your projects
+            </a>
+            and drag some design files in there.
+        </p>
+        % else:
+        <p>
+            No activity in this organization yet.
+        </p>
+        % endif
+    % endif
+    
     <div id="projects">
     % for p, files in c.project_data:
         % if files:
@@ -56,7 +85,7 @@
     </div>
 % else:
     <p>
-        No projects
+        No projects yet.
         % if c.is_org_creator:
             <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
         % endif
