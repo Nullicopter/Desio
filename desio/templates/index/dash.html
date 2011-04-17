@@ -1,0 +1,119 @@
+<%inherit file="/base.html"/>
+<%namespace name="r" file="/require.html"/>
+<%namespace name="project" file="/modules/project.html"/>
+
+<%!
+    from desio import utils
+    from desio.model import projects
+%>
+<%def name="js_includes()">
+    ${parent.js_includes()}
+    ${r.require('project', 'controllers.index', 'controllers.organization.project')}
+</%def>
+
+<%def name="header()">
+    ${parent.header()}
+    <style type="text/css">
+    .objects { margin: 0 0 30px 0; }
+    
+    a.object{
+        display: block;
+        margin: 0 0 20px 0;
+        border-left: 10px solid #999;
+        color: #333;
+        padding-left: 10px;
+    }
+    a.object:hover{
+        border-left: 10px solid #54A6F4;
+        color: #111;
+        text-decoration: none;
+    }
+    a.object h3{
+        margin: 0 0 3px;
+        font-size: 15pt;
+    }
+    a.object .subtitle{
+        color: #666;
+        font-weight: normal;
+    }
+    a.object .subtitle span{ padding-right: 10px; }
+    
+    #content h2{ margin-top: 0; }
+    #content{
+        float: right;
+        width: 550px;
+    }
+    #content.full{
+        float:none;
+    }
+    
+    #content .file.posmod3, #content .processing-file.posmod3{margin-left: 10px;}
+    #content .file.posmod2, #content .processing-file.posmod2{margin-left: 0;}
+    
+    #content.full .file.posmod3, #content.full .processing-file.posmod3{margin-left: 10px;}
+    #content.full .file.posmod4, #content.full .processing-file.posmod4{margin-left: 0;}
+    
+    </style>
+    
+    <script type="text/javascript">
+        new Q.DashPage({}).readyrun();
+    </script>
+</%def>
+
+% if c.files:
+    <div id="content" class="${not c.organizations and not c.projects and 'full' or ''}">
+        <h2>Files you've been invited to</h2>
+    % for i, f in enumerate(c.files):
+        <% ch = f.get_change() %>
+        <div class="file ${i%2 == 0 and 'posmod2' or ''} ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
+            ${project.file_thumb(f.project, f.name, ch.version, f.full_path, ch.base_url+ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
+        </div>
+    % endfor
+    </div>
+% endif
+
+% if c.organizations:
+<div class="objects">
+    <h2>Organizations you're a part of</h2>
+    
+    <%def name="org(org)">
+        <a href="${h.subdomain_url(org.subdomain, controller='organization/home')}" class="object">
+            <h3>${org.name}</h3>
+            <div class="subtitle">
+                <span>${org.subdomain}.binder.io</span>
+                <span>${utils.pluralize(len(org.get_projects(c.user)), '{0} projects', 'one project')}</span>
+            </div>
+        </a>
+    </%def>
+    
+    <div id="organizations">
+        % for o in c.organizations:
+            ${org(o) | n}
+        % endfor
+    </div>
+</div>
+% endif
+
+% if c.projects:
+<div class="objects">
+    <h2>Projects you're a part of</h2>
+    
+    <%def name="proj(proj)">
+        <a href="${h.subdomain_url(proj.organization.subdomain, controller='organization/project', action='view', slug=proj.slug)}" class="object">
+            <h3>${proj.name}</h3>
+            <div class="subtitle">
+                <span>${proj.organization.subdomain}.binder.io</span>
+                <span>${utils.pluralize(len(proj.get_entities(only_type=projects.File.TYPE)), '{0} files', 'one file')}</span>
+            </div>
+        </a>
+    </%def>
+    
+    <div id="projects">
+        % for p in c.projects:
+            ${proj(p) | n}
+        % endfor
+    </div>
+</div>
+% endif
+
+<div class="clear"></div>

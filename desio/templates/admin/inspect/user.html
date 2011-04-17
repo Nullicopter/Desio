@@ -16,8 +16,55 @@
 
 ${self.render_attribute_table(c.obj, c.attrs, c.edit_url)}
 
-<%self:section name="Organizations">
+<%self:section name="Organizations" when="${c.user_orgs}">
     % for ou in c.user_orgs:
-        <div>${self.render_object(ou.organization)} : ${ou.role}</div>
+        <div>${self.render_object(ou.organization)} : ${ou.role} : ${ou.status}</div>
     % endfor
 </%self:section>
+
+<%self:section name="Projects" when="${c.user_projects}">
+    % for ou in c.user_projects:
+        <div>${self.render_object(ou.project)} : ${ou.role}: ${ou.status}</div>
+    % endfor
+</%self:section>
+
+<%self:section name="Entities" when="${c.user_entities}">
+    % for ou in c.user_entities:
+        <div>${self.render_object(ou.entity)} : ${ou.role}: ${ou.status}</div>
+    % endfor
+</%self:section>
+
+<%self:section name="Invites" when="${c.sent_invites or c.received_invites}">
+
+    <%def name="invite_table(title, invites, user_col='user')">
+        % if invites:
+            <div>${title}</div>
+            <% columns = [user_col] + ['invited_email', 'object', 'role', 'status', 'created_date'] %>
+            <table class="tablesorter">
+                <thead>
+                    <tr>
+                    % for col in columns:
+                        <th>${col}</th>
+                    % endfor
+                    </tr>
+                </thead>
+                <tbody>
+                    % for row in invites:
+                        <tr>
+                        % for d in columns:
+                            <td>${self.render_object(getattr(row, d))}</td>
+                        % endfor
+                        </tr>
+                    % endfor
+                </tbody>
+            </table>
+        % endif
+    </%def>
+    
+    ${invite_table('Sent', c.sent_invites, 'invited_user')}
+    ${invite_table('Received', c.received_invites, 'user')}
+    
+</%self:section>
+
+
+

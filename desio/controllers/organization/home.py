@@ -12,7 +12,7 @@ class HomeController(OrganizationBaseController):
     """
     
     def index(self):
-        c.projects = api.project.get(c.real_user, c.user, c.organization)
+        #c.projects = api.project.get(c.real_user, c.user, c.organization)
         
         c.project_data = [(p, p.get_entities(only_type=projects.File.TYPE)[:3]) for p in c.projects]
         

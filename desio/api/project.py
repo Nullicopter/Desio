@@ -102,7 +102,6 @@ class Editor(FieldEditor):
         self._edit_generic('Status', u, key, param)
 
 @enforce(project=unicode)
-@authorize(CanReadOrg())
 def get(real_user, user, organization, project=None):
     if not user and not project:
         abort(403)
@@ -113,6 +112,7 @@ def get(real_user, user, organization, project=None):
         CanReadProject().check(real_user, user, project=p)
         return p
     
+    #this will do the check to make sure to return only projects the user can see
     return organization.get_projects(user)
 
 ##

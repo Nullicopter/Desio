@@ -176,7 +176,9 @@ class OrganizationBaseController(BaseController):
         c.user_role = c.organization.get_role(c.user)
         c.is_org_admin = c.user_role in [APP_ROLE_ADMIN]
         c.is_org_creator = c.user_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]
-        c.is_org_user = True #if we get here this is always true. prolly stupid to have in here
+        c.is_org_user = bool(c.user_role)
+        
+        self.projects = c.projects = api.project.get(c.real_user, c.user, c.organization)
         
         self._check_role()
     
@@ -191,7 +193,8 @@ class OrganizationBaseController(BaseController):
             
             return config.get('pylons_url') or '/'
         
-        auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(c.real_user, c.user, organization=c.organization)
+        if not self.projects:
+            auth.RedirectOnFail(api.CanReadOrg(), fn=tohome).check(c.real_user, c.user, organization=c.organization)
 
 """
 This may be confusing. Here are some authorization classes, specific to the controllers.

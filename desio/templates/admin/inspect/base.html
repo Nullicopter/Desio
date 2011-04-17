@@ -2,9 +2,14 @@
 <%namespace name="f" file="/forms.html"/>
 
 <%!
-    from desio.model import users
+    from desio.model import users, projects
     from datetime import datetime
     from desio.lib import auth
+    
+    entity_types = {
+        'f': 'file',
+        'd': 'dir'
+    }
 %>
 <%def name="id_and_status(obj)">
     <% 
@@ -32,7 +37,15 @@
         % endif
     
     % elif isinstance(obj, users.Organization):
-        <a href="${h.url_for(controller='admin/inspect', action='organization', eid=obj.id)}">${obj.name}</a>
+        <a href="${h.url_for(controller='admin/inspect', action='organization', eid=obj.id)}">org:${obj.name}</a>
+        ${id_and_status(obj)}
+    
+    % elif isinstance(obj, projects.Project):
+        <a href="${h.url_for(controller='admin/inspect', action='project', eid=obj.id)}">proj:${obj.name}</a>
+        ${id_and_status(obj)}
+    
+    % elif isinstance(obj, projects.Entity):
+        <a href="${h.url_for(controller='admin/inspect', action='entity', eid=obj.id)}">${entity_types[obj.type]}:${obj.name}</a>
         ${id_and_status(obj)}
     
     % elif isinstance(obj, datetime):

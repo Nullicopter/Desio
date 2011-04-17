@@ -96,6 +96,7 @@ JS = {
         'include/jquery.jcrop.js',
     ]),
     
+    'controllers.index': ('build/controllers/index.js', ['controllers/index.js']),
     'controllers.auth': ('build/controllers/auth.js', ['controllers/auth.js']),
     'controllers.invite': ('build/controllers/invite.js', ['controllers/invite.js']),
     

@@ -24,7 +24,6 @@ def has_project():
         @zipargs(fn)
         def new(**kwargs):
             
-            #kwargs['project'] = c.project = api.project.get(c.real_user, c.user, c.organization, project=kwargs.get('slug'))
             kwargs['project'] = c.project = Session.query(projects.Project).filter_by(organization=c.organization, slug=kwargs.get('slug') or '_NO_').first()
             
             if c.project:
@@ -81,7 +80,7 @@ class ProjectController(OrganizationBaseController):
         path_components = self._split_path_components(project, entity)
         
         if c.user_role:
-            c.projects = api.project.get(c.real_user, c.user, c.organization)
+            #c.projects = api.project.get(c.real_user, c.user, c.organization)
             c.path_components = path_components
         
         c.project = project
@@ -165,7 +164,7 @@ class ProjectController(OrganizationBaseController):
         return self.settings_general(**kw)
     
     @has_project()
-    @authorize(CanContributeToOrgRedirect())
+    @authorize(CanAdminOrgRedirect())
     def settings_users(self, project=None, **kw):
         dirs = api.project.get_directories(c.real_user, c.user, c.project)
         c.tree = v1.project.get_directories().output(dirs)
@@ -177,7 +176,7 @@ class ProjectController(OrganizationBaseController):
         return self.render('/organization/project/settings/users.html')
     
     @has_project()
-    @authorize(CanContributeToOrgRedirect())
+    @authorize(CanAdminOrgRedirect())
     def settings_general(self, project=None, **kw):
         dirs = api.project.get_directories(c.real_user, c.user, c.project)
         c.tree = v1.project.get_directories().output(dirs)

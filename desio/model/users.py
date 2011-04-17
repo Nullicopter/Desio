@@ -112,10 +112,13 @@ class Organization(Base, Roleable):
         # this is kind of hairy. If org.is_read_open, the user can see all projects, otherwise,
         # we get based on connections
         
-        if not self.is_read_open and self.get_role(user) != APP_ROLE_ADMIN:
-            q = q.join(projects.ProjectUser).filter(sa.and_(projects.ProjectUser.user==user, projects.ProjectUser.status==STATUS_APPROVED))
+        #if not self.is_read_open and self.get_role(user) != APP_ROLE_ADMIN:
+        #    q = q.join(projects.ProjectUser).filter(sa.and_(projects.ProjectUser.user==user, projects.ProjectUser.status==STATUS_APPROVED))
         
-        return q.order_by(sa.desc(projects.Project.last_modified_date)).all()
+        projects = q.order_by(sa.desc(projects.Project.last_modified_date)).all()
+        
+        #this will return all the projects the user can see
+        return [p for p in projects if p.get_role(user)]
 
 class UserPreference(Base):
     """
@@ -301,12 +304,42 @@ class User(Base):
         return offset
     
     def get_organizations(self, status=STATUS_APPROVED):
-        return [r.organization for r in self.get_user_connections(status=status)]
+        """
+        Orgs explicitly attached to.
+        """
+        orgs = Session.query(Organization).filter_by(creator=self).all()
+        return list(set([r.organization for r in self.get_user_connections(status=status)] + orgs))
+    
+    def get_projects(self, status=STATUS_APPROVED):
+        """
+        projects explicitly attached to.
+        """
+        return [r.project for r in self.get_project_users(status=status)]
+    
+    def get_entities(self, status=STATUS_APPROVED):
+        """
+        Entities explicitly attached to.
+        """
+        return [r.entity for r in self.get_entity_users(status=status)]
     
     def get_user_connections(self, status=STATUS_APPROVED):
         q = Session.query(OrganizationUser).filter(OrganizationUser.user_id==self.id)
         if status:
             q = q.filter(OrganizationUser.status==status)
+        return q.all()
+    
+    def get_project_users(self, status=STATUS_APPROVED):
+        from desio.model import projects
+        q = Session.query(projects.ProjectUser).filter(projects.ProjectUser.user_id==self.id)
+        if status:
+            q = q.filter(projects.ProjectUser.status==status)
+        return q.all()
+    
+    def get_entity_users(self, status=STATUS_APPROVED):
+        from desio.model import projects
+        q = Session.query(projects.EntityUser).filter(projects.EntityUser.user_id==self.id)
+        if status:
+            q = q.filter(projects.EntityUser.status==status)
         return q.all()
     
     def must_own(self, *things):
