@@ -309,7 +309,9 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
             
             set.path = $.pathJoin(m.attributes.path, m.attributes.name);
             set.files = m.get('files');
-            view.target.UploadModule(set);
+            $.log('Setting up upload module', '@'+this.settings.role+'@')
+            if(this.settings.role && this.settings.role != 'read')
+                view.target.UploadModule(set);
             
             for(var j = 0; j < files.length; j++){
                 files[j].id = files[j].eid;

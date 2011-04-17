@@ -60,8 +60,14 @@ roles = [
     </div>
 </%def>
 
-<%def name="file_thumb(project, name, version, full_path, url, user, updated, size, number_comments)" >
-    <a href="${h.url_for(controller='organization/project', action='view', slug=project.slug)}${full_path}">
+<%def name="file_thumb(project, name, version, full_path, url, user, updated, size, number_comments, subdomain=None)" >
+    <%
+    if subdomain:
+        base_url = h.url_for(sub_domain=subdomain, controller='organization/project', action='view', slug=project.slug)
+    else:
+        base_url = h.url_for(controller='organization/project', action='view', slug=project.slug)
+    %>
+    <a href="${base_url}${full_path}">
         <div class="name-bar"></div>
         <div class="cover-bar"></div>
         <div class="name">

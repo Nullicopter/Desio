@@ -3,8 +3,9 @@
 <%namespace name="com" file="/common.html"/>
 
 <%!
-from desio import utils
-from desio.model import APP_ROLE_ADMIN
+    import pylons
+    from desio import utils
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
 %>
 
 <%def name="header()">
@@ -16,6 +17,12 @@ from desio.model import APP_ROLE_ADMIN
 <%def name="js_includes()">
     ${parent.js_includes()}
     ${r.require('controllers.organization')}
+</%def>
+
+<%def name="header_link()">
+<%
+    return c.user_role and '/' or pylons.config['pylons_url']
+%>
 </%def>
 
 <%def name="project_sidepanel()">
@@ -39,9 +46,11 @@ from desio.model import APP_ROLE_ADMIN
         % endfor
         </div>
         
-        <div class="new-button">
-            <a id="new-project-link" class="icon-plus action" href="${h.url_for(controller='organization/project', action='new')}">New Project</a>
-        </div>
+        % if c.user_role == APP_ROLE_WRITE:
+            <div class="new-button">
+                <a id="new-project-link" class="icon-plus action" href="${h.url_for(controller='organization/project', action='new')}">New Project</a>
+            </div>
+        % endif
     % else:
         <p>
             No projects yet

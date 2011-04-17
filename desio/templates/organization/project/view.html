@@ -4,6 +4,7 @@
 <%namespace name="project" file="/modules/project.html"/>
 <%!
     import simplejson as json
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
 %>
 <%def name="header()">
     ${parent.header()}
@@ -18,6 +19,7 @@
         previewImage: '/i/site/preview.png',
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
         directories: ${json.dumps(c.structure) | n},
+        role: '${c.project_role}',
         tree: ${json.dumps(c.tree) | n},
         path: '${c.path}',
         collapsePreference: 'view_project_sidepanel_collapse',
@@ -46,18 +48,20 @@
         </div>
     </div>
     
+    % if c.project_role == APP_ROLE_WRITE:
     <div class="new-button">
         <a class="icon-plus action" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">New Directory</a>
     </div>
+    % endif
     
+    % if c.project_role == APP_ROLE_ADMIN:
     <ul id="secondary-links">
         <li><a id="project-settings-link" href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}">Project Settings</a></li>
     </ul>
+    % endif
 </%def>
 
-<a href="#" id="sidepanel-collapse" class="absolute"></a>
-
-<div id="files-module"></div>
+<div id="files-module" class="role-${c.project_role}"></div>
 
 <div style="clear: left"></div>
 

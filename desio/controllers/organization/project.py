@@ -145,6 +145,8 @@ class ProjectController(OrganizationBaseController):
         
         c.sidepanel_tab = project.name
         
+        c.project_role = project.get_role(c.user)
+        
         dirs = api.project.get_directories(c.real_user, c.user, c.project)
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
         if not struc: abort(404)

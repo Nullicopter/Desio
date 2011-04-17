@@ -4,6 +4,11 @@
 
 .files-container{position: relative;}
 .files{min-height: 100px;}
+
+.role-read .drop{
+    display: none !important;
+}
+
 .drop{
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0px;

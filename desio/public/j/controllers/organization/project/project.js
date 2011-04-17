@@ -59,6 +59,7 @@ Q.ViewProjectPage = Q.Page.extend({
         this._super.apply(this, arguments);
         
         this.filesModule = $(this.settings.module).FilesModule(this.settings);
+        
         this.n.sidepanel.Sidepanel({
             collapsePreference: this.settings.collapsePreference,
             collapseInitially: this.settings.collapseInitially

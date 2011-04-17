@@ -19,7 +19,7 @@ class IndexController(BaseController):
             # we only show the files that the user cant get to any other way.
             c.files = [f for f in c.files if not f.project.get_role(user)]
             
-            #redirect them if they only own one thing
+            
             if len(c.organizations) == 1 and not c.projects and not c.files:
                 redirect(h.url_for(sub_domain=c.organizations[0].subdomain, controller='organization/home', action='index'))
             
