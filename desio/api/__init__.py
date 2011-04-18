@@ -174,6 +174,7 @@ class HasObjRole(IsLoggedIn):
                 #no. can we get it from another kwarg?
                 from_obj = kwargs.get(fr[0])
                 for i in range(1, len(fr)):
+                    if not from_obj: break
                     from_obj = getattr(from_obj, fr[i])
                 
                 #from_obj = kwargs.get(fr)
