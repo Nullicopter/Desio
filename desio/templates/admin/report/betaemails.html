@@ -1,0 +1,47 @@
+<%inherit file="../inspect/base.html"/>
+<%namespace name="f" file="/forms.html"/>
+
+<%!
+    import pylons
+    from pylons_common.lib import date
+%>
+
+<%def name="header()">
+    ${parent.header()}
+    <style>
+    </style>
+    <script>
+        new Q.GenericReportPage({}).readyrun();
+    </script>
+</%def>
+
+<%
+    params = c.params.get('table')
+%>
+
+<h1>${c.title}</h1>
+
+<form class="reload-form" method="post" acton="${c.requested_url}">
+    ${f.hidden('sid', value='admin')}
+    ${f.text_chunk('email', autocomplete='off')}
+    ${f.submit('Add new email')}
+</form>
+
+<table class="tablesorter">
+    <thead>
+        <tr>
+        % for col in params['columns']:
+            <th>${col}</th>
+        % endfor
+        </tr>
+    </thead>
+    <tbody>
+        % for row in params['data']:
+            <tr>
+            % for d in row:
+                <td>${self.render_object(d)}</td>
+            % endfor
+            </tr>
+        % endfor
+    </tbody>
+</table>

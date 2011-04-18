@@ -1,8 +1,13 @@
 from desio.lib.base import *
+from desio.model.users import BetaEmail
+
+import formencode
+import formencode.validators as fv
 
 class IndexController(BaseController):
     """
     """
+    @dispatch_on(POST='_rinvite')
     def index(self, **k):
         
         user = auth.get_user()
@@ -35,6 +40,33 @@ class IndexController(BaseController):
                 redirect(h.url_for(sub_domain=o.subdomain, controller='organization/project', action='view', slug=p.slug, path=f.full_path[1:]))
             
             return self.render('/index/dash.html')
-            
+        
+        sid = session.get('invite_sid')
+        if not sid:
+            sid = utils.uuid()
+            session['invite_sid'] = sid
+            session.save()
+        
+        c.sid = sid
+        c.beta_email = BetaEmail.get(sid)
+        
+        logger.info('Sid %s, BetaEmail %s' % (c.sid, c.beta_email))
+        
         return self.render('/index/index.html')
 
+    @mixed_response(sync_error_action='index')
+    def _rinvite(self, **k):
+        
+        class IForm(formencode.Schema):
+            sid = formencode.All(fv.UnicodeString(not_empty=True))
+            email = formencode.All(fv.Email(not_empty=True))
+        
+        sc = self.validate(IForm, **dict(request.params))
+        
+        be = None
+        if len(sc.sid) == 22 and sc.email and sc.sid == session.get('invite_sid'):
+            be = BetaEmail.create(sc.sid, sc.email)
+        
+        self.commit()
+        
+        return {'url': '/', 'be': be and be.id or None}

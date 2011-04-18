@@ -1,4 +1,6 @@
 <%inherit file="/bones.html"/>
+<%namespace name="f" file="/forms.html"/>
+<%namespace name="r" file="/require.html"/>
 
 <%!
     import pylons
@@ -7,6 +9,7 @@
 
 <%def name="header()">
     ${parent.header()}
+    ${r.require('controllers.index')}
     <style>
         #front-page{
             min-height: 500px;
@@ -15,21 +18,42 @@
         #front-page h1{
             margin: 0;
             padding: 0;
-            padding-top: 180px;
+            padding-top: 130px;
         }
         #footer-inner, #front-page-inner{
             width: 600px;
             margin: 0 auto;
         }
         
-        #box{
-            -moz-border-radius: 12px;
-            height: 50px;
-            padding: 10px 0;
-            
+        #box{ height: 50px; padding: 10px 0; }
+        
+        #email-box{
+            height: 65px;
+            width: 600px;
+            background: transparent url(../i/homepage/email_bg.png) no-repeat top left;
+            padding: 18px;
         }
         
+        #request-invite form{height: 34px;}
+        #request-invite input{float: left; margin-right: 10px;}
+        #email-box p, #email-box h3 {margin-top: 0; color: #fff; font-weight: bold}
+        #request-invite .text{
+            border:0;
+            border-radius: 3px;
+            -moz-border-radius: 3px;
+            -webkit-border-radius: 3px;
+            width: 300px;
+            height: 24px;
+        }
+        
+        #request-invite.hide, #has-invite.hide{display: none;}
+        #has-invite{padding: 7px 0;}
+        
+        #login-link{float: right; margin-top: 0px;}
     </style>
+    <script type="text/javascript">
+    new Q.FrontPage().readyrun();
+    </script>
 </%def>
 
 <div id="front-page">
@@ -39,11 +63,31 @@
         <div id="box">
             <img src="/i/homepage/hangon.png" alt="hang on a bit. we're still working on it."/>
         </div>
+        
+        <div id="email-box">
+            
+            <div id="request-invite" class="${c.beta_email and 'hide' or ''}">
+                <p>Want to be on the inside track? Be the first to get invited</p>
+                <form method="post" action="${pylons.config.get('pylons_url')}">
+                    ${f.hidden('sid', value=c.sid)}
+                    ${f.text('email', title='you@yourawesomedomain.com', autocomplete='off')}
+                    ${f.submit('Yeah!', className='primary b114')}
+                    <div class="clear"></div>
+                </form>
+            </div>
+            
+            <div id="has-invite" class="${not c.beta_email and 'hide' or ''}">
+                <h3>Thank You. We shall be in touch</h3>
+                <p>If you really really really want it or have questions, email ben at binder.io.</p>
+            </div>
+            
+        </div>
     </div>
 </div>
 
 <div id="footer"><footer>
     <div id="footer-inner">
+        <a id="login-link" href="/login"><img src="/i/homepage/login.png" alt="Login"/></a>
         <p>
             <img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/>
         </p>

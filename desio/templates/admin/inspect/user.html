@@ -9,7 +9,17 @@
 <%def name="header()">
     ${parent.header()}
     <style>
+    #create-org{display:none;}
     </style>
+    
+    <script type="text/javascript">
+        $(function(){
+            $('#create-org-link').click(function(){
+                $('#create-org').toggle();
+                return false;
+            });
+        });
+    </script>
 </%def>
 
 <h1>${c.title}</h1>
@@ -20,6 +30,16 @@ ${self.render_attribute_table(c.obj, c.attrs, c.edit_url)}
     % for ou in c.user_orgs:
         <div>${self.render_object(ou.organization)} : ${ou.role} : ${ou.status}</div>
     % endfor
+    
+    <p><a id="create-org-link" href="#">create new org for this user</a></p>
+    <div id="create-org">
+        <form action="${h.url_for(action='create_org')}" class="reload-form" method="post">
+            ${f.hidden('user_id', value=c.obj.id)}
+            ${f.text_chunk('name', label='Org Name')}
+            ${f.text_chunk('subdomain')}
+            ${f.submit('Create')}
+        </form>
+    </div>
 </%self:section>
 
 <%self:section name="Projects" when="${c.user_projects}">

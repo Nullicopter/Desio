@@ -1,0 +1,10 @@
+<%inherit file="base.txt"/>
+
+<%def name="subject()">
+    Get Early Access to Binder.io
+</%def>
+
+Thanks for requesting an invitation! We're working on binder as fast as we can. We will email you updates as they arise.
+
+We are currently looking for alpha testers. If you are a designer or often consume design documents from your designer, you would be a great candidate. Just reply to this email with a short description of your role in your organization.
+

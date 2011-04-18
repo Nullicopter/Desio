@@ -58,6 +58,18 @@ class InspectController(AdminController):
         
         return self.render('/admin/inspect/user.html')
     
+    @ajax
+    def create_org(self, *a, **k):
+        """
+        pass it a user_id, subdomain, name
+        """
+        user = api.user.get(u=request.params.get('user_id'))
+        org = api.organization.create(auth.get_real_user(), user, **dict(request.params))
+        
+        self.commit()
+        
+        return org != None
+    
     def organization(self, *a, **kw):
         
         c.obj = api.organization.get(request.params.get('eid'))

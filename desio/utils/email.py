@@ -60,7 +60,11 @@ def send(to, template_path, context=None, reply_to='', bcc=None):
     logger.info(lmsg)
     
     msg = Message(f, to, subject, plain=body)
-    msg.plain=body
+    msg.plain = body
     msg.bcc = bcc
+    
+    if reply_to:
+        msg.reply_to = reply_to
+    
     msg.send()
     

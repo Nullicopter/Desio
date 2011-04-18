@@ -23,6 +23,9 @@ INVITE_TYPES = [INVITE_TYPE_ORGANIZATION, INVITE_TYPE_PROJECT, INVITE_TYPE_ENTIT
 
 now = date.now
 
+def short_uuid():
+    return utils.uuid()[0:6]
+
 def hash_password(clear_pass):
     """
     Used to encrypt our passwords with our special salt.
@@ -482,4 +485,52 @@ class Invite(Base):
         obj = self.object
         
         obj.attach_user(self.invited_user, self.role, status=STATUS_APPROVED)
+
+
+class BetaEmail(Base):
+    """
+    Stores an invite to a user.
+    """
+    __tablename__ = "beta_emails"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    eid = sa.Column(sa.Unicode(6), unique=True, default=short_uuid)
+    
+    #session id
+    sid = sa.Column(sa.Unicode(22), unique=True, default='')
+    
+    creator_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=True, index=True)
+    creator = relation("User", backref=backref("added_beta_emails", cascade="all"))
+    
+    email = sa.Column(sa.Unicode(256), index=True, nullable=False)
+    
+    clicks = sa.Column(sa.Integer, default=0)
+    invites = sa.Column(sa.Integer, default=0)
+    
+    created_date = sa.Column(sa.DateTime, nullable=False, default=now)
+    
+    @classmethod
+    def get(cls, sid=None, email=None):
+        if sid and email:
+            return Session.query(BetaEmail).filter( sa.or_(BetaEmail.email==(email and email.lower() or ''), BetaEmail.sid==sid) ).first()
+        if sid:
+            return Session.query(BetaEmail).filter( BetaEmail.sid==sid ).first()
+        if email:
+            return Session.query(BetaEmail).filter( BetaEmail.email==(email and email.lower() or '') ).first()
+        return None
+    
+    @classmethod
+    def create(cls, sid, email, creator=None, send_email=True):
+        from desio.utils import email as email_mod
         
+        be = cls.get(sid, email)
+        
+        if be: return be
+        
+        be = BetaEmail(sid=sid, email=email.lower(), creator=creator)
+        Session.add(be)
+        
+        if send_email:
+            email_mod.send(email, 'beta_email.txt', reply_to='ben@binder.io')
+        
+        return be

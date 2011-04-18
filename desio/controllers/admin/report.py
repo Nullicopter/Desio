@@ -5,6 +5,9 @@ from desio.controllers.admin import AdminController
 
 from desio.model import users
 
+import formencode
+import formencode.validators as fv
+
 NOT_REPORTS = ['flush', 'commit', 'rollback']
 class ReportController(AdminController):
     
@@ -71,3 +74,37 @@ class ReportController(AdminController):
         }
         
         return self.render('/admin/report/generic.html')
+    
+    @dispatch_on(POST='_add_beta_email')
+    def betaemails(self, *a, **kw):
+        """
+        General: Beta List Emails
+        
+        A report showing all the people who requested a beta invite
+        """
+        c.title = 'Beta Emails'
+        
+        us = Session.query(users.BetaEmail).all()
+        data = [(u.eid, u.email, u.creator, u.created_date) for u in us]
+        
+        c.params = {}
+        c.params['table'] = {
+            'columns': ['eid', 'Email', 'Creator', 'Created'],
+            'data': data
+        }
+        
+        return self.render('/admin/report/betaemails.html')
+    
+    @mixed_response(sync_error_action='betaemails')
+    def _add_beta_email(self, *a, **kw):
+        
+        class IForm(formencode.Schema):
+            sid = formencode.All(fv.UnicodeString(not_empty=True))
+            email = formencode.All(fv.Email(not_empty=True))
+        
+        sc = self.validate(IForm, **dict(request.params))
+        be = users.BetaEmail.create(None, sc.email, creator=auth.get_real_user(), send_email=False)
+        
+        self.commit()
+        
+        return {'be': be and be.id or None}
