@@ -24,5 +24,16 @@
 
 <div id="add-user-pane">
     <h2>Users in this project</h2>
+    % if c.is_org_admin:
+        <p>Here you can invite users to be part of this project.</p>
+        
+        <p><b>If you want someone you invite
+        to be able to access all of ${c.organization.subdomain}.binder.io, not just this project,
+        <a href="${h.url_for(controller='organization/settings', action='users')}">
+            invite them to the organization
+        </a></b>
+        </p>
+    % endif
+    
     ${project.project_user_module(c.project_user_module_params['userMap'])}
 </div>

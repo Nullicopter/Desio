@@ -12,6 +12,7 @@
     <style type="text/css">
         #sidepanels{width: 290px;}
         #description {width: 265px;}
+        .subheader .meta {color: #999;}
     </style>
     <script type="text/javascript">
     new Q.ViewProjectPage({
@@ -27,6 +28,11 @@
         showDropTargetOn: 'bodydrag'//'elemdrag'
     }).readyrun();
     </script>
+</%def>
+
+<%def name="content_subheader()">
+    <div class="meta">To upload files, drag them into the area below.
+    Supported filetypes: .psd, .pdf, .png, .gif, .jpg, .ai, .eps, .svg</div>
 </%def>
 
 <%def name="sidepanel()">

@@ -21,7 +21,7 @@ roles = [
         <div id="add-project-user">
             <form action="${h.api_url('project', 'attach_user', project=project_id)}" method="post">
                 ${f.text('u', id='user-email', title='john.doe@example.com', autocomplete='off')} 
-                ${f.dropdown('role', id=None, values=roles)}
+                ${f.dropdown('role', id=None, values=roles, selectedValue=APP_ROLE_WRITE)}
                 <input type="submit" value="Add" class="secondary b79" />
             </form>
         </div>
