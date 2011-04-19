@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash
 
 d="$(dirname $0)"
 
@@ -7,13 +7,14 @@ cd $d/..
 git pull
 
 #virtualenv startup
-source bin/activate
+source desio/bin/activate
 
 echo "Migrating..."
 cd desio/model
 python migrations/manage.py upgrade production.ini
 
 echo "Restarting pylons..."
+cd ../../
 deploy/paster restart
 
 cd -
