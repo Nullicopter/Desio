@@ -1,0 +1,19 @@
+#!/bin/sh -e
+
+d="$(dirname $0)"
+
+echo "Pulling code..."
+cd $d/..
+git pull
+
+#virtualenv startup
+source bin/activate
+
+echo "Migrating..."
+cd desio/model
+python migrations/manage.py upgrade production.ini
+
+echo "Restarting pylons..."
+deploy/paster restart
+
+cd -
