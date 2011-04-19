@@ -89,10 +89,43 @@ class Extractor(object):
         
         return f, name
     
-    def _write_file(self, type):
+    def resize_if_huge(self, max_size=(1200, 1600)):
+        """
+        resize_if_huge is destructive to the image object. It will resize the image file if over
+        max_size. Do this after you have done anything you need to do at full size.
+        """
+        x, y = self.image.size
+        sx, sy = max_size
+        if x > sx or y > sy:
+            dx = x - sx
+            dy = y - sy
+            ratio = (float(x)/float(y))
+            
+            sz = (x, y)
+            if dx > dy:
+                #x dim over further than y dim
+                # size to x dim
+                sz = (sx, int(float(sx)/ratio))
+            else:
+                #y dim over further than x dim
+                # size to y dim
+                sz = (int(float(sy)*ratio), sy)
+                
+            print 'HUGE; resizing from', (x,y), 'to', sz
+            
+            self.image.resize(sz, blur=1.0)
+            
+            return True
+        
+        return False
+    
+    def _write_file(self, type, max_size=(1200, 1600)):
+        """
+        """
+        
+        self.resize_if_huge(max_size)
         
         f, name = self._get_tmp_file(type, self.out_filename)
-        
         
         f.write(self.image.dump(self.dest_format))
         f.close()
