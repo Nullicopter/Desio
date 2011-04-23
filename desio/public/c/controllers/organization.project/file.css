@@ -325,3 +325,21 @@
 .pins .pin.status-open{
     background-image: url(../../../i/icons/pin_red_large.png);
 }
+
+
+#content .delete-link{
+    color: #ABA9A2;
+    font-weight: normal;
+    font-style: italic;
+}
+#content #content-inner .delete-link{
+    float: right;
+}
+
+#content .delete-link.icon-delete{
+    padding: 0 28px 0 0;
+    background-position: top right;
+}
+#content .delete-link.icon-delete:hover{
+    background-position: bottom right;
+}

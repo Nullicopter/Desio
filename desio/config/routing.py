@@ -56,6 +56,7 @@ def make_map(config):
     map.connect('/project/{slug}/', controller='organization/project', action='view', conditions=has_subdomain)
     map.connect('/project/{slug}/{path:.*}', controller='organization/project', action='view', conditions=has_subdomain)
     
+    map.connect('/file/delete/{id}', controller='organization/file', action='delete', conditions=has_subdomain)
     map.connect('/file/{project}/{file}', controller='organization/file', action='view', conditions=has_subdomain)
     
     map.connect('/psettings/{slug}', controller='organization/project', action='settings_index', conditions=has_subdomain)

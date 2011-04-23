@@ -213,5 +213,8 @@
     </div>
 </script>
 
-<div class="clear"></div>
+% if c.file.get_role(c.user) in [APP_ROLE_WRITE, APP_ROLE_ADMIN]:
+    <p><a href="${h.url_for(controller='organization/file', action='delete', id=c.file.eid)}" class="delete-link icon-delete">delete this file</a></p>
+% endif
 
+<div class="clear"></div>

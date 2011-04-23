@@ -75,7 +75,12 @@ class BaseController(WSGIController):
             if not session.get('referer'):
                 session['referer'] = environ.get('HTTP_REFERER','').decode('utf-8','ignore')
                 session.save()
-                
+            
+            if session.get('notify'):
+                c._notify = session['notify']
+                del session['notify']
+                session.save()
+            
             return WSGIController.__call__(self, environ, start_response)
         finally:
             if 'paste.testing_variables' not in request.environ:

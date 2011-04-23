@@ -10,7 +10,7 @@
     ${parent.header()}
     ${r.require('file')}
     <style type="text/css">
-        #sidepanels{width: 290px;}
+        #sidepanels{width: 275px;}
         #description {width: 265px;}
         .subheader .meta {color: #999;}
     </style>
@@ -67,7 +67,10 @@
     % endif
 </%def>
 
-<div id="files-module" class="role-${c.project_role}"></div>
+<a href="#" id="sidepanel-collapse" class="absolute"></a>
+
+<div id="files-module" class="role-${c.project_role}">
+</div>
 
 <div style="clear: left"></div>
 

@@ -21,6 +21,24 @@ is view the images, and the comments. No downloading, uploading, commenting, mar
 as completed, etc.
 """
 
+def has_entity():
+    
+    """
+    
+    """
+    @stackable
+    def decorator(fn):
+        @zipargs(fn)
+        def new(**kwargs):
+            
+            print kwargs
+            kwargs['entity'] = c.entity = Session.query(projects.Entity).filter_by(eid=kwargs.get('id') or u'_NO_').first()
+            
+            return fn(**kwargs)
+            
+        return new
+    return decorator
+
 class FileController(BaseController):
     """
     """
@@ -35,8 +53,22 @@ class FileController(BaseController):
         if not c.organization:
             abort(404, 'org')
     
+    @has_entity()
+    @authorize(CanWriteEntityRedirect())
+    def delete(self, id=None, entity=None, **kw):
+        
+        session['notify'] = '%s has been successfully deleted' % entity.name
+        session.save()
+        
+        entity.delete()
+        self.commit()
+        
+        self.redirect(h.url_for(controller='organization/project', action='view', slug=entity.project.slug))
+        
     def view(self, project=None, file=None):
-        #import pdb; pdb.set_trace()
+        """
+        Anyone can view any file right now provided they know the url...
+        """
         c.project = Session.query(projects.Project).filter_by(eid=project, organization=c.organization).first()
         if not c.project: abort(404)
         

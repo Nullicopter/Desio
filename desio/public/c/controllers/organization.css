@@ -20,6 +20,7 @@
 #content-inner {margin-top: 10px; position: relative;}
 
 #header-inner, #page-inner, #footer-inner{width: 1140px !important;}
+#notification-display>div {width: 1110px !important;}
 
 #sidepanels{margin-top: 10px;}
 #sidepanel{width: 300px; float: left; position: relative;}
@@ -113,7 +114,7 @@
 }
 #sidepanel-collapse.absolute{
     position: absolute;
-    left: -35px;
+    left: -25px;
     top:0;
 }
 

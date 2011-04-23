@@ -8,6 +8,7 @@ from time import time
 from pylons import tmpl_context as c
 from desio.lib import helpers as h
 from desio.lib import auth as a
+import simplejson as json
 %>
 <%
 name = 'binder.io'
@@ -15,6 +16,11 @@ if c.organization:
     name = c.organization.name
 %>
 <%def name="header()">
+    <script type="text/javascript">
+    % if c._notify:
+        window.MESSAGES = {notify: ${json.dumps(c._notify) | n}}
+    % endif
+    </script>
     ${parent.header()}
     ${r.require('ui')}
 </%def>

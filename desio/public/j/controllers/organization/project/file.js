@@ -1047,11 +1047,13 @@ Q.ViewFilePage = Q.Page.extend({
         downloadLink: '#download-link',
         shareDialog: '#share-dialog',
         shareEmail: '#email',
-        inviteForm: '#invite-form'
+        inviteForm: '#invite-form',
+        deleteLink: '#content .delete-link'
     },
     events:{
         'click #add-comment-link': 'addCommentClick',
-        'click #share-link': 'popShareDialog'
+        'click #share-link': 'popShareDialog',
+        'click #content .delete-link': 'deleteFile'
     },
     run: function(){
         
@@ -1155,6 +1157,10 @@ Q.ViewFilePage = Q.Page.extend({
     popShareDialog: function(){
         this.shareDialog.open();
         return false;
+    },
+    
+    deleteFile: function(){
+        return confirm('Are you sure you want to delete this file?');
     },
     
     addCommentClick: function(){

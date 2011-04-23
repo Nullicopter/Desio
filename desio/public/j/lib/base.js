@@ -123,6 +123,10 @@ $.postJSON = function( url, data, callback, opts) {
 
 $(document).ready(function(){
     $('.reload-link').reloadLink();
+    
+    if(window.MESSAGES)
+        for(var k in window.MESSAGES)
+            Q[k](window.MESSAGES[k]);
 });
 
 })(jQuery);
