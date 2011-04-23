@@ -201,6 +201,9 @@
 
 <script id="comment-template" class="jstemplate" type="text/template">
     <div class="number-comments">0</div>
+    % if c.file_role in [APP_ROLE_ADMIN]:
+        <a class="delete-link" href="#" title="delete this note">delete</a>
+    % endif
     <a href="#" class="pin-small complete-indicator status-{{completion_status}}" title="Click to mark this note complete"></a>
     <div class="creator">
         <span>{{creator}}</span> says

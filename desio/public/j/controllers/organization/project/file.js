@@ -262,6 +262,7 @@ Q.ImageView = Q.View.extend({
         this.settings.selectedComment.bind('change:version', this.changeVersion);
         this.settings.selectedComment.bind('change:comment', this.changeComment);
         this.settings.comments.bind('add', this.onAddComment);
+        this.settings.comments.bind('remove', this.onRemoveComment);
         this.settings.comments.bind('refresh', this.onCommentRefresh);
         this.settings.comments.bind('newcomment', this.onAddComment);
         this.settings.pinsMode.bind('change:pins', this.changePinsMode);
@@ -335,6 +336,11 @@ Q.ImageView = Q.View.extend({
             this.newCommentView.hide();
         if(this.popupCommentView)
             this.popupCommentView.hide();
+    },
+    
+    onRemoveComment: function(m){
+        m.pin.container.remove();
+        m.pin = null;
     },
     
     onAddComment: function(m){
@@ -566,7 +572,10 @@ Q.CommentView = Q.View.extend({
     
     events: {
         'click .reply-box .text': 'onClickReply',
-        'click .complete-indicator': 'onClickComplete'
+        'click .complete-indicator': 'onClickComplete',
+        'click .delete-link': 'onClickDelete',
+        'mouseenter': 'onEnter',
+        'mouseleave': 'onLeave'
     },
     
     tooltips:{
@@ -611,6 +620,15 @@ Q.CommentView = Q.View.extend({
             this.settings.selectedComment.bind('change:comment', this.onSelectComment)
         
         this.model.view = this;
+    },
+    
+    onEnter: function(){ this.$('.delete-link').show(); },
+    onLeave: function(){ this.$('.delete-link').hide(); },
+    
+    onClickDelete: function(e){
+        var c = confirm('Are you sure you want to delete this comment?');
+        if(c) this.model.destroy();
+        return false;
     },
     
     onSelectComment: function(m){
@@ -771,10 +789,11 @@ Q.CommentsView = Q.View.extend('CommentsView', {
          * selectedComment: 
          */
         
+        var self = this;
         this._super(container, settings);
         _.bindAll(this, 'onAddComment', 'onNewComment', 'onRemoveComment', 'onRefresh', 'onChangeSelectedComment');
         
-        var loader = this.loader = this.container.Loader();
+        this.loader = this.loader = this.container.Loader();
         
         this.settings.selectedComment.bind('change:comment', this.onChangeSelectedComment)
         this.model.bind('refresh', this.onRefresh);
@@ -784,11 +803,11 @@ Q.CommentsView = Q.View.extend('CommentsView', {
         
         this.model.bind('request:start', function(){
             $.log('start loading');
-            loader.startLoading();
+            self.loader.startLoading();
         });
         this.model.bind('request:end', function(){
             $.log('stop loading');
-            loader.stopLoading()
+            self.loader.stopLoading()
         });
         
         this.views = [];
@@ -927,6 +946,9 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     },
     
     onRemoveComment: function(m){
+        m.view.container.remove();
+        m.view = null;
+        this.model.trigger('request:end');
     }
 });
 
