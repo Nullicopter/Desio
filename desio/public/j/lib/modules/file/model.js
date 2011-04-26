@@ -368,7 +368,7 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
         return function(event){
             var a = args.slice(0);
             a.push(event);
-            fn.apply(self, a);
+            return fn.apply(self, a);
         };
     },
     
@@ -388,7 +388,9 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
         var self = this;
         
         var s = self.wrap(this.onStart, [id, file, reader, bin]);
-        if(false === s())
+        var r = s();
+        $.log('call start', r);
+        if(false === r)
             return;
         
         function beforeSend(xhr, settings){
@@ -451,6 +453,10 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
     },
     
     onStart: function(id, file, reader, bin){
+        $.log('file type:', file.type);
+        //if not do some kind of error, and no upload of that file...
+        if(!_.contains(Q.UploadModule.acceptableFormats, file.type));
+        
         if($.isFunction(this.settings.onStart))
             return this.settings.onStart.call(this, id, file);
         this.trigger('start', id, file, reader, bin);
@@ -516,9 +522,6 @@ Q.UploadModule = Q.FileUploader.extend('UploadModule', {
     onStart: function(id, file, reader, bin){
         var ret = this._super(id, file, reader, bin);
         if(ret == false) return ret;
-        
-        //if not do some kind of error, and no upload of that file...
-        if(!_.contains(Q.UploadModule.acceptableFormats, file.type));
         
         //figure out what the contents of the file are. our view will blindly jam it
         //into an image elem.

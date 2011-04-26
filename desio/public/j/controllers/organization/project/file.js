@@ -1053,7 +1053,61 @@ Q.DiffButtonView = Q.PinButtonView.extend('DiffButtonView', {
     }
 });
 
+Q.OverlayProgress = Q.View.extend({
+    className: 'progress-overlay',
+    template: '#progress-overlay-template',
+    options: {closeOnEscape: false},
+    init: function(){
+        this._super.apply(this, arguments);
+        
+        this.render();
+    },
+    
+    update: function(prog){
+        var perc = Q.DataFormatters.percent(prog, 0);
+        
+        var isup = prog < 100;
+        this.uploading[isup ? 'show' : 'hide']();
+        this.processing[isup ? 'hide' : 'show']();
+        
+        this.progress.css({width: perc});
+        
+        (function(t){
+            if(t.progtime) clearTimeout(t.progtime);
+            t.progtime = setTimeout(function(){
+                t.update(100);
+            }, 1500);
+        })(this);
+    },
+    
+    render: function(){
+        this.overlay = new $.ui.dialog.overlay(this);
+        this.overlay.$el.css( "z-index", 1999 );
+        
+        this.container.append($(_.template($(this.template).html(), {
+            asd: 2
+        })));
+        $(document.body).append(this.container);
+        
+        this.container.css({
+            left: parseInt($.ui.dialog.overlay.width())/2 - this.container.width()/2
+        });
+        
+        this.progress = this.$('.progress');
+        this.uploading = this.$('.uploading');
+        this.processing = this.$('.processing');
+        
+        return this;
+    },
+    
+    destroy: function(){
+        this.overlay.destroy();
+        this.container.remove();
+    }
+});
 Q.ViewFilePage = Q.Page.extend({
+    dropTemplate: 'droptarget-template',
+    
     n: {
         tabs: '#version-tabs',
         pageImageViewer: '#inpage-image-viewer',
@@ -1070,7 +1124,8 @@ Q.ViewFilePage = Q.Page.extend({
         shareDialog: '#share-dialog',
         shareEmail: '#email',
         inviteForm: '#invite-form',
-        deleteLink: '#content .delete-link'
+        deleteLink: '#content .delete-link',
+        org: '.organization'
     },
     events:{
         'click #add-comment-link': 'addCommentClick',
@@ -1085,7 +1140,7 @@ Q.ViewFilePage = Q.Page.extend({
          */
         var self = this;
         this._super.apply(this, arguments);
-        _.bindAll(this, 'viewVersion', 'addVersion');
+        _.bindAll(this, 'viewVersion', 'addVersion', 'onUploadStart', 'onUploadProgress', 'onUploadSuccess');
         
         var sidepanel = this.n.sidepanel.Sidepanel({
             collapsePreference: this.settings.collapsePreference,
@@ -1116,6 +1171,26 @@ Q.ViewFilePage = Q.Page.extend({
         this.replyForm = window.replyForm = this.n.replyComment.CommentFormView({
             model: null
         });
+        
+        this.target = this.n.org.DropTarget();
+        if(this.settings.userRole && this.settings.userRole != 'read'){
+            
+            var set = {};
+            var keys = ['url', 'path', 'name'];
+            for(var k in this.settings)
+                if(_.contains(keys, k))
+                    set[k] = this.settings[k];
+            
+            set.path = this.settings.filePath;
+            set.forcedName = set.name;
+            set.onStart = this.onUploadStart;
+            set.onProgress = this.onUploadProgress;
+            set.onSuccess = this.onUploadSuccess;
+            
+            $.log(set);
+            
+            this.target.target.FileUploader(set);
+        }
         
         window.USER_ROLE = this.settings.userRole;
         if(!this.settings.userRole)
@@ -1163,6 +1238,32 @@ Q.ViewFilePage = Q.Page.extend({
         $.log(this.comments);
     },
     
+    onUploadStart: function(id, file) {
+        $.log('start', file.name, this.settings.name);
+        this.target.hide();
+        
+        //one at a time...
+        if(this.progress) return false;
+        
+        var c = true;
+        if(file.name.toLowerCase().trim() != this.settings.name.toLowerCase().trim() )
+            c = confirm('The file you are uploading has a different name than the file on this page. Do you want to upload it anyway?') ? true : false;
+        
+        if(c) this.progress = new Q.OverlayProgress();
+        
+        return c;
+    },
+    onUploadProgress: function(id, loaded, total, percentage, event) {
+        $.log('progress');
+        this.progress.update(percentage);
+    },
+    onUploadSuccess: function(id, data) {
+        this.progress.destroy();
+        this.progress = null;
+        this.versions.add(data.results);
+        this.selectedVersion.set(this.versions.at(this.versions.length-1));
+    },
+    
     setupInvites: function(){
         //share stuff
         this.n.shareEmail.inputHint();
@@ -1195,9 +1296,21 @@ Q.ViewFilePage = Q.Page.extend({
         return false;
     },
     
-    addVersion: function(m){
-        $.log('add version', m);
-        this.n.tabs.append(new Q.TabView({
+    addVersion: function(m, coll){
+        $.log('add version', arguments);
+        
+        // find the place for the new one. based on relation to other versions in the array
+        var index = -1;
+        for(var i in coll.models)
+            if(coll.models[i].cid == m.cid){
+                index = i; break;
+            }
+        
+        fn = 'append';
+        if(index > 0 && coll.models[index-1].get('version') < m.get('version'))
+            fn = 'prepend';
+        
+        this.n.tabs[fn](new Q.TabView({
             model: m,
             selectedVersion: this.selectedVersion
         }).render().container);

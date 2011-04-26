@@ -125,6 +125,68 @@ Q.ProcessingFileView = Q.FileView.extend({
     }
 });
 
+Q.DropTarget = Q.Module.extend('DropTarget', {
+    
+    init: function(c, s){
+        var defs = {
+            template: '#droptarget-template',
+            showOn: 'elemdrag',
+            targetClass: 'target',
+            onTargetEnter: function(){},
+            onTargetLeave: function(){}
+        };
+        this._super(c, $.extend({}, defs, s));
+        _.bindAll(this, 'handleDrag', 'handleTargetEnter', 'handleTargetLeave', 'hideTarget');
+        
+        this._createDropTarget();
+    },
+    
+    _createDropTarget: function(){
+        this.target = $($(this.settings.template).html());
+        var pos = this.container.css('position');
+        if(!pos || pos == 'static')
+            this.container.css({position: 'relative'});
+        
+        this.container.append(this.target);
+        
+        var elem = this.container;
+        
+        elem.bind("dragenter",this.handleDrag);
+        this.target.bind("dragenter",this.handleTargetEnter);
+        this.target.bind("dragleave",this.handleTargetLeave);
+    },
+    
+    handleDrag: function(event){
+        $.log('handle Drag', event.target, this.target);
+        if(event.type == "dragenter" && this.target)
+            this.target.show();
+    },
+    
+    hideTarget: function(){
+        this.target.hide();
+    },
+    
+    handleTargetEnter: function(e){
+        $.log('handleTargetEnter', e.target);
+        if(!$(e.target).hasClass(this.settings.targetClass)) return;
+        
+        if(this.settings.onTargetEnter.call(this, e) == false) return;
+        
+        this.target.addClass('over');
+    },
+    handleTargetLeave: function(e){
+        $.log('handleTargetLeave', e.target);
+        if(!$(e.target).hasClass(this.settings.targetClass)) return;
+        
+        if(this.settings.onTargetEnter.call(this, e) == false) return;
+        
+        setTimeout(this.hideTarget, 200);
+    },
+    
+    hide: function(){ this.target.hide(); },
+    show: function(){ this.target.show(); }
+});
+
 Q.DirectoryView = Q.View.extend({
     tagName: "div",
 
@@ -141,7 +203,7 @@ Q.DirectoryView = Q.View.extend({
             showDropTargetOn: 'bodydrag' //or elemdrag
         };
         this._super(container, $.extend({}, defs, settings));
-        _.bindAll(this, "render", 'handleDrag', 'addFile', 'updateVersion', 'handleTargetEnter', 'handleTargetLeave', 'hideTarget');
+        _.bindAll(this, "render", 'addFile', 'updateVersion', 'handleTargetLeave');
         
         this.model.view = this;
         
@@ -204,37 +266,15 @@ Q.DirectoryView = Q.View.extend({
         }
     },
     
-    handleDrag: function(event){
-        var self = this;
-        if(event.type == "dragenter" && this.target)
-            this.target.show();
-    },
     
-    hideTarget: function(){
-        this.target.hide();
-    },
-    
-    handleTargetEnter: function(){
-        this.target.addClass('over');
-    },
     handleTargetLeave: function(){
-        if(this.files.length)
-            setTimeout(this.hideTarget, 200);
-        else
-            this.target.removeClass('over');
-    },
-    
-    _createDropTarget: function(){
-        this.target = $($(this.dropTemplate).html());
-        var pos = this.container.css('position');
-        if(!pos || pos == 'static')
-            this.container.css({position: 'relative'});
+        if(this.files.length) return true;
         
-        return this.target;
+        this.target.target.removeClass('over');
+        return false;
     },
     
     render: function() {
-        $.log(this.settings);
         var html;
         
         //check whether we should show the header or not.
@@ -246,20 +286,15 @@ Q.DirectoryView = Q.View.extend({
         this.container.html(html);
         
         if(this.settings.showDropTargetOn){
-            target = this._createDropTarget();
+            this.target = this.container.find('.files-container').DropTarget({
+                showOn: this.settings.showDropTargetOn,
+                onTargetLeave: this.handleTargetLeave
+            });
             
             this.filesElem = this.container.find('.files');
-            this.container.find('.files-container').append(target);
             
             if(this.files.length == 0) this.target.show();
             else this.target.hide();
-            
-            var elem = this.target;
-            if(this.settings.showDropTargetOn == 'bodydrag') elem = $(document);
-            
-            this.container.bind("dragenter",this.handleDrag);
-            this.target.bind("dragenter",this.handleTargetEnter);
-            this.target.bind("dragleave",this.handleTargetLeave);
         }
         
         return this;
@@ -311,7 +346,7 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
             set.files = m.get('files');
             $.log('Setting up upload module', '@'+this.settings.role+'@')
             if(this.settings.role && this.settings.role != 'read')
-                view.target.UploadModule(set);
+                view.target.target.UploadModule(set);
             
             for(var j = 0; j < files.length; j++){
                 files[j].id = files[j].eid;

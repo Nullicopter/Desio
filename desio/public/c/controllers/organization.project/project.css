@@ -5,34 +5,6 @@
 .files-container{position: relative;}
 .files{min-height: 100px;}
 
-.role-read .drop{
-    display: none !important;
-}
-
-.drop{
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0px;
-    color: #fff;
-    border: 1px solid #e5e5e5;
-}
-.drop .drop-inner{
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0px;
-    border: 9px solid #fff;
-    background: transparent url(../../../i/site/stripe_transparent_bg.png) repeat;
-    font-size: 18pt;
-    text-transform: uppercase;
-    text-align: center;
-    z-index: 20;
-    font-weight: normal;
-}
-.drop p{margin: 35px 0 0 0;}
-
-.drop.over .drop-inner{
-    color: #fff;
-    font-weight: bold;
-}
-
 .file a:hover, .processing-file a:hover{
     text-decoration: none;
 }
@@ -118,11 +90,13 @@
 .file .name-bar{ height: 85px; }
 .file .name{ bottom: 54px; }
 */
-.processing-file .progress-bg, .processing-file .progress-container{
+.progress-bg, .progress-container{
     height: 30px;
     width: 230px;
     background: #000;
     -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
     line-height: 30px;
     font-weight: bold;
     position: absolute;
@@ -130,25 +104,25 @@
     opacity: .4;
 }
 
-.processing-file .progress-container{
+.progress-container{
     opacity: .8;
     background: none;
 }
-.processing-file .progress{
+.progress{
     background: #60AFEE;
     height: 30px;
     -moz-border-radius: 4px;
 }
-.processing-file .progress-text.uploading{
+.progress-text.uploading{
     display: none;
 }
-.processing-file .progress-text.processing img{
+.progress-text.processing img{
     display: block;
     float: right;
     width: 16px;
     height: 16px;
 }
-.processing-file .progress-text{
+.progress-text{
     position: absolute;
     color: #fff;
     text-shadow: 1px 1px 1px #ccc;

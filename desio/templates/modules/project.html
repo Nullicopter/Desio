@@ -83,3 +83,14 @@ roles = [
         <img src="${url}" />
     </a>
 </%def>
+
+<%def name="droptarget_template(text='Drop files here')" >
+    <script id="droptarget-template" class="jstemplate" type="text/template">
+        <div class="drop">
+            <div class="target"></div>
+            <div class="drop-inner">
+                <p>${text}</p>
+            </div>
+        </div>
+    </script>
+</%def>

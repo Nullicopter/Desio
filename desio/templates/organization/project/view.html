@@ -8,7 +8,7 @@
 %>
 <%def name="header()">
     ${parent.header()}
-    ${r.require('file')}
+    ${r.require('file', 'project')}
     <style type="text/css">
         #sidepanels{width: 275px;}
         #description {width: 265px;}
@@ -98,13 +98,7 @@
     </div>
 </script>
 
-<script id="droptarget-template" class="jstemplate" type="text/template">
-    <div class="drop">
-        <div class="drop-inner">
-            <p>Drop files here</p>
-        </div>
-    </div>
-</script>
+${project.droptarget_template()}
 
 <script id="upload-template" class="jstemplate" type="text/template">
     <div class="name-bar"></div>

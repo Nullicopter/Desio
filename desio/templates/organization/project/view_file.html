@@ -1,6 +1,8 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
+<%namespace name="project" file="/modules/project.html"/>
+
 <%!
     import simplejson as json
     from desio import utils
@@ -15,12 +17,13 @@
 %>
 <%def name="header()">
     ${parent.header()}
-    ${r.require('file', 'image')}
+    ${r.require('project', 'file', 'image')}
     <style type="text/css">
     % if not c.user_role:
         div.reply-box{display: none !important;}
     % endif
     #email{width: 225px;}
+    .drop{display: none;}
     </style>
     
     <script type="text/javascript">
@@ -30,6 +33,8 @@
         versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
+        filePath: ${json.dumps(c.file.path) | n},
+        name: ${json.dumps(c.file.name) | n},
         boxWidth: 800,
         fullBoxWidth: 800+310,
         collapsePreference: '${c.real_user and 'view_file_sidepanel_collapse' or ''}',
@@ -215,6 +220,20 @@
         <input type="text" class="text" value="Add a reply..."/>
     </div>
 </script>
+
+<script id="progress-overlay-template" class="jstemplate" type="text/template">
+    <div class="progress-text uploading">uploading...</div>
+    <div class="progress-text processing">
+        <img src="/i/loaders/16x16_arrows_white.gif"/>
+        processing...
+    </div>
+    <div class="progress-bg"></div>
+    <div class="progress-container">
+        <div class="progress" style="width: 100%"></div>
+    </div>
+</script>
+
+${project.droptarget_template('Drop new version here')}
 
 % if c.file.get_role(c.user) in [APP_ROLE_WRITE, APP_ROLE_ADMIN]:
     <p><a href="${h.url_for(controller='organization/file', action='delete', id=c.file.eid)}" class="delete-link icon-delete">delete this file</a></p>

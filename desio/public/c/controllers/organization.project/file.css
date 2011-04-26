@@ -326,6 +326,9 @@
     background-image: url(../../../i/icons/pin_red_large.png);
 }
 
+/**
+ * Delete links
+ */
 
 #sidepanel .delete-link, #content .delete-link{
     color: #ABA9A2;
@@ -348,4 +351,16 @@
 }
 #content .delete-link.icon-delete:hover{
     background-position: bottom right;
+}
+
+/**
+ * Progress
+ */
+
+.progress-overlay{
+    z-index: 2000;
+    position: fixed;
+    top: 100px;
+    width: 270px;
+    margin: 0 auto;
 }
