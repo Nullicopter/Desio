@@ -43,6 +43,7 @@ def out_change(change, with_extracts=True):
         out['extracts'] = []
         for ex in change.change_extracts:
             out['extracts'].append(out_change_extract(ex))
+        out['extracts'].sort(key=lambda x: x['order_index'])
 
     return out
 

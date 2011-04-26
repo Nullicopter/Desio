@@ -112,6 +112,8 @@
     background: #60AFEE;
     height: 30px;
     -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
 }
 .progress-text.uploading{
     display: none;
