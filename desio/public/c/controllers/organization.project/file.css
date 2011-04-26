@@ -5,6 +5,7 @@
 
 #description{
     width: 270px;
+    line-height: 1.5em;
 }
 
 #sidepanel .info.no-role{
@@ -212,6 +213,7 @@
     padding: 10px 10px;
     color: #aaa;
     font-size: 12pt;
+    line-height: 1.3em;
 }
 
 #comments>.comment, .no-comments{border-bottom: 1px solid #E3E0D7;}
@@ -329,7 +331,7 @@
 /**
  * Delete links
  */
-
+.tip{color: #777;}
 .delete-link{
     color: #ABA9A2;
     font-weight: normal;
