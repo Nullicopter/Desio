@@ -607,6 +607,7 @@ Q.CommentView = Q.View.extend({
         
         var replies = this.model.get('replies');
         replies.bind('add', this.onAddReply);
+        replies.bind('remove', this.onRemoveReply);
         //replies.bind('newcomment', this.onAddReply);
         
         this.model.bind('change:completion_status', this.onChangeCompletionStatus);
@@ -658,20 +659,21 @@ Q.CommentView = Q.View.extend({
     
     
     onAddReply: function(m){
-        //if(this.replies && !m.isNew()){
-            //this.replies.show();
-            $.log('Adding reply in onAddReply', m);
-            var com = new Q.CommentView({
-                model: m,
-                selectedComment: this.settings.selectedComment
-            });
-            this.replies.append(com.render().el);
-            var r = this.model.get('replies');
-            if(r && $.isNumber(r.length))
-                this.$('.number-comments').text(r.length);
-        //}
-        //else
-        //    $.log('NOT Adding reply as no replies yet...', m);
+        
+        $.log('Adding reply in onAddReply', m);
+        var com = new Q.CommentView({
+            model: m,
+            selectedComment: this.settings.selectedComment
+        });
+        this.replies.append(com.render().el);
+        var r = this.model.get('replies');
+        if(r && $.isNumber(r.length))
+            this.$('.number-comments').text(r.length);
+        
+    },
+    onRemoveReply: function(m){
+        m.view.container.remove();
+        m.view = null;
     },
 
     setPinStatus: function(status){
