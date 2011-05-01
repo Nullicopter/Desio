@@ -29,6 +29,7 @@
     <script type="text/javascript">
     new Q.ViewFilePage({
         userRole: ${c.file_role and '"%s"' % c.file_role or 'null' | n},
+        user: ${json.dumps(c.user_dict) | n},
         url: '${c.real_user and h.api_url('file', 'upload', project=c.project.eid) or ''}',
         versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},

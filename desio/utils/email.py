@@ -39,9 +39,16 @@ def send(to, template_path, context=None, reply_to='', bcc='ogle.ben@gmail.com')
     context = context or {}
     context['url_for'] = absolute_url_for
     
+    def get_email(u, set_context=True):
+        if isinstance(u, users.User):
+            if set_context: context['user'] = u
+            return u.email
+        return u
+    
     if isinstance(to, users.User):
-        context['user'] = to
-        to = to.email
+        to = get_email(to)
+    if isinstance(to, (list, tuple)):
+        to = [get_email(u, set_context=False) for u in to]
 
     pc = pylons.config
     

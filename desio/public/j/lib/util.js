@@ -4,6 +4,15 @@
 
 (function($){
 
+$.extend(_, {
+    extract: function(obj, attrs){
+        var res = {};
+        for(var i in attrs)
+            if(attrs[i] in obj)
+                res[attrs[i]] = obj[attrs[i]];
+        return res;
+    }
+});
 var parseDate = $.parseDate;
 $.extend($, {
     pathJoin: function(){

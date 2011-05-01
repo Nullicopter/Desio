@@ -1,0 +1,11 @@
+<%inherit file="active_user_base.txt"/>
+
+<%def name="subject()">
+    New project '${project.name}' on Binder.io
+</%def>
+
+Hello,
+
+${creator.human_name} just created a project called ${project.name} on ${project.organization.name}. You can check it by visiting the link below:
+
+${url_for(controller='organization/project', action='view', slug=project.slug, subdomain=project.organization.subdomain)}

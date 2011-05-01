@@ -1,0 +1,15 @@
+<%inherit file="active_user_base.txt"/>
+
+<%def name="subject()">
+    ${creator.human_name} left a new note on ${entity.name} in project ${entity.project.name} on Binder.io
+</%def>
+
+Hello,
+
+${creator.human_name} just left a new note on ${entity.name} in project ${entity.project.name}:
+
+${comment.body}
+
+You can view it here:
+
+${url_for(controller='organization/file', action='view', subdomain=entity.project.organization.subdomain, project=entity.project.eid, file=entity.eid)}

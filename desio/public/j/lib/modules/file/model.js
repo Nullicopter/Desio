@@ -140,7 +140,8 @@ Q.Comment = Q.Model.extend({
                 comment: this.get('eid')
             }
         }
-        return this._super(method);
+        var s = ['body', 'in_reply_to', 'extract', 'change', 'x', 'y', 'width', 'height'];
+        return _.extract(this.attributes, s);
     },
     
     parse: function(data){
@@ -294,7 +295,7 @@ Q.Comments = Q.Collection.extend({
      * provide either a change or an extract
      * position is: [x, y, width, height]
      */
-    addComment: function(body, extract, position){
+    addComment: function(user, body, extract, position){
         var self = this;
         
         var com = {};
@@ -305,10 +306,13 @@ Q.Comments = Q.Collection.extend({
                 height: position[3]
             };
         
+        com.creator = user;
+        com.completion_status = {status: 'open', user: user, created_date: new Date()};
         com.body = body;
         com.extract = extract;
+        com.created_date = new Date();
         
-        $.log('Adding new comment: ', com, position);
+        $.log('Comment.addComment: Adding new comment: ', com, position);
         this.add(com);
     }
 });

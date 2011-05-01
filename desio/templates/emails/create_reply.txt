@@ -1,0 +1,19 @@
+<%inherit file="active_user_base.txt"/>
+
+<%def name="subject()">
+    ${creator.human_name} left a reply on ${entity.name} in project ${entity.project.name} on Binder.io
+</%def>
+
+Hello,
+
+${creator.human_name} just left a reply on ${entity.name} in response to ${parent_comment.creator.human_name}'s note:
+
+${parent_comment.body}
+
+${creator.human_name} said:
+
+${comment.body}
+
+You can view it here:
+
+${url_for(controller='organization/file', action='view', subdomain=entity.project.organization.subdomain, project=entity.project.eid, file=entity.eid)}

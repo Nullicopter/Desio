@@ -6,6 +6,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
+from desio.utils import email
 import sqlalchemy as sa
 
 import formencode
@@ -75,6 +76,25 @@ def upload(real_user, user, project, **kw):
     
     change = project.add_change(user, os.path.join(path, fname), tmpname, u'')
     
+    if change.version == 1:
+        #email
+        users = project.interested_users
+        if user in users: users.remove(user)
+        email.send(users, 'create_file.txt', {
+            'project': project,
+            'change': change,
+            'creator': user
+        })
+    else:
+        #email
+        users = change.entity.interested_users
+        if user in users: users.remove(user)
+        email.send(users, 'create_change.txt', {
+            'project': project,
+            'change': change,
+            'creator': user
+        })
+    
     return change.entity, change
 
 @enforce(body=unicode, x=int, y=int, width=int, height=int, change=projects.Change, extract=projects.ChangeExtract, in_reply_to=projects.Comment)
@@ -87,7 +107,34 @@ def add_comment(real_user, user, body, change=None, extract=None, in_reply_to=No
     """
 
     commentable = change or extract or in_reply_to.change
-    return commentable, commentable.add_comment(user, body, in_reply_to=in_reply_to, **kw)
+    
+    comment = commentable.add_comment(user, body, in_reply_to=in_reply_to, **kw)
+    
+    #email
+    if in_reply_to:
+        users = in_reply_to.interested_users
+        if user in users: users.remove(user)
+        email.send(users, 'create_reply.txt', {
+            'comment': comment,
+            'creator': user,
+            'parent_comment': in_reply_to,
+            'entity': in_reply_to.change.entity,
+            'change': in_reply_to.change,
+        })
+    else:
+        ch = change or extract.change
+        entity = ch.entity
+        
+        users = entity.interested_users
+        if user in users: users.remove(user)
+        email.send(users, 'create_comment.txt', {
+            'comment': comment,
+            'entity': entity,
+            'change': ch,
+            'creator': user
+        })
+    
+    return commentable, comment
 
 @enforce(comment=projects.Comment)
 @authorize(Exists('comment'), Or( MustOwn('comment'), CanAdminProject(get_from='comment') ))

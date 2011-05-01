@@ -13,6 +13,7 @@ from pylons_common.lib.exceptions import *
 class TestProject(TestController):
     def test_create(self):
         u = fh.create_user()
+        u2 = fh.create_user()
         o = {
             'subdomain': u'mycompany',
             'name': u'My company',
@@ -55,9 +56,23 @@ class TestProject(TestController):
         fetched_p = api.project.get(u, u, org, project.slug)
         assert fetched_p == project
 
-        org1 = fh.create_organization()
-        assert self.throws_exception(lambda : api.project.get(u, u, org1)).code == FORBIDDEN
-        assert self.throws_exception(lambda : api.project.get(u, u, org1, u'fakeeid')).code == FORBIDDEN
+        o = {
+            'subdomain': u'blahcomp',
+            'name': u'My company',
+            'url': u'http://asdasd.com',
+        }
+        org1 = fh.create_organization(user=u2, **o)
+        _p = {'name': u'WOWZA',
+             'description': u'No description for wow'}
+        project = api.project.create(u2, u2, org1, **_p)
+        
+        projs = api.project.get(u, u, org1)
+        assert not projs
+        
+        assert api.project.get(u2, u2, org1, u'wowza')
+        
+        assert self.throws_exception(lambda : api.project.get(u, u, org1, u'wowza')).code == FORBIDDEN
+        assert self.throws_exception(lambda : api.project.get(u, u, org1, u'fakeeid')).code == NOT_FOUND
         assert self.throws_exception(lambda : api.project.get(u, u, org, u'fakeeid')).code == NOT_FOUND
 
         err = self.throws_exception(lambda : api.project.create(u, u, org, **p))
@@ -110,7 +125,7 @@ class TestProject(TestController):
         
         assert len(api.project.get(owner, owner, org)) == 3
         assert len(api.project.get(read, read, org)) == 3
-        assert self.throws_exception(lambda: len(api.project.get(rando_no_org, rando_no_org, org))).code == FORBIDDEN
+        assert len(api.project.get(rando_no_org, rando_no_org, org)) == 0
         
         org.is_read_open = False
         self.flush();
@@ -119,7 +134,7 @@ class TestProject(TestController):
         assert len(api.project.get(owner, owner, org)) == 3
         assert len(api.project.get(read, read, org)) == 2
         assert len(api.project.get(rando, rando, org)) == 0
-        assert self.throws_exception(lambda: len(api.project.get(rando_no_org, rando_no_org, org))).code == FORBIDDEN
+        assert len(api.project.get(rando_no_org, rando_no_org, org)) == 0
         
         self.flush();
     

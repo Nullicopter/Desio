@@ -68,10 +68,18 @@ class TestOrganization(TestController):
         self.flush()
         assert org.get_role(normal) == APP_ROLE_READ
         
+        users = org.interested_users
+        assert len(users) == 2
+        assert normal in users
+        
         assert org.reject_user(normal)
         self.flush()
         assert org.get_role(normal) == None
         assert org.get_role(normal, status=STATUS_REJECTED) == APP_ROLE_READ
+        
+        users = org.interested_users
+        assert len(users) == 1
+        assert normal not in users
     
     def test_invite(self):
         t = (AppException,)

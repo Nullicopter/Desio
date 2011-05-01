@@ -240,6 +240,16 @@ class Project(Base, Roleable):
             return max(proj_role, org_role, key=lambda r: APP_ROLE_INDEX[r])
         
         return proj_role
+    
+    @property
+    def interested_users(self):
+        from desio.model.users import User
+        cus = self.get_user_connections(status=STATUS_APPROVED)
+        users = [cu.user for cu in cus if cu.user]
+        
+        contributors = Session.query(User).join(Change).filter(Change.project_id==self.id).all()
+        
+        return list(set(users + contributors))
 
 class EntityUser(Base):
     """
@@ -379,6 +389,20 @@ class Entity(Base, Roleable):
             ent_role = eu.role
         
         return max(proj_role, ent_role, key=lambda r: APP_ROLE_INDEX[r])
+    
+    @property
+    def interested_users(self):
+        # people invited to this file...
+        # people with changes on this file,
+        # people with comments on this file.
+        from desio.model.users import User
+        cus = self.get_user_connections(status=STATUS_APPROVED)
+        users = [cu.user for cu in cus if cu.user]
+        
+        contributors = Session.query(User).join(Change).filter(Change.entity_id==self.id).all()
+        commenters = Session.query(User).join(Comment).join((Change, Comment.change_id==Change.id)).filter(Change.entity_id==self.id).all()
+        
+        return list(set(users + contributors + commenters))
     
 class Directory(Entity):
     """
@@ -855,3 +879,14 @@ class Comment(Base):
         Soft deletes a comment.
         """
         self.status = STATUS_REMOVED
+    
+    @property
+    def interested_users(self):
+        # people invited to this file...
+        # people with changes on this file,
+        # people with comments on this file.
+        from desio.model.users import User
+        
+        commenters = Session.query(User).join(Comment).filter(Comment.in_reply_to_id==self.id).all()
+        
+        return list(set([self.creator] + commenters))

@@ -4,6 +4,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
                     CanWriteOrg, CanReadOrg, Exists, Or
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio.utils import email
 import sqlalchemy as sa
 import os.path
 
@@ -67,6 +68,14 @@ def create(real_user, user, organization, **params):
                                organization=organization)
     Session.add(project)
     Session.flush()
+    
+    #email
+    users = organization.interested_users
+    if user in users: users.remove(user)
+    email.send(users, 'create_project.txt', {
+        'project': project,
+        'creator': user
+    })
     
     return project
 

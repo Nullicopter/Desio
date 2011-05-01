@@ -532,7 +532,7 @@ Q.ImageNewCommentView = Q.PopupView.extend({
         pos = [pos.x, pos.y, pos.w, pos.h];
         $.log('submit', this.form.val('body'), this.model.id, pos);
         
-        this.settings.comments.addComment(this.form.val('body'), this.model.id, pos);
+        this.settings.comments.addComment(window.USER, this.form.val('body'), this.model.id, pos);
         
         //this.cropper.release();
         
@@ -607,7 +607,7 @@ Q.CommentView = Q.View.extend({
         
         var replies = this.model.get('replies');
         replies.bind('add', this.onAddReply);
-        replies.bind('newcomment', this.onAddReply);
+        //replies.bind('newcomment', this.onAddReply);
         
         this.model.bind('change:completion_status', this.onChangeCompletionStatus);
         
@@ -656,8 +656,9 @@ Q.CommentView = Q.View.extend({
         return false;
     },
     
+    
     onAddReply: function(m){
-        if(this.replies && !m.isNew()){
+        //if(this.replies && !m.isNew()){
             //this.replies.show();
             $.log('Adding reply in onAddReply', m);
             var com = new Q.CommentView({
@@ -668,11 +669,11 @@ Q.CommentView = Q.View.extend({
             var r = this.model.get('replies');
             if(r && $.isNumber(r.length))
                 this.$('.number-comments').text(r.length);
-        }
-        else
-            $.log('NOT Adding reply as no replies yet...', m);
+        //}
+        //else
+        //    $.log('NOT Adding reply as no replies yet...', m);
     },
-    
+
     setPinStatus: function(status){
         var ind = this.$('.complete-indicator');
         ind.removeClass('status-'+this.model.statusToggle[status]);
@@ -996,7 +997,7 @@ Q.CommentFormView = Q.View.extend('CommentFormView', {
         var self = this;
         
         $.log(self.model, self.form.val('body'));
-        self.model.addComment(self.form.val('body'));
+        self.model.addComment(window.USER, self.form.val('body'));
         
         this.addCommentCancel();
         return false;
@@ -1141,6 +1142,8 @@ Q.ViewFilePage = Q.Page.extend({
         var self = this;
         this._super.apply(this, arguments);
         _.bindAll(this, 'viewVersion', 'addVersion', 'onUploadStart', 'onUploadProgress', 'onUploadSuccess');
+        
+        window.USER = this.settings.user;
         
         var sidepanel = this.n.sidepanel.Sidepanel({
             collapsePreference: this.settings.collapsePreference,

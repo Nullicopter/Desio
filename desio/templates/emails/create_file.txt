@@ -1,0 +1,11 @@
+<%inherit file="active_user_base.txt"/>
+
+<%def name="subject()">
+    New file ${change.entity.name} in project ${project.name} on Binder.io
+</%def>
+
+Hello,
+
+${creator.human_name} just created a file called ${change.entity.name} in project ${project.name}. Check it out:
+
+${url_for(controller='organization/file', action='view', subdomain=project.organization.subdomain, project=project.eid, file=change.entity.eid)}

@@ -104,7 +104,135 @@ class TestProjects(TestController):
 
         assert project.last_modified > project.last_modified_date
         self.flush()
+    
+    def test_interested_users_project(self):
+        """
+        Test basic changes functionality
+        """
+        user = fh.create_user()
+        user2 = fh.create_user()
+        user3 = fh.create_user()
+        user4 = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
         
+        project.organization.attach_user(user2)
+        project.organization.attach_user(user3)
+        project.organization.attach_user(user4)
+        self.flush()
+        
+        #user created it
+        users = project.interested_users
+        assert user3 not in users
+        assert user2 not in users
+        assert user in users
+        
+        #attach user2
+        project.attach_user(user2)
+        self.flush()
+        
+        users = project.interested_users
+        assert user3 not in users
+        assert user2 in users
+        assert user in users
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user3, u"/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+        
+        #user3 added a file
+        
+        users = project.interested_users
+        assert user4 not in users
+        assert user3 in users
+        assert user2 in users
+        assert user in users
+        
+        comment = change.add_comment(user4, u'foobar')
+        self.flush()
+        
+        #user 4 commented, but that doesnt mean he is interested in the project
+        users = project.interested_users
+        assert user4 not in users
+        assert user3 in users
+        assert user2 in users
+        assert user in users
+    
+    def test_interested_users_file(self):
+        """
+        Test basic changes functionality
+        """
+        user = fh.create_user()
+        user2 = fh.create_user()
+        user3 = fh.create_user()
+        user4 = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+        
+        project.organization.attach_user(user2)
+        project.organization.attach_user(user3)
+        project.organization.attach_user(user4)
+        self.flush()
+        
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user4, u"/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+        file = change.entity
+        
+        #user created it
+        users = file.interested_users
+        assert user4 in users
+        assert user3 not in users
+        assert user2 not in users
+        assert user not in users
+        
+        #attach user3
+        file.attach_user(user3)
+        self.flush()
+        
+        users = file.interested_users
+        assert user4 in users
+        assert user3 in users
+        assert user2 not in users
+        assert user not in users
+
+        
+        
+        #user2 added a comment
+        comment = change.add_comment(user2, u'foobar')
+        self.flush()
+        
+        users = file.interested_users
+        assert user4 in users
+        assert user3 in users
+        assert user2 in users
+        assert user not in users
+        
+        #user 2 interested in his own comment
+        users = comment.interested_users
+        assert user4 not in users
+        assert user3 not in users
+        assert user2 in users
+        assert user not in users
+        
+        #user added a reply
+        reply = change.add_comment(user, u'foobar', in_reply_to=comment)
+        self.flush()
+        
+        users = file.interested_users
+        assert user4 in users
+        assert user3 in users
+        assert user2 in users
+        assert user in users
+        
+        print user, user2, user3, user4
+        
+        users = comment.interested_users
+        assert user4 not in users
+        assert user3 not in users
+        assert user2 in users
+        assert user in users
+
     def test_changes(self):
         """
         Test basic changes functionality

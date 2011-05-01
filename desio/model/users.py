@@ -122,6 +122,11 @@ class Organization(Base, Roleable):
         
         #this will return all the projects the user can see
         return [p for p in projects if p.get_role(user)]
+    
+    @property
+    def interested_users(self):
+        cus = self.get_user_connections(status=STATUS_APPROVED)
+        return [cu.user for cu in cus if cu.user]
 
 class UserPreference(Base):
     """

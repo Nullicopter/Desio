@@ -83,6 +83,7 @@ class ProjectController(OrganizationBaseController):
             #c.projects = api.project.get(c.real_user, c.user, c.organization)
             c.path_components = path_components
         
+        c.user_dict = v1.user.get().output(auth.get_user())
         c.project = project
         c.title = path_components[-1]
         
