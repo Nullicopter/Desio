@@ -46,12 +46,12 @@ def get_activities(organization=None, project=None, entity=None, user=None, limi
     if user:
         q = q.filter_by(user_id=user.id)
     
-    if limit:
-        q = q.limit(limit)
-    
     if order_by and sort_direction:
         d = getattr(sa, sort_direction)
         q = q.order_by(d(getattr(Activity, order_by)))
+    
+    if limit:
+        q = q.limit(limit)
     
     return q.all()
     

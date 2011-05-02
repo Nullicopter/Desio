@@ -1,9 +1,10 @@
 
 from desio import api
+from desio.utils import relative_date_str
 from desio.lib.base import *
 from desio.controllers.admin import AdminController
 
-from desio.model import users
+from desio.model import users, activity
 
 import formencode
 import formencode.validators as fv
@@ -70,6 +71,26 @@ class ReportController(AdminController):
         c.params = {}
         c.params['table'] = {
             'columns': ['User', 'Email', 'Role', 'Created', 'Last Logged In', 'Active'],
+            'data': data
+        }
+        
+        return self.render('/admin/report/generic.html')
+    
+    def activity(self, *a, **kw):
+        """
+        General: Activity Feed
+        
+        A report showing all activity on the site.
+        """
+        c.title = 'Activity'
+        
+        act = activity.get_activities(limit=100) #last 100
+        
+        data = [(a.organization, relative_date_str(a.created_date), a.type, a.get_message(), a.user) for a in act]
+        
+        c.params = {}
+        c.params['table'] = {
+            'columns': ['Org', 'When', 'Type', 'Str', 'User'],
             'data': data
         }
         
