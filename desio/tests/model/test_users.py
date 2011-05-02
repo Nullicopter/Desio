@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from desio.model import users, STATUS_APPROVED, STATUS_REJECTED, STATUS_PENDING, fixture_helpers as fh
+from desio.model import users, STATUS_APPROVED, STATUS_REJECTED, STATUS_PENDING, fixture_helpers as fh, activity
 from desio.model.users import APP_ROLE_ADMIN, APP_ROLE_READ, APP_ROLE_WRITE
 from desio.tests import *
 
@@ -105,6 +105,10 @@ class TestOrganization(TestController):
         inv = users.Invite.create(user, email, org, users.APP_ROLE_WRITE)
         self.flush()
         
+        act = activity.get_activities()
+        assert act[0].type == activity.Invite.TYPE
+        assert act[0].get_message()
+        
         assert inv.invited_email == email
         assert inv.invited_user == None
         assert inv.user == user
@@ -127,6 +131,10 @@ class TestOrganization(TestController):
         self.flush()
         Session.refresh(inv)
         
+        act = activity.get_activities()
+        assert act[0].type == activity.InviteAccept.TYPE
+        assert org.name in act[0].get_message()
+        
         assert inv.invited_email == email
         assert inv.invited_user == iu
         assert inv.user == user
@@ -144,6 +152,10 @@ class TestOrganization(TestController):
         inv = users.Invite.create(user, email, project, users.APP_ROLE_ADMIN)
         self.flush()
         
+        act = activity.get_activities()
+        assert act[0].type == activity.Invite.TYPE
+        assert project.name in act[0].get_message()
+        
         assert inv.role == users.APP_ROLE_ADMIN
         assert inv.type == users.INVITE_TYPE_PROJECT
         assert inv.object_id == project.id
@@ -158,6 +170,10 @@ class TestOrganization(TestController):
         self.flush()
         Session.refresh(inv)
         
+        act = activity.get_activities()
+        assert act[0].type == activity.InviteAccept.TYPE
+        assert project.name in act[0].get_message()
+        
         assert inv.invited_user == iu
         assert project.get_role(iu) == users.APP_ROLE_ADMIN
         assert org.get_role(iu) == None
@@ -166,6 +182,10 @@ class TestOrganization(TestController):
         email = 'orgf@blah.com'
         inv = users.Invite.create(user, email, entity, users.APP_ROLE_READ)
         self.flush()
+        
+        act = activity.get_activities()
+        assert act[0].type == activity.Invite.TYPE
+        assert entity.name in act[0].get_message()
         
         assert inv.type == users.INVITE_TYPE_ENTITY
         assert inv.object_id == entity.id
@@ -179,6 +199,10 @@ class TestOrganization(TestController):
         inv.accept(iu)
         self.flush()
         Session.refresh(inv)
+        
+        act = activity.get_activities()
+        assert act[0].type == activity.InviteAccept.TYPE
+        assert entity.name in act[0].get_message()
         
         assert inv.invited_user == iu
         assert entity.get_role(iu) == users.APP_ROLE_READ

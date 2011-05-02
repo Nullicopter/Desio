@@ -3,6 +3,7 @@ from sqlalchemy.orm import relation, backref
 
 import pytz
 from desio.model.meta import Session, Base
+from desio.model import activity
 import hashlib
 
 from datetime import datetime
@@ -455,6 +456,9 @@ class Invite(Base):
         inv = Invite(role=role, type=type_, invited_email=email,
                      user=user, invited_user=invited,
                      object_id=obj.id, status=STATUS_PENDING)
+        Session.flush()
+        
+        Session.add(activity.Invite(user, inv))
         
         return inv
     
@@ -490,6 +494,8 @@ class Invite(Base):
         obj = self.object
         
         obj.attach_user(self.invited_user, self.role, status=STATUS_APPROVED)
+        
+        Session.add(activity.InviteAccept(self.invited_user, self))
 
 
 class BetaEmail(Base):

@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
                     CanWriteOrg, CanReadOrg, Exists, Or
-from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio.model import users, Session, projects, activity, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 from desio.utils import email
 import sqlalchemy as sa
 import os.path

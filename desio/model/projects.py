@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import func
 from desio.model.meta import Session, Base
 
 from pylons_common.lib import exceptions, date, utils
-from desio.model import users, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
+from desio.model import users, activity, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
 from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush, Roleable
 from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, APP_ROLE_INDEX
 from desio.utils import file_uploaders as fu, image, is_testing, digests
@@ -96,6 +96,8 @@ class Project(Base, Roleable):
         creator = kwargs.get('creator')
         if creator:
             self.attach_user(creator, APP_ROLE_ADMIN)
+        
+        Session.add(activity.NewProject(creator, self))
 
     @property
     def last_modified(self):
@@ -520,8 +522,21 @@ class Commentable(object):
         """
         Add a new comment to this ChangeExtract.
         """
+        entity = None
+        if hasattr(self, 'entity_id'):
+            entity = self.entity
+        elif hasattr(self, 'change'):
+            entity = self.change.entity
+        
         comment = Comment(creator=user, body=body, x=x, y=y, width=width, height=height, in_reply_to=in_reply_to, **{self._comment_attribute: self})
         Session.add(comment)
+        Session.flush()
+        
+        if in_reply_to:
+            Session.add(activity.NewReply(user, entity, comment))
+        else:
+            Session.add(activity.NewComment(user, entity, comment))
+        
         return comment
 
     def get_comments(self):
@@ -574,6 +589,12 @@ class Change(Base, Uploadable, Commentable):
             version = self._get_next_version()
 
         self.version = version
+        
+        creator = kwargs.get('creator', None)
+        if version == 1:
+            Session.add(activity.NewFile(creator, self.entity))
+        else:
+            Session.add(activity.NewVersion(creator, self))
 
     def _get_next_version(self):
         """
@@ -855,6 +876,10 @@ class Comment(Base):
     def set_completion_status(self, user, status):
         cs = CommentStatus(user=user, status=status, comment=self)
         Session.add(cs)
+        Session.flush()
+        
+        Session.add(activity.CommentComplete(cs))
+        
         return cs
     
     @property

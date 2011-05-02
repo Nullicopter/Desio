@@ -23,8 +23,8 @@ CREATE INDEX ix_invites_eid ON invites(eid);
 CREATE TABLE entity_users (
     id SERIAL PRIMARY KEY,
     
-    role CHAR(16) NOT NULL,
-    status CHAR(16) NOT NULL,
+    role VARCHAR(16) NOT NULL,
+    status VARCHAR(16) NOT NULL,
     
     user_id INT REFERENCES users(id) NOT NULL,
     entity_id INT REFERENCES entities(id) NOT NULL,
