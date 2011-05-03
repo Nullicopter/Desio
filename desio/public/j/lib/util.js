@@ -128,6 +128,20 @@ $.extend($, {
     }
 });
 
+$.fn.isinview = function(options){
+    var place = $(this);
+    
+    var winheight = $(window).height();
+    var wintop = $(window).scrollTop();
+    
+    var top = place.offset().top;
+    var height = place.height();
+    
+    var inview = top <= (winheight + wintop) && (top + height) >= wintop;
+    
+    return inview;
+};
+
 $.fn.scrollshow = function(options){
 
     try{

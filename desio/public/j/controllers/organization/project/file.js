@@ -826,10 +826,9 @@ Q.CommentsView = Q.View.extend('CommentsView', {
             if(m && this.container.is(':visible') && m.get('extract') && m.hasPosition()){
                 
                 //this mess is to move the comment to the position of the selection if offscreen
-                var pos = m.get('position');
-                var imageView = window.imageViews[this.settings.selectedVersion.get().get('version')];
+                var pos = m.get('position'); //the position on the extract
                 
-                $.log('Selected comment at', [pos[0], pos[1]], 'on', imageView, m.get('extract').order_index);
+                var imageView = window.imageViews[this.settings.selectedVersion.get().get('version')];
                 
                 imageView = imageView[m.get('extract').order_index];
                 var cont = this.container.offset().top;
@@ -839,9 +838,10 @@ Q.CommentsView = Q.View.extend('CommentsView', {
                     
                     //set timeouts so that the comment's height gets setup before we move it.
                     setTimeout(function(){
-                        var h = m.view.container.height();
+                        var h = m.view.container.height(); //comment height
                         var p = imageView.container.parent();
-                        $.log('selection, max', selection, p.offset().top + p.height() - h, p, m.view.container, h);
+                        var max = (p.offset().top + p.height() - h);
+                        $.log('Tops. selection', selection, 'max', max, '; comment height', h, ', comments top', cont);
                         
                         var css = {
                             position: 'absolute',
@@ -850,26 +850,34 @@ Q.CommentsView = Q.View.extend('CommentsView', {
                         
                         //if the thing would jut out lower than the image, attach it to the
                         //bottom of the image.
-                        var max = (p.offset().top + p.height() - h);
+                        
                         if(max < selection)
                             css.bottom = - (p.offset().top + p.height() - cont - 40);
                         else
                             css.top = selection - cont
                         
+                        $.log('Moving comment to', css);
+                        //m.view is the comment. We're moving it
                         m.view.container.css(css);
                         
-                        setTimeout(function(){
-                            m.view.container.scrollshow();
-                        }, 100);
+                        if(!m.view.container.isinview()){
+                            setTimeout(function(){
+                                m.view.container.scrollshow();
+                            }, 100);
+                        }
                         
                     }, 100);
                     
                 }
-                else
+                else{
                     //selection is above the fold.
-                    setTimeout(function(){
-                        m.view.container.scrollshow();
-                    }, 100);
+                    if( !(m.view.container.isinview()) ){
+                        setTimeout(function(){
+                            $.log('asdasd');
+                            m.view.container.scrollshow();
+                        }, 100);
+                    }
+                }
                 
             }
         }

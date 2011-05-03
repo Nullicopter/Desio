@@ -173,6 +173,8 @@
     color: #333;
 }
 
+#comments-view{position: relative;}
+
 /**comment filter**/
 
 #comments-filter{
