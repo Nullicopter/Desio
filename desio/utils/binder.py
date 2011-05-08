@@ -156,7 +156,7 @@ class FireworksExtractor(object):
         indices = dd(lambda: 0)
         
         #set status to in progress
-        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
+        self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
         
         ext = image.FWPNGExtractor(None, filename=filename)
         
@@ -167,7 +167,7 @@ class FireworksExtractor(object):
             indices[extract.extract_type] += 1
         
         # set status to completed
-        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
+        self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
     
     def get_changes(self):
         return self.c.get('change', 'get', parse_status='pending')

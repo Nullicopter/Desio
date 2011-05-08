@@ -28,7 +28,9 @@ try {
             
             var name = doc.pageName;
             
-            fw.exportPages(doc,"Images","Current",outDir+eid+pages[i]+'.png');
+            //no master page output
+            if(!(doc.hasMasterPage() && 0 == pages[i]))
+                fw.exportPages(doc,"Images","Current",outDir+eid+pages[i]+'.png');
         }
         
         doc.close(false);
