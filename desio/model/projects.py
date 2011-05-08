@@ -562,6 +562,9 @@ class Change(Base, Uploadable, Commentable):
     id = sa.Column(sa.Integer, primary_key=True)
     eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
     status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
+    
+    parse_type = sa.Column(sa.String(16), nullable=False, default='unknown')
+    parse_status = sa.Column(sa.String(16), nullable=False, default='pending')
 
     description = sa.Column(sa.UnicodeText())
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
@@ -804,7 +807,6 @@ class ChangeExtract(Base, Uploadable, Commentable):
     
     def set_contents(self, tmp_contents_filepath):
         """
-        Url is optinal
         """
         self.uploader.set_contents(tmp_contents_filepath, self.url)
 

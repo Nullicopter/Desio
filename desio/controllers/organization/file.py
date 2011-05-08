@@ -4,7 +4,7 @@ from desio import api
 from desio.lib.base import *
 from desio.lib import modules
 from desio.model import users, projects, STATUS_APPROVED
-from desio.api import authorize
+from desio.api import authorize, IsRobot
 from desio.controllers.api import v1
 
 import formencode
@@ -12,6 +12,7 @@ import formencode.validators as fv
 
 import sqlalchemy as sa
 
+import pylons
 from pylons_common.lib.decorators import *
 
 """
@@ -31,7 +32,6 @@ def has_entity():
         @zipargs(fn)
         def new(**kwargs):
             
-            print kwargs
             kwargs['entity'] = c.entity = Session.query(projects.Entity).filter_by(eid=kwargs.get('id') or u'_NO_').first()
             
             return fn(**kwargs)
@@ -64,7 +64,7 @@ class FileController(BaseController):
         self.commit()
         
         self.redirect(h.url_for(controller='organization/project', action='view', slug=entity.project.slug))
-        
+    
     def view(self, project=None, file=None):
         """
         Anyone can view any file right now provided they know the url...
@@ -93,4 +93,22 @@ class FileController(BaseController):
         c.comments = v1.file.get_comments().output((c.head_change, comments))
         
         return self.render('/organization/project/view_file.html')
+    
+    def change(self, change=None):
+        
+        ch = api.change.get(c.real_user, c.user, change=change)
+        
+        if not ch:
+            abort(404)
+        
+        if pylons.config['files_storage'].startswith('file'):
+            
+            headers = [
+                ('Content-Disposition', 'attachment;')
+            ]
+            dl_app = FileApp(
+                os.path.join(config['files_storage'][len('file://'):], ch.url),
+                headers)
+            
+            return dl_app(request.environ, self.start_response)
     

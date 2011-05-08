@@ -15,6 +15,7 @@ from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
 ROLE_USER = u'user'
 ROLE_ADMIN = u'admin'
 ROLE_ENGINEER = u'engineer'
+ROLE_ROBOT = u'robot'
 
 INVITE_TYPE_ORGANIZATION = u'organization'
 INVITE_TYPE_PROJECT = u'project'
@@ -269,6 +270,8 @@ class User(Base):
     
     def is_admin(self):
         return self.role in [ROLE_ADMIN]
+    def is_robot(self):
+        return self.role in [ROLE_ROBOT]
     
     def deactivate(self):
         """

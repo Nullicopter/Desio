@@ -42,6 +42,8 @@ class BaseController(WSGIController):
         try:
             self._session = Session
             
+            auth.authenticate_basic_auth()
+            
             if '_debug_frontend' in request.params:
                 #now we can force this no matter the environment.
                 c.debug_frontend = request.params['_debug_frontend'] == 'True'

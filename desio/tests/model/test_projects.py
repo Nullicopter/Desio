@@ -246,6 +246,8 @@ class TestProjects(TestController):
         change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
         self.flush()
         assert change.version == 1
+        assert change.parse_status == image.PARSE_STATUS_COMPLETED
+        assert change.parse_type == image.PARSE_TYPE_IMAGEMAGICK
 
         assert project.get_changes(u"/foobar.gif") == [change]
         assert change.url and change.diff_url and change.thumbnail_url
@@ -256,8 +258,7 @@ class TestProjects(TestController):
         assert change2.version == 2
 
         assert project.get_changes(u"/foobar.gif") == [change2, change]
-
-
+        
         comment = change.add_comment(user, u'foobar')
         comment1 = change.add_comment(user, u'foobar', 1, 2)
         comment2 = change.add_comment(user, u'foobar', 1, 2, 3, 4)
@@ -300,6 +301,15 @@ class TestProjects(TestController):
         num = change.get_number_comments(status=STATUS_OPEN)
         assert num == 2
         self.flush()
+        
+        
+        #makesure a fireworks png gets the right parse status and type
+        filepath = file_path('cs5.png')
+        change = project.add_change(user, u"/cs5.png", filepath, u"this is a new change")
+        self.flush()
+        assert change.version == 1
+        assert change.parse_status == image.PARSE_STATUS_PENDING
+        assert change.parse_type == image.PARSE_TYPE_FIREWORKS_CS5
         
     def test_extracts(self):
         """

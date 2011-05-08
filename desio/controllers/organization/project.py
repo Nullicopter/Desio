@@ -127,7 +127,7 @@ class ProjectController(OrganizationBaseController):
         logger.info('viewing FILE %s %s' % (path, entity))
         
         file = api.file.get(c.real_user, c.user, project, path, version='all')
-        c.file_dict = v1.file.get().output(file)
+        c.file_dict = v1.file.get(c.real_user, c.user).output(file)
         
         #we could pass in the current version
         c.file, c.head_change = file[0]
@@ -135,7 +135,7 @@ class ProjectController(OrganizationBaseController):
         c.file_role = c.file.get_role(c.user)
         
         comments = api.file.get_comments(c.real_user, c.user, change=c.head_change)
-        c.comments = v1.file.get_comments().output(comments)
+        c.comments = v1.file.get_comments(c.real_user, c.user).output(comments)
         
         c.path = path
         
@@ -152,7 +152,7 @@ class ProjectController(OrganizationBaseController):
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
         if not struc: abort(404)
         
-        c.structure = v1.project.get_structure().output(struc)
+        c.structure = v1.project.get_structure(c.real_user, c.user).output(struc)
         c.tree = v1.project.get_directories().output(dirs)
         c.path = path
         

@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity
+                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity, IsRobot, IsAdmin
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
 from desio.utils import email
@@ -16,19 +16,22 @@ from pylons_common.lib.exceptions import *
 
 ID_PARAM = 'file'
 
-@enforce(path=unicode, version=unicode)
-def get(real_user, user, project, path, version=None):
+@enforce(path=unicode, version=unicode, file=projects.Entity)
+def get(real_user, user, project=None, path=None, version=None, file=None):
     """
     Get a file and the latest change. If a version is specified, return that change.
     
     :param version: a change version number or 'all'. if None, will return HEAD
     """
-    try:
-        f = project.get_file(path)
-    except AppException, e:
-        raise ClientException(e.msg, code=e.code, field='path')
+    if file:
+        f = file
+    else:
+        try:
+            f = project.get_file(path)
+        except AppException, e:
+            raise ClientException(e.msg, code=e.code, field='path')
     
-    CanReadEntity().check(real_user, user, entity=f)
+    Or(IsRobot(), IsAdmin(), CanReadEntity()).check(real_user, user, entity=f)
     
     #if they want all, give them all changes plus the file in each
     if version == 'all':

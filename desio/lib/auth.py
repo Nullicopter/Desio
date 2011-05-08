@@ -73,7 +73,7 @@ def login(user, redirect_after=True, from_http_auth=False):
     session['show_debug'] = can_see_debug_info(user)
     
     if from_http_auth:
-        return
+        return user
     session.save()
 
     user.last_login_date = datetime.utcnow()

@@ -5,6 +5,11 @@ from collections import defaultdict as dd
 from pylons_common.lib.utils import itemize
 from desio.api import CanReadOrg
 
+class ReqUsers(object):
+    def __init__(self, real_user=None, user=None):
+        self.real_user = real_user
+        self.user = user
+
 DATE_FORMAT = '%Y-%m-%d %H:%M:%SZ'
 def fdatetime(dt):
     if dt:
@@ -17,10 +22,10 @@ def out_invite(inv):
     
     return out
 
-def out_file(filenchange):
+def out_file(real_user, filenchange):
     f, change = filenchange
     out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
-    out.update(out_change(change))
+    out.update(out_change(real_user, change))
     return out
 
 def out_change_extract(extract):
@@ -28,16 +33,20 @@ def out_change_extract(extract):
     edict['url'] = extract.base_url + edict['url']
     return edict
 
-def out_change(change, with_extracts=True):
+def out_change(real_user, change, with_extracts=True):
     out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version', 'number_comments')
     out['number_comments_open'] = change.get_number_comments(status=u'open')
     out['change_description'] = change.description
     out['change_eid'] = change.eid
+    out['file_eid'] = change.entity.eid
     out['version'] = change.version
     out['created_date'] = fdatetime(out['created_date'])
     out['url'] = change.base_url + out['url']
     out['thumbnail_url'] = change.base_url + out['thumbnail_url']
     out['creator'] = user.get().output(change.creator)
+    
+    if real_user.is_robot():
+        out.update(itemize(change, 'parse_type', 'parse_status'))
 
     if with_extracts:
         out['extracts'] = []
@@ -68,11 +77,11 @@ def out_comment(comment):
 def out_directory(directory):
     return itemize(directory, 'name', 'path', 'eid', 'description', 'full_path')
 
-def out_file_with_all_changes(f, with_extracts=True):
+def out_file_with_all_changes(real_user, f, with_extracts=True):
     out = itemize(f, 'eid', 'name', 'path', 'full_path')
     out['changes'] = []
     for change in f.get_changes():
-        ochange = out_change(change, with_extracts)
+        ochange = out_change(real_user, change, with_extracts)
         ochange['digest'] = change.digest
         out['changes'].append(ochange)
     return out
@@ -150,12 +159,12 @@ class project:
         def output(self, org_users):
             return [project.attach_user().output(ou) for ou in org_users]
     
-    class get_directory:
+    class get_directory(ReqUsers):
         
         def output(self, d):
             d, files = d
             dir = out_directory(d)
-            dir['files'] = [file.get().output(f) for f in files]
+            dir['files'] = [file.get(self.real_user, self.user).output(f) for f in files]
             return dir
 
     class get_directories:
@@ -173,19 +182,32 @@ class project:
             # somewhat smarter about which calls it's making and caching
             # the result of each call if possible.
             p, files = files
-            return dict((f.full_path, out_file_with_all_changes(f)) for f in files)
+            return dict((f.full_path, out_file_with_all_changes(self.real_user, f)) for f in files)
         
     class add_directory:
         def output(self, d):
             return project.get_directory().output(d)
     
-    class get_structure:
+    class get_structure(ReqUsers):
         
         def output(self, struc):
             res = []
             for d, files in struc:
-                res.append(project.get_directory().output((d, files)))
+                res.append(project.get_directory(self.real_user, self.user).output((d, files)))
             return res
+
+class change:
+    class get:
+        def output(self, ch):
+            if isinstance(ch, (list, tuple)):
+                return [out_change(self.real_user, c) for c in ch]
+            return out_change(self.real_user, ch)
+    
+    class edit:
+        def output(self, ch):
+            return out_change(self.real_user, ch)
+    
+    class upload_extract: pass
 
 class file:
     
@@ -195,35 +217,25 @@ class file:
         def output(self, cs):
             return out_comment_status(cs)
 
-    class upload:
+    class upload(ReqUsers):
         def output(self, f):
-            return file.get().output(f)
+            return file.get(self.real_user, self.user).output(f)
     
-    class get:
+    class get(ReqUsers):
         
         def output(self, files):
             if isinstance(files, list):
-                return [out_file(f) for f in files]
-            return out_file(files)
+                return [out_file(self.real_user, f) for f in files]
+            return out_file(self.real_user, files)
             
             
     class add_comment:
         def output(self, c):
             commentable, comment = c
-
-            #foutput = None
-            #if commentable._comment_attribute == 'change_extract':
-            #    out = out_change_extract(commentable)
-            #elif commentable._comment_attribute == 'change':
-            #    out = out_change(commentable, with_extracts=False)
-
-            #out['comment'] = out_comment(comment)
-
-            #return out
             
             return out_comment(comment)
 
-    class get_comments:
+    class get_comments(ReqUsers):
         def output(self, c):
             commentable, comments = c
 
@@ -231,9 +243,9 @@ class file:
             if commentable._comment_attribute == 'change_extract':
                 out = out_change_extract(commentable)
             elif commentable._comment_attribute == 'change':
-                out = out_change(commentable, with_extracts=False)
+                out = out_change(self.real_user, commentable, with_extracts=False)
             elif commentable._comment_attribute == 'file':
-                out = out_file((commentable, commentable.get_change()))
+                out = out_file(self.real_user, (commentable, commentable.get_change()))
             
             children = dd(lambda: [])
             

@@ -32,6 +32,7 @@ def enforce(**types):
     types.setdefault('real_user', users.User)
     types.setdefault('organization', users.Organization)
     types.setdefault('project', projects.Project)
+    types.setdefault('change', projects.Change)
     types.setdefault('entity', projects.Entity)
     
     return base_enforce(Session, **types)
@@ -114,6 +115,16 @@ class IsAdmin(IsLoggedIn):
         
         if not real_user.is_admin():
             raise ClientException("User must be an admin", FORBIDDEN)
+        
+        return True
+
+class IsRobot(IsLoggedIn):
+    
+    def check(self, real_user, user, **kwargs):
+        super(IsRobot, self).check(real_user, user, **kwargs)
+        
+        if not real_user.is_robot():
+            raise ClientException("User must be a midget with a golden cap. ARE YOU!? Nope.", FORBIDDEN)
         
         return True
 

@@ -55,6 +55,17 @@ EXTRACT_TYPE_THUMBNAIL = u'thumbnail'
 EXTRACT_TYPE_FULL = u'full'
 EXTRACT_TYPE_DIFF = u'diff'
 
+PARSE_STATUS_PENDING = 'pending'
+PARSE_STATUS_IN_PROGRESS = 'in_progress'
+PARSE_STATUS_COMPLETED = 'completed'
+
+PARSE_TYPE_UNKNOWN = 'unknown'
+PARSE_TYPE_IMAGEMAGICK = 'imagemagick'
+PARSE_TYPE_FIREWORKS_OLD = 'fw_old'
+PARSE_TYPE_FIREWORKS_CS3 = 'fw_cs3'
+PARSE_TYPE_FIREWORKS_CS4 = 'fw_cs4'
+PARSE_TYPE_FIREWORKS_CS5 = 'fw_cs5'
+
 class ExtractedFile(object):
     def __init__(self, filename, type):
         self.extract_type = type
@@ -62,6 +73,11 @@ class ExtractedFile(object):
     
     def __repr__(self):
         return 'ExtractedFile(%s, %s)' % (self.extract_type, self.filename)
+
+class ExtractStatus:
+    def __init__(self, status=PARSE_STATUS_COMPLETED, type=PARSE_TYPE_IMAGEMAGICK):
+        self.status = status
+        self.type = type
 
 class Extractor(object):
     
@@ -173,7 +189,7 @@ class Extractor(object):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
     
     @classmethod
     def difference(cls, prev_image, current_image):
@@ -261,7 +277,7 @@ class SVGExtractor(Extractor):
             self.image.resolution = (density, density)
             #print 'density change', self.image.size
         
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
 
 class PostscriptExtractor(Extractor):
     """
@@ -292,7 +308,7 @@ class PostscriptExtractor(Extractor):
         
         self.image.iterator_reset()
         
-        return images + self.thumbnail()
+        return images + self.thumbnail(), ExtractStatus()
 
 class PSDExtractor(Extractor):
     """
@@ -304,7 +320,7 @@ class PSDExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
 
 class PNGExtractor(Extractor):
     """
@@ -317,7 +333,7 @@ class PNGExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
 
 class FWPNGExtractor(Extractor):
     
@@ -325,20 +341,47 @@ class FWPNGExtractor(Extractor):
     dest_format = 'PNG'
     
     @classmethod
-    def preprocess(cls, filename):
-        if ignore_fireworks(): return False
-        
+    def read_head(cls, filename):
         f = open(filename, 'rb')
-        head = f.read(500)
+        return f.read(500)
+    
+    @classmethod
+    def read_parse_type(cls, filename):
+        head = cls.read_head(filename)
+        if 'Fireworks CS5' in head: return PARSE_TYPE_FIREWORKS_CS5
+        elif 'Fireworks CS4' in head: return PARSE_TYPE_FIREWORKS_CS4
+        elif 'Fireworks CS3' in head: return PARSE_TYPE_FIREWORKS_CS3
+        elif 'Fireworks' in head: return PARSE_TYPE_FIREWORKS_OLD
+        return PARSE_TYPE_UNKNOWN
+    
+    @classmethod
+    def preprocess(cls, filename):
+        
+        head = cls.read_head(filename)
         
         isit = 'Fireworks' in head
         
         return isit
     
-    def extract(self, density=None, **kw):
+    def async_extract(self, **kw):
+        
+        parse_type = self.read_parse_type(self.filename)
+        
+        #this will parse with the simple png parser
+        files, _ = extract(self.filename, self.out_filename, preprocess=False, **kw)
+        
+        # let the external process know this needs to be parsed
+        return files, ExtractStatus(PARSE_STATUS_PENDING, type=parse_type)
+        
+    def extract(self, async_extract=None, **kw):
         """
         Will return a list of all extracted files
         """
+        if async_extract == True or (async_extract == None and ignore_fireworks()):
+            return self.async_extract(**kw)
+        
+        parse_type = self.read_parse_type(self.filename)
+        
         import os, os.path
         from mako.template import Template
         from mako.runtime import Context
@@ -385,7 +428,7 @@ class FWPNGExtractor(Extractor):
             files += self.thumbnail()
             self.image.destroy()
         
-        return files
+        return files, ExtractStatus(type=parse_type)
 
 EXTRACTORS = {
     'PSD': PSDExtractor,
@@ -401,7 +444,7 @@ PREPROCESSORS = [
     FWPNGExtractor
 ]
 
-def extract(filename, out_filename=None, **kw):
+def extract(filename, out_filename=None, preprocess=True, **kw):
     """
     :param filename: the input filename
     :param out_filename: output filename. if blank, will use temp files.
@@ -409,10 +452,13 @@ def extract(filename, out_filename=None, **kw):
     img = None
     extractor_class = None
     
-    for pp in PREPROCESSORS:
-        if pp.preprocess(filename):
-            extractor_class = pp
-            break
+    # some files need to have their contents checked before we can know whether or not we can
+    # parse them. Preprocessing does that.
+    if preprocess:
+        for pp in PREPROCESSORS:
+            if pp.preprocess(filename):
+                extractor_class = pp
+                break
     
     if not extractor_class:
         try:
