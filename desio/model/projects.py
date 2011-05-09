@@ -564,7 +564,7 @@ class Change(Base, Uploadable, Commentable):
     status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
     
     parse_type = sa.Column(sa.String(16), nullable=False, default='unknown')
-    parse_status = sa.Column(sa.String(16), nullable=False, default='pending')
+    parse_status = sa.Column(sa.String(16), nullable=False, default='completed')
 
     description = sa.Column(sa.UnicodeText())
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
