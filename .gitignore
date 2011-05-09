@@ -5,3 +5,4 @@ data
 *.egg-info
 storage
 .noseids
+celerybeat-schedule

@@ -461,7 +461,7 @@ class Invite(Base):
                      object_id=obj.id, status=STATUS_PENDING)
         Session.flush()
         
-        Session.add(activity.Invite(user, inv))
+        Session.add(activity.InviteEvent(user, inv))
         
         return inv
     

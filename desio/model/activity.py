@@ -286,7 +286,7 @@ class InviteBase(Activity):
         return None
 
 
-class Invite(InviteBase):
+class InviteEvent(InviteBase):
     
     TYPE = u'invite'
     __mapper_args__ = {'polymorphic_identity': TYPE}

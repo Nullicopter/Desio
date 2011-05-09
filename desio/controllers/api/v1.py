@@ -45,7 +45,7 @@ def out_change(real_user, change, with_extracts=True):
     out['thumbnail_url'] = change.base_url + out['thumbnail_url']
     out['creator'] = user.get().output(change.creator)
     
-    if real_user.is_robot():
+    if real_user and real_user.is_robot():
         out.update(itemize(change, 'parse_type', 'parse_status'))
 
     if with_extracts:

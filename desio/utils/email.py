@@ -28,6 +28,14 @@ def line_reduce(s):
     ws = re.compile("\s{3,}")
     return ws.sub("\n\n", s)
 
+"""
+#someday
+def send(*args, **kw):
+    from desio.backend.tasks import email as email_task
+    
+    print email_task.delay(*args, **kw)
+"""
+
 def send(to, template_path, context=None, reply_to='', bcc='ogle.ben@gmail.com'):
     """
     Send message based on a mako template. The recipient is automatically added

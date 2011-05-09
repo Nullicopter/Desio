@@ -106,7 +106,7 @@ class TestOrganization(TestController):
         self.flush()
         
         act = activity.get_activities()
-        assert act[0].type == activity.Invite.TYPE
+        assert act[0].type == activity.InviteEvent.TYPE
         assert act[0].get_message()
         
         assert inv.invited_email == email
@@ -153,7 +153,7 @@ class TestOrganization(TestController):
         self.flush()
         
         act = activity.get_activities()
-        assert act[0].type == activity.Invite.TYPE
+        assert act[0].type == activity.InviteEvent.TYPE
         assert project.name in act[0].get_message()
         
         assert inv.role == users.APP_ROLE_ADMIN
@@ -184,7 +184,7 @@ class TestOrganization(TestController):
         self.flush()
         
         act = activity.get_activities()
-        assert act[0].type == activity.Invite.TYPE
+        assert act[0].type == activity.InviteEvent.TYPE
         assert entity.name in act[0].get_message()
         
         assert inv.type == users.INVITE_TYPE_ENTITY

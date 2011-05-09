@@ -87,7 +87,7 @@ class FileController(BaseController):
         
         logger.info('viewing FILE %s' % (c.file))
         
-        c.file_dict = v1.file.get().output([(c.file, c.head_change)])
+        c.file_dict = v1.file.get(c.real_user, c.user).output([(c.file, c.head_change)])
         
         comments = c.head_change.get_comments()
         c.comments = v1.file.get_comments().output((c.head_change, comments))

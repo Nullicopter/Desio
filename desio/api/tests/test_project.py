@@ -284,4 +284,4 @@ class TestProject(TestController):
             assert set(value.keys()) == set(["path", "changes", "eid", "full_path", "name"])
             changes = value['changes']
             assert len(changes) == 1
-            assert set(changes[0].keys()) == set(["change_description", "number_comments_open", "creator", "url", "extracts", "number_comments", "version", "change_eid", "created_date", "thumbnail_url", "size", "digest"])
+            assert set(changes[0].keys()) == set(["change_description", "number_comments_open", "creator", "url", "extracts", "number_comments", "version", "change_eid", "created_date", "thumbnail_url", "size", "digest", 'file_eid'])
