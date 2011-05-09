@@ -178,7 +178,7 @@ class FireworksExtractor(object):
         changes = resp.results
         if status == 200:
             for ch in changes:
-                if ch.parse_type == image.PARSE_TYPE_FIREWORKS_CS5:
+                if ch.parse_type in [image.PARSE_TYPE_FIREWORKS_CS5, image.PARSE_TYPE_FIREWORKS_CS4]:
                     fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
                     if fname:
                         self.extract_file(fname, ch)
