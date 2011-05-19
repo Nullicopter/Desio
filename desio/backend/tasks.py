@@ -5,7 +5,7 @@ from celery.task.schedules import crontab, schedule
 from desio.utils import binder
 from datetime import datetime, timedelta
 
-@periodic_task(run_every=schedule(timedelta(seconds=15)))
+@periodic_task(run_every=schedule(timedelta(seconds=60)))
 def export_fireworks():
     from pylons import config
     conf = config.get

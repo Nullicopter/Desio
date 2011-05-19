@@ -1,5 +1,6 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
+<%namespace name="com" file="/common.html"/>
 <%namespace name="project" file="/modules/project.html"/>
 
 <%!
@@ -14,32 +15,31 @@
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
-        .project .files{
-            height: 208px;
-        }
-        #projects .project h2 a{
-            color: #333;
-        }
-        #projects .project h2{
-            margin: 0 0 10px 0;
-        }
-        #projects .project{
-            margin-bottom: 20px;
-        }
+        
     </style>
     
     <script type="text/javascript">
-        new Q.OrgHomePage({}).readyrun();
+        new Q.OrgHomePage({
+                organization: '${c.organization.eid}'
+            }).readyrun();
     </script>
 </%def>
 
 <%def name="content_header()">
-    All Projects
+    <h2 class="section-heading">All Projects</h2>
 </%def>
 
 <%
     users = [uc.user_id for uc in c.organization.get_user_connections(status=STATUS_APPROVED) if uc.user_id != c.organization.creator_id]
 %>
+
+<%def name="sidepanel()">
+    <h3 class="section-heading">Recent Activity</h3>
+    
+    ${com.feed(c.organization, c.activity)}
+    
+    <h3 class="section-heading">People</h3>
+</%def>
 
 % if c.is_org_admin and not users:
     <p>
@@ -67,19 +67,16 @@
     % endif
     
     <div id="projects">
+    <% i = 0 %>
     % for p, files in c.project_data:
         % if files:
-            <div class="project">
-                <h2><a href="${h.url_for(controller='organization/project', action='view', slug=p.slug)}">${p.name}</a></h2>
-                <div class="files">
-                % for i, f in enumerate(files):
-                    <% ch = f.get_change() %>
-                    <div class="file ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
-                        ${project.file_thumb(p, f.name, ch.version, f.full_path, ch.base_url+ch.thumbnail_url, ch.creator.human_name, utils.relative_date_str(ch.created_date), utils.file_size(ch.size), ch.number_comments)}
-                    </div>
-                % endfor
-                </div>
+            <% url = h.url_for(controller='organization/project', action='view', slug=p.slug) %>
+            
+            <% ch = files[0].get_change() %>
+            <div class="file-collection ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
+                ${project.file_collection_thumb(p.name, ch, url)}
             </div>
+            <% i += 1 %>
         % endif
     % endfor
     </div>

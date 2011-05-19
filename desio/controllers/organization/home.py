@@ -1,6 +1,6 @@
 from desio import api
 from desio.lib.base import *
-from desio.model import users, projects
+from desio.model import users, projects, activity
 
 import formencode
 import formencode.validators as fv
@@ -19,5 +19,7 @@ class HomeController(OrganizationBaseController):
         
         #sort by last time a file in the project was modified
         c.project_data.sort(lambda l, r: cmp(r[0].last_modified, l[0].last_modified))
+        
+        c.activity = activity.get_activities(organization=c.organization, limit=5)
         
         return self.render('/organization/home.html')

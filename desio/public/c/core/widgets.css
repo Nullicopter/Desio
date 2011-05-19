@@ -1,0 +1,57 @@
+.activity-feed{ position: relative; }
+.activity-feed a{ font-weight: normal; }
+.activity-feed .item{ margin: 10px 0; }
+
+.activity-feed .message{
+    margin-left: 32px;
+    line-height: 1.3em;
+    font-size: 9pt;
+}
+
+.activity-feed .date{
+    margin-left: 32px;
+    color: #999;
+    font-size: 8pt;
+    margin-top: 3px;
+}
+
+.activity-feed .item .icon{
+    background: transparent url(../../i/icons/feed_icons.png) no-repeat 0 0;
+    width: 22px;
+    height: 21px;
+    display: block;
+    float: left;
+    margin-top: 2px;
+    color: #fff;
+    font-size: 7pt;
+    font-weight: bold;
+    text-align: center;
+    line-height: 21px;
+}
+
+.activity-feed .more a{
+    width: 40px; height: 21px;
+    padding-left: 25px; line-height: 21px;
+    color: #fff;
+    display: block;
+    font-weight: bold;
+    background: transparent url(../../i/site/more_bg.png) no-repeat top left;
+    float: right;
+}
+.activity-feed .more a:hover{
+    background-position: bottom left;
+    text-decoration: none;
+}
+
+/*
+ invite, invite_accept
+ comment_complete
+*/
+.activity-feed .item .icon.new_file{background-position: -66px 0;}
+.activity-feed .item .icon.new_project{background-position: -66px 0;}
+.activity-feed .item .icon.new_version{background-position: -22px 0;}
+.activity-feed .item .icon.new_comment{background-position: 0px 0;}
+.activity-feed .item .icon.new_reply{background-position: 0px -21px;}
+.activity-feed .item .icon.comment_complete{background-position: -22px -21px;}
+.activity-feed .item .icon.invite{background-position: -44px -21px;}
+.activity-feed .item .icon.invite_accept{background-position: -44px 0px;}

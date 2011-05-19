@@ -112,7 +112,8 @@ Q.Tabs = Q.Module.extend('Tabs', {
 
 Q.OrgHomePage = Q.Page.extend({
     n: {
-        sidepanel: '#sidepanel'
+        sidepanel: '#sidepanel',
+        feed: '.activity-feed'
     },
     events:{
     },
@@ -124,6 +125,9 @@ Q.OrgHomePage = Q.Page.extend({
         this.n.sidepanel.Sidepanel({
             collapsable: false
         });
+        
+        this.feed = new Q.FeedCollection([], this.settings);
+        this.n.feed.FeedView({model: this.feed});
     }
 });
 

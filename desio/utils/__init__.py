@@ -153,6 +153,12 @@ def relative_date_str(date, now=None):
     
     return date.strftime("%b %d, %Y")
 
+DATE_FORMAT = '%Y-%m-%d %H:%M:%SZ'
+def date_str(dt):
+    if dt:
+        return dt.strftime(DATE_FORMAT)
+    return None
+
 def file_size(bytes, decimals=0):
     
     # Bytes is an integer

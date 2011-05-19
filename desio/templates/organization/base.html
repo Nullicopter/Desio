@@ -71,31 +71,13 @@
 
 <%def name="sidepanel()">
 </%def>
-<%def name="sidepanel_tabs()">
-    <%
-    tab_def = [
-        ('Projects', '#', True)
-    ]
-    if c.sidepanel_tab:
-        tab_def.append(('Info', '#'))
-    %>
-    ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs', className='sidepanel-tabs')}
-</%def>
 
 <%def name="sidepanel_container()">
     
-    ${self.sidepanel_tabs()}
-    
     <div id="sidepanels">
         <div class="sidepanel">
-            ${self.project_sidepanel()}
+            ${self.sidepanel()}
         </div>
-        
-        % if c.sidepanel_tab:
-            <div class="sidepanel">
-                ${self.sidepanel()}
-            </div>
-        % endif
     </div>
 </%def>
 
@@ -111,11 +93,8 @@
     
     <div id="content">
         
-        
         <div id="content-header">
-            <h1>
-                ${self.content_header()}
-            </h1>
+            ${self.content_header()}
             <div class="subheader">
                 ${self.content_subheader()}
             </div>

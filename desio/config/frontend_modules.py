@@ -70,6 +70,7 @@ JS = {
         'lib/base.js',
         'lib/util.js',
         'lib/dialog.js',
+        'lib/models.js',
         'lib/views.js'
     ]),
     
@@ -85,6 +86,10 @@ JS = {
     
     'project': ('build/modules/project.js', [
         'lib/modules/project.js'
+    ]),
+    
+    'widgets': ('build/modules/widgets.js', [
+        'lib/modules/widgets/feed.js'
     ]),
     
     'file': ('build/modules/file.js', [
@@ -129,6 +134,7 @@ CSS = {
         'core/generic.css',
         'core/buttons.css',
         'core/dialog.css',
+        'core/widgets.css',
         'widgets/simpleconsole.css',
         'widgets/debugbar.css'
     ]),

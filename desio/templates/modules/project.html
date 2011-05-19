@@ -3,6 +3,7 @@
 import pylons
 from desio.config.frontend_modules import JS, CSS
 from desio.model.projects import APP_ROLE_READ, APP_ROLE_WRITE, APP_ROLE_ADMIN
+from desio import utils
 
 roles = [
     {'key': APP_ROLE_READ, 'value': 'Normal User'},
@@ -81,6 +82,24 @@ roles = [
             <div>by ${user}</div>
         </div>
         <img src="${url}" />
+    </a>
+</%def>
+
+<%def name="file_collection_thumb(name, change, url, className='', **kw)" >
+    <a href="${url}" class="${className}">
+        <img src="${change.base_url+change.thumbnail_url}" />
+        <div class="info">
+            <span class="name">${name}</span>
+            <div class="subtitle">${utils.relative_date_str(change.created_date)} by ${change.creator.human_name}</div>
+            
+            % if kw:
+                <div class="extra">
+                    % for k, v in kw.items():
+                        <div class="${k}">${v}</div>
+                    % endfor
+                </div>
+            % endif
+        </div>
     </a>
 </%def>
 

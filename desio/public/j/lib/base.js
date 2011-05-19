@@ -9,6 +9,10 @@
 Q.Loader.defaults.image = '/i/loaders/16x16_arrows.gif';
 Q.AsyncForm.defaults.autoGenValidationOptions = true;
 window.PREFS_URL = '/api/v1/user/set_pref';
+window.API_BASE_URL = '/api/v1';
+window.API_URL = function(url){
+    return window.API_BASE_URL + url;
+};
 
 //Mustache-like delimiters!
 _.templateSettings = {

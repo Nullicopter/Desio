@@ -22,6 +22,13 @@ def out_invite(inv):
     
     return out
 
+def out_activity(act):
+    #{{id}}', '{{type}}', '{{raw_date}}', '{{human_date}}', '{{tiny_message}}', '{{message}}
+    out = itemize(act, 'id', 'type', 'tiny_message')
+    out['message'] = act.get_message()
+    out['created_date'] = fdatetime(act.created_date)
+    return out
+
 def out_file(real_user, filenchange):
     f, change = filenchange
     out = itemize(f, 'eid', 'name', 'path', 'description', 'full_path')
@@ -95,6 +102,11 @@ class invite:
     class create:
         def output(self, i):
             return out_invite(i)
+
+class activity:
+    class get:
+        def output(self, act):
+            return [out_activity(a) for a in act]
 
 class user:
     class pretend: pass

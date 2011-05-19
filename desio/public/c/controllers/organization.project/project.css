@@ -9,13 +9,11 @@
     text-decoration: none;
 }
 
-.file, .processing-file{
-    width: 252px;
+.file, .processing-file, .file-collection{
     margin: 0 0 10px 10px;
     padding: 10px;
     position: relative;
     float: left;
-    height: 189px;
     overflow: hidden;
     background: #fff;
     border: 1px solid #e5e5e5;
@@ -34,7 +32,6 @@
     background: #000;
     position: absolute;
     bottom:10px; left: 10px;
-    width: 252px;
     opacity: .7
 }
 .file .name, .processing-file .name{
@@ -45,7 +42,6 @@
     position: absolute;
     bottom:10px; left: 10px;
     padding-left: 8px;
-    width: 244px;
 }
 .file .name-text, .processing-file .name-text{
     width: 200px;
@@ -141,15 +137,33 @@
     width: 236px;
 }
 
+/* collection stuff */
+.file-collection .info{
+    padding-top: 5px;
+}
+.file-collection .name{
+    color: #333;
+    font-weight: normal;
+    font-size: 11pt;
+}
+.file-collection .info .subtitle{
+    color: #999;
+    font-size: 8pt;
+    font-weight: normal;
+    margin-top: 3px;
+}
+
 
 /* deal with the effin margin issue and the file sizing*/
 
-.file, .processing-file{width: 248px; height: 186px;}
-.file img, .processing-file .thumb{width: 248px;}
-.file .name-bar, .processing-file .name-bar{width: 248px;}
-.file .name, .processing-file .name{width: 240px;}
-.file .extra-info{width: 240px;}
+.file, .processing-file{width: 244px; height: 183px;}
+.file img, .processing-file .thumb{width: 244px;}
+.file .name-bar, .processing-file .name-bar{width: 244px;}
+.file .name, .processing-file .name{width: 236px;}
+.file .extra-info{width: 236px;}
 
+.file-collection{width: 244px;}
+.file-collection img{width: 244px;}
 
 #content.collapsed .file, #content.collapsed .processing-file{width: 255px; height: 191px;}
 #content.collapsed .file img, #content.collapsed .processing-file .thumb{width: 255px;}
@@ -157,10 +171,10 @@
 #content.collapsed .file .name, #content.collapsed .processing-file .name{width: 247px;}
 #content.collapsed .file .extra-info{width: 247px;}
 
-#content.collapsed .file.posmod3, #content.collapsed .processing-file.posmod3{margin-left: 10px;}
-#content.collapsed .file.posmod4, #content.collapsed .processing-file.posmod4{margin-left: 0;}
+#content.collapsed .file-collection.posmod3, #content.collapsed .file.posmod3, #content.collapsed .processing-file.posmod3{margin-left: 10px;}
+#content.collapsed .file-collection.posmod4, #content.collapsed .file.posmod4, #content.collapsed .processing-file.posmod4{margin-left: 0;}
 
-#content .file.posmod3, #content .processing-file.posmod3{margin-left: 0;}
+#content .file-collection.posmod3, #content .file.posmod3, #content .processing-file.posmod3{margin-left: 0;}
 
 /** dir sidebar **/
 

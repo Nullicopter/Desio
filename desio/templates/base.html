@@ -22,7 +22,7 @@ if c.organization:
     % endif
     </script>
     ${parent.header()}
-    ${r.require('ui')}
+    ${r.require('ui', 'widgets')}
 </%def>
 
 <%def name="header_link()">
@@ -41,17 +41,22 @@ if c.organization:
                 user = a.get_user()
                 %>
                 % if real_user:
-                    <span class="user real-user" title="${real_user.username}">${real_user.human_name}</span>
-                    % if user and user.id != real_user.id:
-                        <span class="pretend-user user">[p: ${user.username}
-                        <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
-                    % endif
-                    % if a.is_admin():
-                    |
-                    <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
-                    % endif
-                    |
-                    <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
+                    <a id="settings-link" href="${h.url_for(controller='organization/settings', action='general')}"></a>
+                    
+                    <div id="username">
+                        <span class="user real-user" title="${real_user.username}">${real_user.human_name}</span>
+                        % if user and user.id != real_user.id:
+                            <span class="pretend-user user">[p: ${user.username}
+                            <a href="${h.api_url('user', 'stop_pretending')}" class="reload-link">stop</a>]</span>
+                        % endif
+                    </div>
+                    
+                    <div id="username-meta">
+                        % if a.is_admin():
+                            <a href="${h.url_for(controller='admin/search', action='index')}">admin</a>
+                        % endif
+                        <a href="${h.url_for(controller='auth', action='logout')}">logout</a>
+                    </div>
                 % else:
                     <a href="${h.url_for(controller='auth', action='login')}">login</a>
                 % endif
@@ -60,7 +65,7 @@ if c.organization:
             
         </div>
         
-        <h1><a href="${self.header_link()}">${name}</a></h1>
+        <h1><a href="${self.header_link()}" title="Home">${name}</a></h1>
     </hgroup></div>
 </header></div>
 
@@ -72,6 +77,7 @@ ${self.pre_content()}
         ${next.body()}
         
         <div id="notification-display"></div>
+        <div class="clear"></div>
     </div>
 </div> <!--page-->
 <%def name="post_content()"></%def>

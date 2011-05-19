@@ -20,7 +20,7 @@ def file_url(org, project, entity):
     from desio.lib import helpers as h
     return h.subdomain_url(org.subdomain, controller='organization/file', action='view', project=project.eid, file=entity.eid)
 
-def get_activities(organization=None, project=None, entity=None, user=None, limit=None, order_by='created_date', sort_direction='desc'):
+def get_activities(organization=None, project=None, entity=None, user=None, limit=None, order_by='created_date', sort_direction='desc', offset=None):
     """
     always use this to query activities
     
@@ -31,6 +31,8 @@ def get_activities(organization=None, project=None, entity=None, user=None, limi
     
     - users prolly will want many of the same events (comments?) over a close time span. Can
       do that here.
+    
+    offset should be a datetime. will find stuff older than the datetime
     """
     q = Session.query(Activity)
     
@@ -45,6 +47,9 @@ def get_activities(organization=None, project=None, entity=None, user=None, limi
     
     if user:
         q = q.filter_by(user_id=user.id)
+    
+    if offset:
+        q = q.filter(Activity.created_date < offset)
     
     if order_by and sort_direction:
         d = getattr(sa, sort_direction)
@@ -106,6 +111,10 @@ class Activity(Base):
         return self._object_type_map.get(self.object_type)
     
     @property
+    def tiny_message(self):
+        return ''
+    
+    @property
     def object(self):
         cls = self.get_class_for_obj_type()
         if cls:
@@ -159,6 +168,10 @@ class NewVersion(Activity):
         self.object_type = change.__class__.__name__
         
         self.extra = unicode(change.version)
+    
+    @property
+    def tiny_message(self):
+        return 'v%s' % self.extra
     
     def get_message(self, user=None):
         url = project_url(self.organization, self.project)

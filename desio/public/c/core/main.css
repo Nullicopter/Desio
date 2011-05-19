@@ -13,15 +13,24 @@ img{border: none;}
 
 #page{
     padding: 10px 0 35px 0;
-    background: transparent url(../../i/site/ibroughtthenoise.png) repeat;
+    background: transparent url(../../i/site/background_noise.png) repeat;
 }
 
 #header{
-    padding: 10px 0;
-    background: transparent url(../../i/site/ibroughtthenoise.png) repeat;
+    height: 100px;
 }
-#header h1{ margin: 0; }
-#header h1 a, #header h1 a:hover, #header h1 a:active{ color: #000; text-decoration: none;}
+#header header{
+    padding: 10px 0;
+    height: 80px;
+    background: transparent url(../../i/site/header_noise.png) repeat;
+    -moz-box-shadow: 0 0 6px 0px #333;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+}
+#header h1{ margin: 0; line-height: 80px;}
+#header h1 a, #header h1 a:active{ color: #CAC8C0; text-decoration: none;}
+#header h1 a:hover { color: #fff; text-decoration: none; text-shadow: 0 0 6px #666;}
 #header h2{ font-size: 10pt; font-weight: normal; margin: 0;}
 #header-inner, #page-inner, #footer-inner{
     width: 960px;
@@ -29,7 +38,31 @@ img{border: none;}
     position: relative;
 }
 
-#header-right{float: right;}
+#header a{color: #799ABA;}
+
+#header-right{float: right; width: 600px; text-align: right; font-size: 8pt; margin-top: 15px;}
+
+#header #settings-link{
+    background: transparent url(../../i/site/gear_white.png) no-repeat top left;
+    margin-top: 3px;
+    width: 24px;
+    height: 24px;
+    display: block;
+    float: right;
+}
+#header #settings-link:hover{
+    background-position: bottom right;
+}
+#header #username{
+    font-weight: bold;
+    font-size: 14pt;
+    color: #fff;
+    opacity: .8;
+    margin-right: 35px;
+}
+#header #username-meta{
+    margin-right: 35px;
+}
 
 #footer{
     color: #fff;
