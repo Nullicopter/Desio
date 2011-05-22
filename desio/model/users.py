@@ -129,6 +129,18 @@ class Organization(Base, Roleable):
     def interested_users(self):
         cus = self.get_user_connections(status=STATUS_APPROVED)
         return [cu.user for cu in cus if cu.user]
+    
+    def get_invites(self, status=STATUS_PENDING, has_user=None):
+        q = Session.query(Invite).filter_by(object_id=self.id, type=INVITE_TYPE_ORGANIZATION)
+        if has_user == False:
+            q = q.filter(Invite.invited_user_id==None)
+        if has_user == True:
+            q = q.filter(Invite.invited_user_id!=None)
+        
+        q = q.filter(Invite.status.in_([status]))
+        q = q.order_by(sa.desc(Invite.created_date))
+        
+        return q.all()
 
 class UserPreference(Base):
     """

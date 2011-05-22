@@ -24,5 +24,6 @@ class HomeController(OrganizationBaseController):
         
         c.users = [cu for cu in c.organization.get_user_connections(status=None) if cu.status in (STATUS_APPROVED, STATUS_PENDING)]
         c.users.sort(key=lambda cu: cu.user.human_name)
+        c.users = c.organization.get_invites(has_user=False) + c.users
         
         return self.render('/organization/home.html')

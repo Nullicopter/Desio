@@ -1,11 +1,19 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="com" file="/common.html"/>
+<%namespace name="f" file="/forms.html"/>
 <%namespace name="project" file="/modules/project.html"/>
 
 <%!
     from desio import utils
-    from desio.model import STATUS_APPROVED
+    from desio.model import STATUS_APPROVED, APP_ROLE_NAMES
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+    
+    roles = [
+        {'key': APP_ROLE_READ, 'value': APP_ROLE_NAMES[APP_ROLE_READ]},
+        {'key': APP_ROLE_WRITE, 'value': APP_ROLE_NAMES[APP_ROLE_WRITE]},
+        {'key': APP_ROLE_ADMIN, 'value': APP_ROLE_NAMES[APP_ROLE_ADMIN]}
+    ]
 %>
 <%def name="js_includes()">
     ${parent.js_includes()}
@@ -15,7 +23,8 @@
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
-        
+        #email{width: 300px;}
+        #invite-form{margin-bottom: 10px;}
     </style>
     
     <script type="text/javascript">
@@ -47,9 +56,17 @@
     
     ${com.feed(c.organization, c.activity)}
     
-    <h3 class="section-heading">People</h3>
+    <h3 class="section-heading">
+        % if c.is_org_admin:
+            <a id="user-invite" class="actions icon-plus" href="">
+                Invite Someone
+            </a>
+        % endif
+        People
+    </h3>
     
-    ${com.users(c.users, collapse=10)}
+    ${com.users(c.users, collapse=12)}
+    
 </%def>
 
 % if c.is_org_admin and not users:
@@ -60,7 +77,7 @@
 % endif
 
 % if c.project_data:
-    <% pfiles = [f for p, f in c.project_data if f] %>
+    <% pfiles = [fi for p, fi in c.project_data if fi] %>
     % if not pfiles:
         % if c.is_org_creator:
         <p>
@@ -98,6 +115,20 @@
             <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
         % endif
     </p>
+% endif
+
+% if c.is_org_admin:
+<div id="share-dialog" class="dialog" title="Invite Someone">
+    <p>Invite someone to this organization. Enter their email address.</p>
+    
+    <div>
+        <form action="${h.api_url('invite', 'create', organization=c.organization.eid)}" id="invite-form">
+            <p>${f.text('email', title='Enter an email address', autocomplete='off')}
+            as ${f.dropdown('role', roles, selectedValue=APP_ROLE_WRITE)}</p>
+            ${f.submit('Send', className='primary b114')}
+        </form>
+    </div>
+</div>
 % endif
 
 <div class="clear"></div>

@@ -217,6 +217,19 @@
     color: #333;
 }
 
+#sidepanel .section-heading .actions{
+    float: right;
+    font-size: 9pt;
+    text-transform: none;
+    color: #333;
+}
+#sidepanel .section-heading .icon-plus{
+    background-image: url(../../i/icons/plus_small.png);
+    height: 16px;
+    line-height: 18px;
+    padding-left: 23px;
+}
+
 #content .section-heading{
     text-transform: uppercase;
     color: #ADACA7;

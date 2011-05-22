@@ -1,4 +1,4 @@
-.activity-feed{ position: relative; }
+.activity-feed{ position: relative; margin-bottom: 50px;}
 .activity-feed a{ font-weight: normal; }
 .activity-feed .item{ margin: 10px 0; }
 
@@ -36,7 +36,8 @@
     display: block;
     font-weight: bold;
     background: transparent url(../../i/site/more_bg.png) no-repeat top left;
-    float: right;
+    position: absolute;
+    left: 32px; bottom: -29px;
 }
 .activity-feed .more a:hover{
     background-position: bottom left;
@@ -72,26 +73,29 @@
 #people .user-thumb.size-32
 {width: 32px; height: 32px;}
 
-#people.people-collapsed .user-thumb.mod-6{margin-left:0;}
+#people.people-collapsed .full-view{display: none;}
+#people.people-full .collapsed-view{display: none;}
 
-#people.people-full .user{
+#people .collapsed-view .user-thumb.mod-6{margin-left:0;}
+
+#people .full-view .user{
     height: 40px;
     margin: 0 0 10px 0;
     padding: 1px 0;
 }
-#people.people-full .user-thumb{
+#people .full-view .user-thumb{
     margin: 0;
 }
-#people.people-full h4{
+#people .full-view h4{
     margin: 3px 0 4px 50px; padding: 0;
 }
-#people.people-full .meta{
+#people .full-view .meta{
     color: #999;
     margin: 0 0 0 50px;
     font-size: 9pt;
     line-height: 20px;
 }
-#people.people-full .meta .status{
+#people .full-view .meta .status{
     color: #bbb;
     font-style: italic;
 }

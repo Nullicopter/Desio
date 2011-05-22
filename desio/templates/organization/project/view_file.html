@@ -11,8 +11,8 @@
     
     roles = [
         {'key': APP_ROLE_READ, 'value': 'can only comment'},
-        {'key': APP_ROLE_READ, 'value': 'can create new versions'},
-        {'key': APP_ROLE_READ, 'value': 'is an admin on this file'}
+        {'key': APP_ROLE_WRITE, 'value': 'can create new versions'},
+        {'key': APP_ROLE_ADMIN, 'value': 'is an admin on this file'}
     ]
 %>
 <%def name="header()">

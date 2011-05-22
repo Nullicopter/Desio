@@ -305,7 +305,7 @@ class InviteEvent(InviteBase):
     __mapper_args__ = {'polymorphic_identity': TYPE}
     
     def get_message(self, user=None):
-        return u'%s invited %s to %s with' % (
+        return u'%s invited %s to %s' % (
             self.user.human_name, self.extra_split[1], self.invite_str)
 
 class InviteAccept(InviteBase):

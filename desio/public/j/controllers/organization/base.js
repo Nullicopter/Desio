@@ -113,9 +113,13 @@ Q.Tabs = Q.Module.extend('Tabs', {
 Q.OrgHomePage = Q.Page.extend({
     n: {
         sidepanel: '#sidepanel',
-        feed: '.activity-feed'
+        feed: '.activity-feed',
+        shareDialog: '#share-dialog',
+        shareEmail: '#email',
+        inviteForm: '#invite-form'
     },
     events:{
+        'click #user-invite': 'popShareDialog'
     },
     run: function(){
         var self = this;
@@ -128,6 +132,26 @@ Q.OrgHomePage = Q.Page.extend({
         
         this.feed = new Q.FeedCollection([], this.settings);
         this.n.feed.FeedView({model: this.feed});
+        
+        this.setupInvites();
+    },
+    
+    setupInvites: function(){
+        //share stuff
+        this.n.shareEmail.inputHint();
+        this.shareDialog = this.n.shareDialog.Dialog({width: 500});
+        
+        this.n.inviteForm.AsyncForm({
+            onSuccess: function(data){
+                Q.notify(data.results.invited_email + ' has been invited!');
+                this.val('email', '');
+            }
+        });
+    },
+    
+    popShareDialog: function(){
+        this.shareDialog.open();
+        return false;
     }
 });
 

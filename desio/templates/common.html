@@ -1,6 +1,6 @@
 <%!
     from desio import utils
-    from desio.model import STATUS_APPROVED, APP_ROLE_NAMES
+    from desio.model import users, STATUS_APPROVED, APP_ROLE_NAMES
 %>
 
 ##
@@ -53,6 +53,11 @@
     ## collapse: True, False, 6, ...
     <%
     def get_user(object):
+        if hasattr(object, 'invited_user'):
+            if object.invited_user: return object.invited_user
+            else:
+                u = users.User(email=object.invited_email, username=object.invited_email)
+                return u
         if hasattr(object, 'human_name'): return object
         elif hasattr(object, 'user'): return object.user
         return None
@@ -69,8 +74,10 @@
         <%
         u = get_user(o)
         if not u: continue
+        status = get_status(o)
+        role = get_role(o)
         %>
-        <div class="user-thumb size-${size} ${not (i%mod) and 'mod-%s'%mod or ''}" title="${u.human_name}">
+        <div class="user-thumb size-${size} ${not (i%mod) and 'mod-%s'%mod or ''}" title="${u.human_name} ; ${APP_ROLE_NAMES[role]}">
             <img src="${u.thumbnail_url(size=size)}" />
         </div>
     % endfor
@@ -109,7 +116,12 @@
     %>
     
     <div id="people" class="people-${fn.__name__}">
-    ${fn()}
+        <div class="full-view">
+            ${full()}
+        </div>
+        <div class="collapsed-view">
+            ${collapsed()}
+        </div>
     </div>
 
 </%def>
