@@ -1,19 +1,19 @@
 
-html{ margin: 0; padding: 0; }
+html{ margin: 0; padding: 0; height: 100%;}
 body{
     font-family: helvetica, arial;
     font-size: 10pt;
     padding: 0;
     margin: 0;
-    background: #333;
+    background: #dfdcd8 url(../../i/site/background_noise.png) repeat;
+    height: 100%;
 }
 a{outline: none; text-decoration: none; font-weight: bold; border: none; color:#09f }
 a:hover{text-decoration: underline;}
 img{border: none;}
 
 #page{
-    padding: 10px 0 35px 0;
-    background: transparent url(../../i/site/background_noise.png) repeat;
+    padding: 10px 0 15px 0;
 }
 
 #header{
@@ -65,11 +65,22 @@ img{border: none;}
 }
 
 #footer{
-    color: #fff;
+    color: #333;
     font-size: 8pt;
     font-weight: bold;
-    padding: 15px 0;
-    border-top: 5px solid #5D81C1;
-    background: #333;
+    padding: 45px 0 25px 0;
+    height: 15px;
+    line-height: 15px;
+    background: transparent url(../../i/site/footer_bg.png) repeat-x top left;
 }
 #footer p{ margin: 0; }
+
+#push-wrap{
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -85px;
+}
+#push{
+    height: 85px;
+}

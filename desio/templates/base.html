@@ -30,7 +30,8 @@ if c.organization:
     return pylons.config['pylons_url']
 %>
 </%def>
-
+<div id="push-wrap">
+    
 <div id="header"><header>
     <div id="header-inner"><hgroup>
         <div id="header-right">
@@ -82,6 +83,9 @@ ${self.pre_content()}
 </div> <!--page-->
 <%def name="post_content()"></%def>
 ${self.post_content()}
+
+<div id="push"></div>
+</div>
 
 <div id="footer"><footer>
     <div id="footer-inner">
