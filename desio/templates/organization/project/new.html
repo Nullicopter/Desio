@@ -1,4 +1,4 @@
-<%inherit file="/base.html"/>
+<%inherit file="../base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
 <%namespace name="project" file="/modules/project.html"/>
@@ -11,8 +11,9 @@
     ${r.require('project', 'controllers.organization', 'controllers.organization.project', 'skinny_page')}
     <style type="text/css">
         #name{width: 400px;}
-        #description{width: 450px; height: 110px;}
-        #add-user-pane{float: right; width: 450px;}
+        #description{width: 457px; height: 110px;}
+        #content-inner{margin-top: 15px;}
+        /*#add-user-pane{float: right; width: 450px;}*/
     </style>
     <script type="text/javascript">
         
@@ -23,20 +24,24 @@
     </script>
 </%def>
 
-<h1>${c.title}</h1>
+<%def name="content_header()">
+    <h2 class="section-heading">
+        ${c.title}
+    </h2>
+</%def>
 
-<div id="add-user-pane">
-    <h2>Add folks to the project</h2>
-    <p>You can do this later too!</p>
-    ${project.project_user_module(c.project_user_module_params['userMap'])}
-</div>
+##<div id="add-user-pane">
+##    <h2>Add folks to the project</h2>
+##    <p>You can do this later too!</p>
+##    ${project.project_user_module(c.project_user_module_params['userMap'])}
+##</div>
 
 <form id="new-form" action="${h.api_url('project', 'create', organization=c.organization.eid)}" method="post">
     
     ${f.text_chunk('name', label='Project Name')}
     ${f.textarea_chunk('description', label='Project Description', sublabel='optional')}
     
-    <p>
+    <div>
         <a id="create-project-link" href="#" class="primary b114">Create Project</a>
-    </p>
+    </div>
 </form>

@@ -85,9 +85,9 @@ roles = [
     </a>
 </%def>
 
-<%def name="file_collection_thumb(name, change, url, className='', **kw)" >
+<%def name="file_collection_thumb(name, change, url, className='', defaultImage='/i/site/empty_project.png', **kw)" >
     <a href="${url}" class="${className}">
-        <img src="${change.base_url+change.thumbnail_url}" />
+        <img src="${hasattr(change, 'thumbnail_url') and (change.base_url+change.thumbnail_url) or defaultImage}" />
         <div class="info">
             <span class="name">${name}</span>
             <div class="subtitle">${utils.relative_date_str(change.created_date)} by ${change.creator.human_name}</div>

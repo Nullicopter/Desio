@@ -163,7 +163,7 @@
 .file .extra-info{width: 236px;}
 
 .file-collection{width: 244px;}
-.file-collection img{width: 244px;}
+.file-collection img{width: 244px; height: 188px; display: block;}
 
 #content.collapsed .file, #content.collapsed .processing-file{width: 255px; height: 191px;}
 #content.collapsed .file img, #content.collapsed .processing-file .thumb{width: 255px;}

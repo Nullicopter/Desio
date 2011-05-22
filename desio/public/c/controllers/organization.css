@@ -210,12 +210,20 @@
 }
 
 /**** headers ****/
+.section-heading .actions{
+    float: right;
+    font-size: 10pt;
+    text-transform: none;
+    color: #333;
+}
+
 #content .section-heading{
     text-transform: uppercase;
     color: #ADACA7;
     font-size: 13pt;
+    line-height: 22px;
     border-bottom: 1px solid #E0DDD4;
-    padding: 5px 0;
+    padding: 4px 0;
     margin: 0;
 }
 

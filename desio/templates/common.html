@@ -1,5 +1,6 @@
 <%!
     from desio import utils
+    from desio.model import STATUS_APPROVED, APP_ROLE_NAMES
 %>
 
 ##
@@ -46,6 +47,71 @@
     
     return res
 %>
+</%def>
+
+<%def name="users(objects, collapse=True, size=32, mod=6)">
+    ## collapse: True, False, 6, ...
+    <%
+    def get_user(object):
+        if hasattr(object, 'human_name'): return object
+        elif hasattr(object, 'user'): return object.user
+        return None
+    def get_status(object):
+        if hasattr(object, 'status'): return object.status
+        return None
+    def get_role(object):
+        if hasattr(object, 'role'): return object.role
+        return None
+    %>
+    
+    <%def name="collapsed()">
+    % for i, o in enumerate(objects):
+        <%
+        u = get_user(o)
+        if not u: continue
+        %>
+        <div class="user-thumb size-${size} ${not (i%mod) and 'mod-%s'%mod or ''}" title="${u.human_name}">
+            <img src="${u.thumbnail_url(size=size)}" />
+        </div>
+    % endfor
+    </%def>
+    
+    <%def name="full()">
+    % for i, o in enumerate(objects):
+        <%
+        u = get_user(o)
+        if not u: continue
+        status = get_status(o)
+        role = get_role(o)
+        %>
+        <div class="user ${(not status or not role) and 'only-name' or ''}">
+            <div class="user-thumb size-${size}" title="${u.human_name}">
+                <img src="${u.thumbnail_url(size=size)}" />
+            </div>
+            
+            <h4>${u.human_name}</h4>
+            % if status or role:
+                <div class="meta">
+                    <span class="role role-${role}">${APP_ROLE_NAMES[role]}</span>
+                    % if status and status != STATUS_APPROVED:
+                        : <span class="status"> ${status}</span>
+                    % endif
+                </div>
+            % endif
+        </div>
+    % endfor
+    </%def>
+    
+    <%
+    fn = full
+    if collapse == True or (isinstance(collapse, int) and len(objects) > collapse):
+        fn = collapsed
+    %>
+    
+    <div id="people" class="people-${fn.__name__}">
+    ${fn()}
+    </div>
+
 </%def>
 
 <%def name="feed(object, items, number=5, id='', template_id='activity-template')">

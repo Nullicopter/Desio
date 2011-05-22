@@ -26,7 +26,16 @@
 </%def>
 
 <%def name="content_header()">
-    <h2 class="section-heading">All Projects</h2>
+    <h2 class="section-heading">
+        
+        % if c.is_org_creator:
+            <a class="actions icon-plus" href="${h.url_for(controller='organization/project', action='new')}">
+                New Project
+            </a>
+        % endif
+        
+        All Projects
+    </h2>
 </%def>
 
 <%
@@ -39,6 +48,8 @@
     ${com.feed(c.organization, c.activity)}
     
     <h3 class="section-heading">People</h3>
+    
+    ${com.users(c.users, collapse=10)}
 </%def>
 
 % if c.is_org_admin and not users:
@@ -69,18 +80,18 @@
     <div id="projects">
     <% i = 0 %>
     % for p, files in c.project_data:
-        % if files:
-            <% url = h.url_for(controller='organization/project', action='view', slug=p.slug) %>
-            
-            <% ch = files[0].get_change() %>
-            <div class="file-collection ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
-                ${project.file_collection_thumb(p.name, ch, url)}
-            </div>
-            <% i += 1 %>
-        % endif
+        <% url = h.url_for(controller='organization/project', action='view', slug=p.slug) %>
+        <% ch = files and files[0].get_change() or p %>
+        
+        <div class="file-collection ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
+            ${project.file_collection_thumb(p.name, ch, url)}
+        </div>
+        <% i += 1 %>
     % endfor
     </div>
+    
 % else:
+
     <p>
         No projects yet.
         % if c.is_org_creator:

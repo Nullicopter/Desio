@@ -1,1 +1,12 @@
-#page-inner, #header-inner, #footer-inner{width: 960px !important;}
+#page-inner,
+#header-inner,
+#footer-inner{width: 500px !important;}
+
+#sidepanel{ display: none; }
+#header-right{width: 200px; margin-top: 23px;}
+#content {
+    margin-top: 10px;
+    padding: 15px;
+    width: auto;
+    float: none;
+}

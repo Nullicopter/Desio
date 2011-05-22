@@ -25,6 +25,12 @@ APP_ROLE_INDEX = {
     None: 0
 }
 
+APP_ROLE_NAMES = {
+    APP_ROLE_READ: 'Normal User',
+    APP_ROLE_WRITE: 'Collaborator',
+    APP_ROLE_ADMIN: 'Admin'
+}
+
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     Session.configure(bind=engine)

@@ -218,6 +218,17 @@ class User(Base):
             for pref in self.preferences:
                 self.preferences_dict[pref.key] = pref
     
+    def thumbnail_url(self, size=32):
+        import urllib, hashlib, pylons
+        
+        default = pylons.config.get('pylons_url') + '/i/icons/default_user.png'
+        
+        # construct the url
+        gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
+        gravatar_url += urllib.urlencode({'d':default, 's':str(size)})
+        
+        return gravatar_url
+
     @property
     def human_name(self):
         if self.first_name and self.last_name:

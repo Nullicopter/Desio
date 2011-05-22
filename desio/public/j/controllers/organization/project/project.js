@@ -128,14 +128,18 @@ Q.ProjectCreatePage = Q.Page.extend({
         this.form.getElement('name').focus();
         
         this.projectUserModule = $('#project-user-module').ProjectUserModule(this.settings);
-        this.projectUserModule.bind('synced', this.synced);
+        if(this.projectUserModule)
+            this.projectUserModule.bind('synced', this.synced);
     },
     
     success: function(data){
         $.log(data);
         this.form.loader.startLoading();
         this.project = data.results;
-        this.projectUserModule.sync(data.results.eid);
+        if(this.projectUserModule)
+            this.projectUserModule.sync(data.results.eid);
+        else
+            this.synced();
     },
     
     synced: function(){

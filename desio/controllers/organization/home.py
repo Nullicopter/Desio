@@ -1,6 +1,6 @@
 from desio import api
 from desio.lib.base import *
-from desio.model import users, projects, activity
+from desio.model import users, projects, activity, STATUS_APPROVED, STATUS_PENDING
 
 import formencode
 import formencode.validators as fv
@@ -21,5 +21,8 @@ class HomeController(OrganizationBaseController):
         c.project_data.sort(lambda l, r: cmp(r[0].last_modified, l[0].last_modified))
         
         c.activity = activity.get_activities(organization=c.organization, limit=5)
+        
+        c.users = [cu for cu in c.organization.get_user_connections(status=None) if cu.status in (STATUS_APPROVED, STATUS_PENDING)]
+        c.users.sort(key=lambda cu: cu.user.human_name)
         
         return self.render('/organization/home.html')
