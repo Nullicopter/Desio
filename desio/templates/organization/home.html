@@ -25,6 +25,16 @@
     <style type="text/css">
         #email{width: 300px;}
         #invite-form{margin-bottom: 10px;}
+        #new-text{font-size: 11pt; line-height: 1.5em;}
+        #new-project-button{
+            background-image: url(${h.static_url('i', 'buttons/huge_button_green_369.png')});
+            text-align: center;
+            padding: 0 50px 0 76px;
+            width: 243px;
+            height: 78px;
+            line-height: 78px;
+            font-size: 14pt;
+        }
     </style>
     
     <script type="text/javascript">
@@ -35,6 +45,7 @@
 </%def>
 
 <%def name="content_header()">
+    % if c.project_data:
     <h2 class="section-heading">
         
         % if c.is_org_creator:
@@ -45,6 +56,9 @@
         
         All Projects
     </h2>
+    % else:
+        <img src="${h.static_url('i', 'homepage/welcome_header.png')}" alt="Welcome to binder.io!" />
+    % endif
 </%def>
 
 <%
@@ -58,7 +72,7 @@
     
     <h3 class="section-heading">
         % if c.is_org_admin:
-            <a id="user-invite" class="actions icon-plus" href="">
+            <a id="user-invite" class="user-invite actions icon-plus small" href="#">
                 Invite Someone
             </a>
         % endif
@@ -68,13 +82,6 @@
     ${com.users(c.users, collapse=12)}
     
 </%def>
-
-% if c.is_org_admin and not users:
-    <p>
-        It's looking pretty lonely in here.
-        You should <a href="${h.url_for(controller='organization/settings', action='users')}">invite some folks</a>.
-    </p>
-% endif
 
 % if c.project_data:
     <% pfiles = [fi for p, fi in c.project_data if fi] %>
@@ -109,12 +116,26 @@
     
 % else:
 
-    <p>
-        No projects yet.
-        % if c.is_org_creator:
-            <a href="${h.url_for(controller='organization/project', action='new')}">Make one</a>
-        % endif
-    </p>
+    <div id="new-text">
+        <p>
+            <b>Hi.</b> Glad you could make it.
+        </p>
+        
+        <p>You're looking at your spanking new organization, <b>${c.organization.name}</b>. Designs are organized
+        into <b>projects</b> which can have any number of sub-folders.</p>
+        
+        <p>Binder is all about collaboration. You can <b>invite</b> other folks to participate in
+        <a href="#" class="user-invite">this organization</a>,
+        individual projects, and even individual files.</p>
+        
+        <p>
+            % if c.is_org_creator:
+                <a href="${h.url_for(controller='organization/project', action='new')}" id="new-project-button" class="primary">
+                    Create your first project
+                </a>
+            % endif
+        </p>
+    </div>
 % endif
 
 % if c.is_org_admin:

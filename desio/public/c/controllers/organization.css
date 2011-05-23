@@ -6,10 +6,22 @@
     float: right;
     margin-top: -25px;
     -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
     box-shadow: 0px 0px 6px -1px #333;
     width: 820px;
     background: #fff url(../../i/site/ibroughtthenoise.png) repeat;
     padding: 15px;
+}
+
+#content.has-toolbar{
+    -moz-border-radius-topleft: 0;
+    -webkit-border-top-left-radius: 0;
+    border-radius: 0 5px 5px 5px;
+}
+#content.collapsed{
+    width: 1140px;
+    float: left;
 }
 
 #content-header{position: relative;}
@@ -124,10 +136,20 @@
     height: 14px; width: 14px;
     background: transparent url(../../i/icons/arrows.png) no-repeat 0 0;
 }
-#sidepanel-collapse.absolute{
+#content-toolbar{
     position: absolute;
-    left: -25px;
-    top:0;
+    left: -46px;
+    top:-15px;
+    width: 15px;
+    background: transparent url(../../i/site/ibroughtthenoise.png) repeat 0 0;
+    
+    padding: 5px 8px;
+    
+    -moz-border-radius: 5px 0 0 5px;
+    -webkit-border-radius: 5px 0 0 5px;
+    z-index: 10;
+    
+    box-shadow: -2px 1px 2px -1px #666;
 }
 
 #sidepanel.collapsed{
@@ -223,7 +245,7 @@
     text-transform: none;
     color: #333;
 }
-#sidepanel .section-heading .icon-plus{
+#sidepanel .section-heading .icon-plus.small{
     background-image: url(../../i/icons/plus_small.png);
     height: 16px;
     line-height: 18px;
@@ -245,7 +267,8 @@
     color: #ACACA6;
     border-bottom: 1px solid #CAC8C0;
     font-size: 11pt;
-    padding: 5px 0;
+    padding: 0px 0;
+    line-height: 24px;
     margin: 0;
     clear: both;
 }

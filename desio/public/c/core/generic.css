@@ -25,6 +25,20 @@
 .icon-plus:hover{
     background-position: bottom left;
 }
+.icon-plus.alone{
+    width: 22px; padding: 0; display: block;
+}
+
+.icon-gear{
+    display: block;
+    height: 22px;
+    line-height: 23px;
+    width: 22px;
+    background: transparent url(../../i/icons/gear_22x22.png) no-repeat top left;
+}
+.icon-gear:hover{
+    background-position: bottom left;
+}
 
 .icon-delete{
     height: 20px;
@@ -36,7 +50,6 @@
 .icon-delete:hover{
     background-position: bottom left;
 }
-
 .dialog{display: none;}
 
 .divider{border:0; border-bottom: 1px solid #ddd; height: 1px; margin: 20px 0;}

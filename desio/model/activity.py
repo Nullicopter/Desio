@@ -131,6 +131,17 @@ class Activity(Base):
     
     extra_split = property(get_extra_split, set_extra_split)
 
+class NewOrganization(Activity):
+    
+    TYPE = u'new_org'
+    __mapper_args__ = {'polymorphic_identity': TYPE}
+    
+    def __init__(self, user, organization):
+        super(self.__class__, self).__init__(user=user, organization=organization)
+    
+    def get_message(self, user=None):
+        return '%s created %s' % (self.user.human_name, self.organization.name)
+
 class NewProject(Activity):
     
     TYPE = u'new_project'

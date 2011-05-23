@@ -1,4 +1,6 @@
-.activity-feed{ position: relative; margin-bottom: 50px;}
+
+.activity-feed{ position: relative; margin-bottom: 20px;}
+.activity-feed.has-more{ position: relative; margin-bottom: 50px;}
 .activity-feed a{ font-weight: normal; }
 .activity-feed .item{ margin: 10px 0; }
 
@@ -29,6 +31,8 @@
     line-height: 21px;
 }
 
+.activity-feed .more{display: none}
+.activity-feed.has-more .more{ display:block; }
 .activity-feed .more a{
     width: 40px; height: 21px;
     padding-left: 25px; line-height: 21px;
@@ -48,6 +52,7 @@
  invite, invite_accept
  comment_complete
 */
+.activity-feed .item .icon.new_org{background-position: -66px 0;}
 .activity-feed .item .icon.new_file{background-position: -66px 0;}
 .activity-feed .item .icon.new_project{background-position: -66px 0;}
 .activity-feed .item .icon.new_version{background-position: -22px 0;}

@@ -182,14 +182,29 @@
     display: block;
 }
 
-#root-directory{
-    border-top: 1px solid #CCC9C0;
-    border-bottom: 1px solid #CCC9C0;
-}
+#root-directory{}
 #root-directory h2{margin: 0 0 10px 0}
 
 /*** other ***/
 
-#project-settings-link{
-    background: transparent url(../../../i/icons/gear.png) no-repeat right 5px;
+.project-heading .project-link{
+    text-transform: capitalize;
+    color: #333;
+}
+
+#no-dir-info p{
+    margin-left: 95px;
+    font-size: 12pt;
+    color: #666;
+    line-height: 1.3em;
+}
+#no-dir-info .folder{
+    display: block;
+    width: 77px;
+    height: 52px;
+    background: transparent url(../../../i/icons/folder_large.png) no-repeat top left;
+    float: left;
+}
+#no-dir-info .folder:hover{
+    background-position: bottom left;
 }

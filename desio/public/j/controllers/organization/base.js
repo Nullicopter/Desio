@@ -119,7 +119,7 @@ Q.OrgHomePage = Q.Page.extend({
         inviteForm: '#invite-form'
     },
     events:{
-        'click #user-invite': 'popShareDialog'
+        'click .user-invite': 'popShareDialog'
     },
     run: function(){
         var self = this;

@@ -7,13 +7,6 @@
     ${r.require('controllers.organization.project')}
 </%def>
 
-<%def name="sidepanel()">
-    
-    % if c.project and c.is_project_admin:
-        <a href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}">Project Settings</a>
-    % endif
-</%def>
-
 <%def name="content_header()">
     % if c.path_components:
         ${'<span class="path-separator">/</span>'.join(com.path_component_urls(c.project, c.path_components)) | n}

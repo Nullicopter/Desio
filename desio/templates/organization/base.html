@@ -85,13 +85,15 @@
 </%def>
 <%def name="content_subheader()">
 </%def>
+<%def name="content_class()">
+</%def>
 
 <div class="organization" id="org-${c.organization.subdomain}">
     <div id="sidepanel">
         ${self.sidepanel_container()}
     </div>
     
-    <div id="content">
+    <div id="content" class="${self.content_class()}">
         
         <div id="content-header">
             ${self.content_header()}

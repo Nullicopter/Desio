@@ -52,7 +52,8 @@ Q.ViewProjectPage = Q.Page.extend({
     },
     n: {
         root: '#root-directory',
-        sidepanel: '#sidepanel'
+        sidepanel: '#sidepanel',
+        feed: '.activity-feed'
     },
     run: function(){
         var self = this;
@@ -81,6 +82,9 @@ Q.ViewProjectPage = Q.Page.extend({
         var dir = this.currentDirectory = this.directories.findPath(this.settings.path);
         if(dir) dir.set({current: true});
         else this.currentDirectory = root;
+        
+        this.feed = new Q.FeedCollection([], this.settings);
+        this.n.feed.FeedView({model: this.feed});
     },
     
     addDirectory: function(e){

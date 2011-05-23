@@ -128,7 +128,7 @@
 
 <%def name="feed(object, items, number=5, id='', template_id='activity-template')">
     <%
-        items = items[:number]
+        trimmed_items = items[:number]
     %>
     
     <%def name="feed_item(fid, type, raw_date, human_date, tiny_message, message)">
@@ -139,9 +139,9 @@
         </div>
     </%def>
     
-    <div id="${id}" class="activity-feed">
+    <div id="${id}" class="activity-feed ${len(trimmed_items) > len(items) and 'has-more' or ''}">
         <div class="feed-list">
-            % for i in items:
+            % for i in trimmed_items:
                 ${feed_item(i.id, i.type, utils.date_str(i.created_date), utils.relative_date_str(i.created_date), i.tiny_message, i.get_message())}
             % endfor
         </div>

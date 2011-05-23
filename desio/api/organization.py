@@ -4,7 +4,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     IsAdmin, MustOwn, IsLoggedIn, CanReadOrg, CanAdminOrg, \
                     CanWriteOrg, Exists, Or
 
-from desio.model import users, Session, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
+from desio.model import users, activity, Session, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED
 import sqlalchemy as sa
 
 import formencode
@@ -75,6 +75,7 @@ def create(real_user, user, **params):
     
     #connect user to org as admin of org
     org.attach_user(user, role=users.APP_ROLE_ADMIN, status=STATUS_APPROVED)
+    Session.add(activity.NewOrganization(user, org))
     
     Session.flush()
     return org

@@ -3,7 +3,7 @@ from paste.fileapp import FileApp
 from desio import api
 from desio.lib.base import *
 from desio.lib import modules
-from desio.model import users, projects, STATUS_APPROVED
+from desio.model import users, projects, activity, STATUS_APPROVED, STATUS_PENDING
 from desio.api import authorize
 from desio.controllers.api import v1
 
@@ -155,6 +155,11 @@ class ProjectController(OrganizationBaseController):
         c.structure = v1.project.get_structure(c.real_user, c.user).output(struc)
         c.tree = v1.project.get_directories().output(dirs)
         c.path = path
+        
+        c.activity = activity.get_activities(project=c.project, limit=6)
+        
+        c.users = [cu for cu in c.project.get_user_connections(status=None) if cu.status in (STATUS_APPROVED, STATUS_PENDING)]
+        c.users.sort(key=lambda cu: cu.user.human_name)
         
         return self.render('/organization/project/view.html')
     

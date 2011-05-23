@@ -1,6 +1,7 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
+<%namespace name="com" file="/common.html"/>
 <%namespace name="project" file="/modules/project.html"/>
 <%!
     import simplejson as json
@@ -13,6 +14,7 @@
         #sidepanels{width: 275px;}
         #description {width: 265px;}
         .subheader .meta {color: #999;}
+        #project-settings-link{float: right;}
     </style>
     <script type="text/javascript">
     new Q.ViewProjectPage({
@@ -30,6 +32,17 @@
     </script>
 </%def>
 
+<%def name="content_class()">
+<% return 'has-toolbar' %>
+</%def>
+
+<%def name="content_header()">
+    <div id="content-toolbar">
+        <a href="#" id="sidepanel-collapse"></a>
+    </div>
+    ${parent.content_header()}
+</%def>
+
 <%def name="content_subheader()">
     <div class="meta">To upload files, drag them into the area below.
     Supported filetypes: .psd, .pdf, .png, .gif, .jpg, .ai, .eps, .svg</div>
@@ -37,37 +50,70 @@
 
 <%def name="sidepanel()">
     
+    <h3 class="section-heading project-heading">
+        % if c.project_role == APP_ROLE_ADMIN:
+            <a id="project-settings-link" class="icon-gear" href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}"></a>
+        % endif
+        
+        Project:
+        <a class="project-link" href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}">
+            ${c.project.name}
+        </a>
+    </h3>
+    
     <div class="info">
         % if c.project.description:
             <p id="description">${c.project.description}</p>
+        % elif c.project_role == APP_ROLE_ADMIN:
+            <p id="description" class="placeholder">double click here to add a description</p>
         % endif
     </div>
     
-    <div id="root-directory">
+    
+    % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE] or len(c.tree) > 1:
+        <h3 class="section-heading project-heading">
+            % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
+            <div class="new-button">
+                <a class="icon-plus alone actions" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}"></a>
+            </div>
+            % endif
+            Folders
+        </h3>
         
-        <div class="dir-tree ${c.path == '/' and 'current' or ''}">
+        <div id="root-directory">
             
-            <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}">Project Home</a></h3>
-            <div class="bg"></div>
+            % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
+                <div id="no-dir-info">
+                    <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" class="folder"></a>
+                    <p>
+                        Folders help you organize your designs.
+                        <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" >Add One</a>
+                    </p>
+                </div>
+            % endif
+            
+            <div class="dir-tree ${c.path == '/' and 'current' or ''}">
+                
+            </div>
+            <div class="children">
+            </div>
         </div>
-        <div class="children">
-        </div>
-    </div>
-    
-    % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
-    <div class="new-button">
-        <a class="icon-plus action" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}">New Directory</a>
-    </div>
     % endif
     
-    % if c.project_role == APP_ROLE_ADMIN:
-    <ul id="secondary-links">
-        <li><a id="project-settings-link" href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}">Project Settings</a></li>
-    </ul>
-    % endif
+    <h3 class="section-heading">Recent Activity</h3>
+    ${com.feed(c.project, c.activity)}
+    
+    <h3 class="section-heading">
+        % if c.project_role == APP_ROLE_ADMIN:
+            <a id="user-invite" class="user-invite actions icon-plus alone" href="#">
+            </a>
+        % endif
+        People
+    </h3>
+    
+    ${com.users(c.users, collapse=12)}
+    
 </%def>
-
-<a href="#" id="sidepanel-collapse" class="absolute"></a>
 
 <div id="files-module" class="role-${c.project_role}">
 </div>

@@ -20,7 +20,7 @@ class HomeController(OrganizationBaseController):
         #sort by last time a file in the project was modified
         c.project_data.sort(lambda l, r: cmp(r[0].last_modified, l[0].last_modified))
         
-        c.activity = activity.get_activities(organization=c.organization, limit=5)
+        c.activity = activity.get_activities(organization=c.organization, limit=6)
         
         c.users = [cu for cu in c.organization.get_user_connections(status=None) if cu.status in (STATUS_APPROVED, STATUS_PENDING)]
         c.users.sort(key=lambda cu: cu.user.human_name)
