@@ -43,17 +43,20 @@ Q.DirectoryTreeView = Q.View.extend('DirectoryTreeView', {
     addDirectory: function(m){
         var view = new Q.DirectoryTreeView({model: m});
         this.children.append(view.render().el);
+        
+        if(this.settings.emptyInfo) this.settings.emptyInfo.hide();
     }
 });
 
 Q.ViewProjectPage = Q.Page.extend({
     events:{
-        'click #add-directory-link': 'addDirectory'
+        'click .add-directory-link': 'addDirectory'
     },
     n: {
         root: '#root-directory',
         sidepanel: '#sidepanel',
-        feed: '.activity-feed'
+        feed: '.activity-feed',
+        emptyInfo: '#no-dir-info'
     },
     run: function(){
         var self = this;
@@ -75,7 +78,10 @@ Q.ViewProjectPage = Q.Page.extend({
         this.rootObject = root;
         this.directories = root.get('children'); //will be a Q.Directories obj
         
-        this.root = this.n.root.DirectoryTreeView({model: root});
+        this.root = this.n.root.DirectoryTreeView({
+            emptyInfo: this.n.emptyInfo,
+            model: root
+        });
         this.root.render();
         
         //need to walk the tree to find the current path

@@ -74,7 +74,7 @@
         <h3 class="section-heading project-heading">
             % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
             <div class="new-button">
-                <a class="icon-plus alone actions" id="add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}"></a>
+                <a class="icon-plus alone actions add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}"></a>
             </div>
             % endif
             Folders
@@ -84,10 +84,10 @@
             
             % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
                 <div id="no-dir-info">
-                    <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" class="folder"></a>
+                    <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" class="add-directory-link folder"></a>
                     <p>
                         Folders help you organize your designs.
-                        <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" >Add One</a>
+                        <a href="${h.api_url('project', 'add_directory', id=c.project.eid)}" class="add-directory-link">Add One</a>
                     </p>
                 </div>
             % endif
@@ -139,7 +139,12 @@
 
 <script id="dir-tree-template" class="jstemplate" type="text/template">
     <div class="bg"></div>
-    <h3><a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">{{name}}</a></h3>
+    <h3>
+        <a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">
+            <div class="icon-folder"></div>
+            <span>{{name}}</span>
+        </a>
+    </h3>
     <div class="children">
     </div>
 </script>

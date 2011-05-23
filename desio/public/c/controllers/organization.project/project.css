@@ -182,7 +182,7 @@
     display: block;
 }
 
-#root-directory{}
+#root-directory{margin: 7px 0 15px 0;}
 #root-directory h2{margin: 0 0 10px 0}
 
 /*** other ***/

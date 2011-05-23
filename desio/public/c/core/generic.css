@@ -29,6 +29,17 @@
     width: 22px; padding: 0; display: block;
 }
 
+.icon-folder{
+    display: block;
+    height: 19px;
+    line-height: 24px;
+    width: 24px;
+    background: transparent url(../../i/icons/folder.png) no-repeat top left;
+}
+.icon-folder:hover{
+    background-position: bottom left;
+}
+
 .icon-gear{
     display: block;
     height: 22px;
