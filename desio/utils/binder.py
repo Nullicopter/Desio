@@ -156,21 +156,31 @@ class FireworksExtractor(object):
         indices = dd(lambda: 0)
         
         #set status to in progress
-        self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
+        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
         
         ext = image.FWPNGExtractor(None, filename=filename)
         
         extracts, status = ext.extract(async_extract=False)
         extracts += self.generate_diffs(extracts, change)
         for extract in extracts:
-            self.upload_extract(extract, indices[extract.extract_type], change)
+            #self.upload_extract(extract, indices[extract.extract_type], change)
             indices[extract.extract_type] += 1
         
         # set status to completed
-        self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
+        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
     
     def get_changes(self):
         return self.c.get('change', 'get', parse_status='pending')
+    
+    def download_and_extract(self, ch):
+        fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
+        if fname:
+            self.extract_file(fname, ch)
+    
+    def run_single(self, eid):
+        status, change = self.c.post('change', 'get', change=eid)
+        if status == 200:
+            self.download_and_extract(change.results)
     
     def run(self):
         status, resp = self.get_changes()
@@ -179,14 +189,22 @@ class FireworksExtractor(object):
         if status == 200:
             for ch in changes:
                 if ch.parse_type in [image.PARSE_TYPE_FIREWORKS_CS5, image.PARSE_TYPE_FIREWORKS_CS4]:
-                    fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
-                    if fname:
-                        self.extract_file(fname, ch)
+                    self.download_and_extract(ch)
         else:
             l('change/get Status %s' % status)
     
 if __name__ == '__main__':
     
     import sys
-    c = FireworksExtractor(*sys.argv[1:])
-    c.run()
+    
+    f = None
+    args = sys.argv[1:]
+    if len(args) == 5:
+        f = args[-1]
+        args = args[:4]
+    c = FireworksExtractor(*args)
+    
+    if f:
+        c.run_single(f)
+    else:
+        c.run()
