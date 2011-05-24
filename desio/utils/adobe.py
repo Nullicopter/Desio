@@ -16,14 +16,20 @@ for i in range(230000, 250000):
     except: pass
 """
 
-import socket
+import socket, subprocess, time, os, signal
 from xml.etree import ElementTree
 
+ERROR_DIED = 1
+ERROR_CANTCONNECT = 2
+PATH = '/Applications/Adobe Fireworks CS5/Adobe Fireworks CS5.app/'
+RESTART = ['open', PATH]
+
 class AdobeException(Exception):
-    def __init__(self, code):
+    def __init__(self, code, message=None):
         self.code = code
+        self.message = message
     def __repr__(self):
-        return 'AdobeException(%s)' % self.code
+        return 'AdobeException(%s, %s)' % (self.code, self.message)
 
 class Client(object):
     
@@ -36,10 +42,35 @@ class Client(object):
     }
     
     def __init__(self):
+        self._con_params = None
+        self._sock = None
+        self._create()
+    
+    def _create(self):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     def connect(self, host, port=12124):
-        self._sock.connect((host, port))
+        self._con_params = (host, port)
+        try:
+            self._sock.connect(self._con_params)
+        except socket.error as e:
+            raise AdobeException(ERROR_CANTCONNECT, "Cannot connect :(")
+    
+    def close(self):
+        try:
+            self._sock.shutdown(socket.SHUT_RDWR)
+            self._sock.close()
+            del self._sock
+            self._sock = None
+        except socket.error as e:
+            pass
+    
+    def reconnect(self):
+        print 'attempting to reconnect...'
+        if self._con_params:
+            print 'reconnecting with %s' % (self._con_params,)
+            self.close()
+            self.connect(*self._con_params)
     
     def send(self, payload):
         
@@ -52,7 +83,13 @@ class Client(object):
         
         res = []
         r = self._sock.recv(1)
-        while ord(r):
+        while True:
+            if not r:
+                raise AdobeException(ERROR_DIED, "Fireworks probably died.")
+                #self.reconnect()
+                #return None
+            if not ord(r): break
+            
             res.append(r)
             r = self._sock.recv(1)
         
@@ -93,8 +130,43 @@ class Client(object):
 
 class Fireworks(Client):
     
-    def connect(self, port=12124):
+    PROCESS = 'Fireworks'
+    
+    def connect(self, host='127.0.0.1', port=12124):
         super(Fireworks, self).connect('127.0.0.1', port)
+    
+    @classmethod
+    def get_pid(cls):
+        for line in os.popen("ps xa"):
+            fields = line.split()
+            pid = fields[0]
+            process = ' '.join(fields[4:])
+            
+            if process.find(cls.PROCESS) > 0:
+                return int(pid)
+        return None
+    
+    @classmethod
+    def kill(cls):
+        pid = cls.get_pid()
+        if pid:
+            os.kill(pid, signal.SIGKILL)
+    
+    @classmethod
+    def restart(cls):
+        cls.kill()
+        subprocess.call(RESTART)
+        time.sleep(5)
+    
+    def reconnect(self):
+        self.close()
+        subprocess.call(RESTART)
+        time.sleep(5)
+        self.kill()
+        time.sleep(5)
+        subprocess.call(RESTART)
+        time.sleep(5)
+        #super(Fireworks, self).reconnect()
 
 if __name__ == '__main__':
     import sys, os, os.path, urllib

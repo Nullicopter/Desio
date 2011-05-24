@@ -25,12 +25,23 @@
 }
 
 #content-header{position: relative;}
-#content-header h1{
+#content-header h2{
     margin: 0;
     font-size: 16pt;
     font-weight: normal;
 }
-#content-header h1 .path-separator{
+#content-header h2 a.root-path{
+    display: block;
+    height: 21px; width: 25px;
+    background: transparent url(../../i/icons/house.png) top left no-repeat;
+    float: left;
+    text-indent: -9999px;
+    margin-top: 2px;
+}
+#content-header h2 a.root-path:hover{
+    background-position: bottom left;
+}
+#content-header h2 .path-separator{
     color: #cbcbcb;
     font-size: 28pt;
     vertical-align:middle;
@@ -38,8 +49,8 @@
     padding: 0 6px 0 9px;
     font-weight: bold;
 }
-#content-header h1 a, #content-header h1 a:active{color: #333; font-weight: normal}
-#content-header h1 a:first-child{font-weight: bold}
+#content-header h2 a, #content-header h2 a:active{color: #333; font-weight: normal}
+#content-header h2 a:first-child{font-weight: bold}
 
 #content-inner {margin-top: 10px; position: relative;}
 

@@ -2,7 +2,7 @@
 from celery.decorators import task, periodic_task
 from celery.task.schedules import crontab, schedule
 
-from desio.utils import binder
+from desio.utils import binder, adobe
 from datetime import datetime, timedelta
 
 @periodic_task(run_every=schedule(timedelta(seconds=60)))
@@ -19,6 +19,24 @@ def export_fireworks():
     
     ext = binder.FireworksExtractor(uname, pw, host=host, port=port)
     ext.run()
+
+@periodic_task(run_every=schedule(timedelta(seconds=120)))
+def check_fireworks():
+    
+    pid = adobe.Fireworks.get_pid()
+    if not pid:
+        print 'Not running, restarting...'
+        adobe.Fireworks.restart()
+    else:
+        fw = adobe.Fireworks()
+        try:
+            print 'Trying to connect...'
+            fw.connect()
+            fw.close()
+            print 'OK'
+        except adobe.AdobeException as e:
+            print 'Fail. Killing FW'
+            adobe.Fireworks.kill()
 
 """
 # someday...

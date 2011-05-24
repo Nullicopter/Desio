@@ -58,6 +58,7 @@ EXTRACT_TYPE_DIFF = u'diff'
 PARSE_STATUS_PENDING = 'pending'
 PARSE_STATUS_IN_PROGRESS = 'in_progress'
 PARSE_STATUS_COMPLETED = 'completed'
+PARSE_STATUS_FAILED = 'failed'
 
 PARSE_TYPE_UNKNOWN = 'unknown'
 PARSE_TYPE_IMAGEMAGICK = 'imagemagick'
@@ -101,7 +102,7 @@ class Extractor(object):
             
             #why is this returning an int on my machine? Supposed to be a file pointer.
             if isinstance(f, int):
-                f = open(name, 'wb')
+                f = os.fdopen(f, 'wb')
         
         return f, name
     
@@ -344,22 +345,22 @@ class FWPNGExtractor(Extractor):
     @classmethod
     def read_head(cls, filename):
         d = ''
+        f = None
         try:
             f = open(filename, 'rb')
             d = f.read(500)
         finally:
-            f.close()
+            if f: f.close()
         return d
     
     @classmethod
     def read_parse_type(cls, filename):
-        #head = cls.read_head(filename)
-        #if 'Fireworks CS5' in head: return PARSE_TYPE_FIREWORKS_CS5
-        #elif 'Fireworks CS4' in head:
-        return PARSE_TYPE_FIREWORKS_CS4
-        #elif 'Fireworks CS3' in head: return PARSE_TYPE_FIREWORKS_CS3
-        #elif 'Fireworks' in head: return PARSE_TYPE_FIREWORKS_OLD
-        #return PARSE_TYPE_UNKNOWN
+        head = cls.read_head(filename)
+        if 'Fireworks CS5' in head: return PARSE_TYPE_FIREWORKS_CS5
+        elif 'Fireworks CS4' in head: return PARSE_TYPE_FIREWORKS_CS4
+        elif 'Fireworks CS3' in head: return PARSE_TYPE_FIREWORKS_CS3
+        elif 'Fireworks' in head: return PARSE_TYPE_FIREWORKS_OLD
+        return PARSE_TYPE_UNKNOWN
     
     @classmethod
     def preprocess(cls, filename):
@@ -398,11 +399,10 @@ class FWPNGExtractor(Extractor):
         prefix = 'file:///'+ vol
         
         temp_dir = tempfile.mkdtemp()
-        _, newfile = tempfile.mkstemp('.png')
         eid = 'FILE'
         
         data = {
-            'in_file': prefix + os.path.abspath(newfile),
+            'in_file': prefix + os.path.abspath(self.filename),
             'out_dir': prefix + temp_dir + '/',
             'eid': eid
         }
@@ -419,9 +419,6 @@ class FWPNGExtractor(Extractor):
         script, scname = self._get_tmp_file(None, dest_format='js')
         script.write(val)
         script.close()
-        
-        shutil.copy(self.filename, newfile)
-        self.filename = newfile
         
         c = adobe.Fireworks()
         c.connect()

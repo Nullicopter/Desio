@@ -6,9 +6,9 @@ c = binder.Client('robot@binder.io', 'f0ckm@rthA')
 c._request('/change/get', parse_status='completed')
 
 """
-import subprocess, binascii, urllib, httplib, base64, os.path, simplejson as json, tempfile
+import subprocess, binascii, urllib, httplib, base64, os.path, simplejson as json, tempfile, os
 from pylons_common.lib.utils import objectify
-from desio.utils import image
+from desio.utils import image, adobe
 
 from collections import defaultdict as dd
 
@@ -103,8 +103,7 @@ class FireworksExtractor(object):
         
         if response.status == 200:
             f, name = tempfile.mkstemp('.png')
-            if isinstance(f, int):
-                f = open(name, 'wb')
+            f = os.fdopen(f, 'wb')
             
             f.write(data)
             f.close()
@@ -155,27 +154,40 @@ class FireworksExtractor(object):
         
         indices = dd(lambda: 0)
         
-        #set status to in progress
-        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
-        
         ext = image.FWPNGExtractor(None, filename=filename)
         
         extracts, status = ext.extract(async_extract=False)
         extracts += self.generate_diffs(extracts, change)
         for extract in extracts:
-            #self.upload_extract(extract, indices[extract.extract_type], change)
+            self.upload_extract(extract, indices[extract.extract_type], change)
             indices[extract.extract_type] += 1
-        
-        # set status to completed
-        #self.c.post('change', 'edit', change=change.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
     
     def get_changes(self):
         return self.c.get('change', 'get', parse_status='pending')
     
     def download_and_extract(self, ch):
-        fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
-        if fname:
-            self.extract_file(fname, ch)
+        #set status to in progress
+        self.c.post('change', 'edit', change=ch.change_eid, parse_status=image.PARSE_STATUS_IN_PROGRESS)
+        
+        status, file = self.c.get('file', 'get', id=ch.file_eid)
+        if status == 200:
+            file = file.results
+            print 'Running file %s %s' % (file.path, file.name)
+        
+        try:
+            fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
+            if fname:
+                self.extract_file(fname, ch)
+                
+            # set status to completed
+            self.c.post('change', 'edit', change=ch.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
+        except adobe.AdobeException as e:
+            print "ERROR: ", e.message
+            
+            if e.code == adobe.ERROR_CANTCONNECT:
+                self.c.post('change', 'edit', change=ch.change_eid, parse_status=image.PARSE_STATUS_PENDING)
+            else:
+                self.c.post('change', 'edit', change=ch.change_eid, parse_status=image.PARSE_STATUS_FAILED)
     
     def run_single(self, eid):
         status, change = self.c.post('change', 'get', change=eid)
@@ -190,6 +202,7 @@ class FireworksExtractor(object):
             for ch in changes:
                 if ch.parse_type in [image.PARSE_TYPE_FIREWORKS_CS5, image.PARSE_TYPE_FIREWORKS_CS4]:
                     self.download_and_extract(ch)
+                    break
         else:
             l('change/get Status %s' % status)
     

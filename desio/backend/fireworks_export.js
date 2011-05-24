@@ -12,7 +12,7 @@ try {
         var doc = fw.openDocument(inFile, false, true);
         var count = doc.pagesCount;
         
-        //0 twice, cause fireworks has a bug (weird, right?!) in that it will export to
+        //0 twice, cause fireworks has a bug in that it will export to
         //a gif unless we switch pages then set the export options. 
         var pages = [];
         for(var i = 0; i < count; i++) pages.push(i);
@@ -32,10 +32,9 @@ try {
             if(!(doc.hasMasterPage() && 0 == pages[i]))
                 fw.exportPages(doc,"Images","Current",outDir+eid+pages[i]+'.png');
         }
-        for(var i = 0; i < 100000; i++){;}
-        //fw.closeDocument(doc, false);
-        doc.save(true);
-        //doc.close(true);
+        
+        //doc.save(false);
+        doc.close(false);
     }
     
     var inp = '${in_file}';

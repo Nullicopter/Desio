@@ -36,10 +36,10 @@
 <%
     #the first item is assumed to be the project name
     
-    def build_href(p, name):
-        return '<a href="%s">%s</a>' % (h.url_for(controller='organization/project', action='view', slug=project.slug, path=p), name)
+    def build_href(p, name, className='', title=''):
+        return '<a class="%s" %s href="%s">%s</a>' % (className, title and 'title="%s"' % title or '', h.url_for(controller='organization/project', action='view', slug=project.slug, path=p), name)
     
-    res = [build_href('', path_components[0])]
+    res = [build_href('', path_components[0], 'root-path', "Go to this project's home page")]
     accum = []
     for p in path_components[1:]:
         accum.append(p)

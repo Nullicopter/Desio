@@ -8,11 +8,20 @@
 </%def>
 
 <%def name="content_header()">
+    <h2>
     % if c.path_components:
-        ${'<span class="path-separator">/</span>'.join(com.path_component_urls(c.project, c.path_components)) | n}
+        <%
+        urls = com.path_component_urls(c.project, c.path_components)
+        %>
+        % if len(urls) == 1:
+            ${urls[0] | n} <span class="path-separator">/</span>
+        % else:
+            ${'<span class="path-separator">/</span>'.join(urls) | n}
+        % endif
     % else:
         ${c.title}
     % endif
+    </h2>
 </%def>
 
 ${next.body()}
