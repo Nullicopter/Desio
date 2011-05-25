@@ -2,8 +2,9 @@
  * Viewing multiple files: project directory or project frontpage.
  */
 
+#files-module.no-data .files {min-height: 500px;}
 .files-container{position: relative;}
-.files{min-height: 100px;}
+.files{min-height: 115px;}
 
 .file a:hover, .processing-file a:hover{
     text-decoration: none;
@@ -139,7 +140,7 @@
 
 /* collection stuff */
 .file-collection .info{
-    padding-top: 5px;
+    padding-top: 8px;
 }
 .file-collection .name{
     color: #333;

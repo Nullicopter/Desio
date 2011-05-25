@@ -174,7 +174,7 @@ def get_users(real_user, user, project, status=STATUS_APPROVED):
     return project.get_user_connections(status=status)
 
 def _get_files_for_dir(project, dirobj):
-    if not dir: return None
+    if not dirobj: return None
     
     def get_file_tuple(f):
         return (f, f.get_change())

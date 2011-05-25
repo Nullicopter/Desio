@@ -326,7 +326,7 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
         
         for(var i = 0; i < set.directories.length; i++){
             var attr = $.extend({}, set.directories[i]);
-            $.log(attr);
+            $.log('dir', attr);
             attr.id = attr.eid;
             this.directories.add(new Q.Directory(attr));
         }

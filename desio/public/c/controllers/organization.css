@@ -119,12 +119,13 @@
     background: transparent url(../../../i/site/arrow_bg.png) no-repeat top right;
     z-index: 1;
 }
-.dir-tree.current>.bg, #sidepanel-nav .tab.current>.bg, .dir-tree:hover>.bg{
+.dir-tree.current>h3>.bg, #sidepanel-nav .tab.current>.bg, .dir-tree>h3:hover>.bg{
     display: block;
 }
     
 
-.dir-tree h3{margin: 0; position: relative; height: 38px; z-index: 2}
+.dir-tree h3{margin: 0; height: 38px; }
+.dir-tree h3 a{position: relative; z-index: 2}
 .children .dir-tree h3 a span{
     padding-left: 10px;
 }
@@ -136,7 +137,7 @@
     float: left;
     margin-top: 8px;
 }
-.children .dir-tree.current>h3 .icon-folder, .dir-tree:hover>h3 .icon-folder{
+.children .dir-tree.current>h3>a>.icon-folder, .dir-tree>h3:hover>a>.icon-folder{
     background-position: bottom left;
 }
 .dir-tree h3 a, #sidepanel-nav .tab{
@@ -285,6 +286,10 @@
     border-bottom: 1px solid #E0DDD4;
     padding: 4px 0;
     margin: 0;
+}
+
+#content .section-heading.mid-content{
+    margin: 20px 0 15px 0;
 }
 
 #sidepanel .section-heading{

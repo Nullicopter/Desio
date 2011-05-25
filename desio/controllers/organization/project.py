@@ -148,13 +148,34 @@ class ProjectController(OrganizationBaseController):
         
         c.project_role = project.get_role(c.user)
         
+        #all dirs in a project
         dirs = api.project.get_directories(c.real_user, c.user, c.project)
+        _, all_directories = dirs
+        
+        # all the files in the current dir
         struc = api.project.get_structure(c.real_user, c.user, c.project, path)
+        
         if not struc: abort(404)
         
         c.structure = v1.project.get_structure(c.real_user, c.user).output(struc)
         c.tree = v1.project.get_directories().output(dirs)
         c.path = path
+        
+        # get the most recent files in the sub directories
+        files = project.get_entities(only_type=projects.File.TYPE)
+        setf = set([os.path.join(d.path, d.name) for d in all_directories if d.path == path])
+        c.directory_files = []
+        c.has_files = False
+        
+        for f in files:
+            if f.path == path:
+                c.has_files = True
+            if f.path.startswith(path) and f.path != path:
+                for d in setf:
+                    if f.path.startswith(d):
+                        c.directory_files.append((d, f))
+                        setf.remove(d)
+                        break
         
         c.activity = activity.get_activities(project=c.project, limit=6)
         

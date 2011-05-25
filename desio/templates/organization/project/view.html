@@ -115,8 +115,26 @@
     
 </%def>
 
-<div id="files-module" class="role-${c.project_role}">
+<div id="files-module" class="role-${c.project_role} ${(not c.has_files and not c.directory_files) and 'no-data' or ''}">
 </div>
+
+% if c.directory_files:
+    <div style="clear: left"></div>
+    
+    <h2 class="section-heading mid-content">Folders</h2>
+    
+    <div id="directory-view">
+        % for i, df in enumerate(c.directory_files):
+            <%
+                d, f = df
+                url = h.url_for(controller='organization/project', action='view', slug=c.project.slug, path=d[1:])
+            %>
+            <div class="file-collection ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
+                ${project.file_collection_thumb(d.split('/')[-1], f.get_change(), url)}
+            </div>
+        % endfor
+    </div>
+% endif
 
 <div style="clear: left"></div>
 
@@ -138,8 +156,8 @@
 </script>
 
 <script id="dir-tree-template" class="jstemplate" type="text/template">
-    <div class="bg"></div>
     <h3>
+        <div class="bg"></div>
         <a href="${h.url_for(controller='organization/project', slug=c.project.slug, action='view')}{{full_path}}">
             <div class="icon-folder"></div>
             <span>{{name}}</span>
