@@ -127,6 +127,9 @@ class FireworksExtractor(object):
         f.close()
         
         print self.c.post('change', 'upload_extract', id=change.change_eid, headers=headers, content_type=CONTENT_TYPE_OCTET, body=body)
+        
+        print 'Removing %s' % extracted_file.filename
+        os.remove(extracted_file.filename)
 
     def generate_diffs(self, extracts, change):
         
@@ -178,7 +181,9 @@ class FireworksExtractor(object):
             fname = self.download_file(self.DOWNLOAD_URL % ch.change_eid)
             if fname:
                 self.extract_file(fname, ch)
-                
+            
+            print 'Removing %s' % fname
+            os.remove(fname)
             # set status to completed
             self.c.post('change', 'edit', change=ch.change_eid, parse_status=image.PARSE_STATUS_COMPLETED)
         except adobe.AdobeException as e:

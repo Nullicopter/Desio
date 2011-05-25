@@ -423,8 +423,15 @@ class FWPNGExtractor(Extractor):
         c = adobe.Fireworks()
         c.connect()
         
+        error = None
         special_script = prefix + scname
-        x = c.call('fw', 'runScript', special_script)
+        try:
+            x = c.call('fw', 'runScript', special_script)
+        except adobe.AdobeException as e:
+            error = e
+            if e.code != adobe.ERROR_DIED:
+                raise
+            print 'Fireworks died. But we kind of dont care. ON WITH IT, BITCHES.'
         
         os.remove(scname)
         
@@ -435,6 +442,8 @@ class FWPNGExtractor(Extractor):
             self.image = Image(files[0].filename)
             files += self.thumbnail()
             self.image.destroy()
+        elif error:
+            raise error #ok, maybe it legitimately died.
         
         return files, ExtractStatus(type=parse_type)
 
