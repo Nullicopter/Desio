@@ -50,13 +50,17 @@ Q.DirectoryTreeView = Q.View.extend('DirectoryTreeView', {
 
 Q.ViewProjectPage = Q.Page.extend({
     events:{
-        'click .add-directory-link': 'addDirectory'
+        'click .add-directory-link': 'addDirectory',
+        'click .user-invite': 'popShareDialog'
     },
     n: {
         root: '#root-directory',
         sidepanel: '#sidepanel',
         feed: '.activity-feed',
-        emptyInfo: '#no-dir-info'
+        emptyInfo: '#no-dir-info',
+        shareDialog: '#share-dialog',
+        shareEmail: '#email',
+        inviteForm: '#invite-form'
     },
     run: function(){
         var self = this;
@@ -89,8 +93,28 @@ Q.ViewProjectPage = Q.Page.extend({
         if(dir) dir.set({current: true});
         else this.currentDirectory = root;
         
-        this.feed = new Q.FeedCollection([], this.settings);
+        this.feed = new Q.FeedCollection([], {project: this.settings.project});
         this.n.feed.FeedView({model: this.feed});
+        
+        this.setupInvites();
+    },
+    
+    setupInvites: function(){
+        //share stuff
+        this.n.shareEmail.inputHint();
+        this.shareDialog = this.n.shareDialog.Dialog({width: 500});
+        
+        this.n.inviteForm.AsyncForm({
+            onSuccess: function(data){
+                Q.notify(data.results.invited_email + ' has been invited!');
+                this.val('email', '');
+            }
+        });
+    },
+    
+    popShareDialog: function(){
+        this.shareDialog.open();
+        return false;
     },
     
     addDirectory: function(e){

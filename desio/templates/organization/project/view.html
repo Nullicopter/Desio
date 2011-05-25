@@ -5,7 +5,13 @@
 <%namespace name="project" file="/modules/project.html"/>
 <%!
     import simplejson as json
-    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, APP_ROLE_NAMES
+    
+    roles = [
+        {'key': APP_ROLE_READ, 'value': APP_ROLE_NAMES[APP_ROLE_READ]},
+        {'key': APP_ROLE_WRITE, 'value': APP_ROLE_NAMES[APP_ROLE_WRITE]},
+        {'key': APP_ROLE_ADMIN, 'value': APP_ROLE_NAMES[APP_ROLE_ADMIN]}
+    ]
 %>
 <%def name="header()">
     ${parent.header()}
@@ -15,9 +21,12 @@
         #description {width: 265px;}
         .subheader .meta {color: #999;}
         #project-settings-link{float: right;}
+        #email{width: 300px;}
+        #invite-form{margin-bottom: 10px;}
     </style>
     <script type="text/javascript">
     new Q.ViewProjectPage({
+        project: '${c.project.eid}',
         module: '#files-module',
         previewImage: '/i/site/preview.png',
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
@@ -105,10 +114,10 @@
     
     <h3 class="section-heading">
         % if c.project_role == APP_ROLE_ADMIN:
-            <a id="user-invite" class="user-invite actions icon-plus alone" href="#">
+            <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
             </a>
         % endif
-        People
+        Contributors
     </h3>
     
     ${com.users(c.users, collapse=12)}
@@ -126,11 +135,11 @@
     <div id="directory-view">
         % for i, df in enumerate(c.directory_files):
             <%
-                d, f = df
+                d, fi = df
                 url = h.url_for(controller='organization/project', action='view', slug=c.project.slug, path=d[1:])
             %>
             <div class="file-collection ${i%3 == 0 and 'posmod3' or ''} ${i%4 == 0 and 'posmod4' or ''}">
-                ${project.file_collection_thumb(d.split('/')[-1], f.get_change(), url)}
+                ${project.file_collection_thumb(d.split('/')[-1], fi.get_change(), url)}
             </div>
         % endfor
     </div>
@@ -188,3 +197,17 @@ ${project.droptarget_template()}
 <script id="file-template" class="jstemplate" type="text/template">
     ${project.file_thumb(c.project, '{{name}}', '{{version}}', '{{full_path}}', '{{thumbnail_url}}', '{{user}}', '{{created_date}}', '{{size}}', '{{number_comments}}')}
 </script>
+
+% if c.project_role == APP_ROLE_ADMIN:
+<div id="share-dialog" class="dialog" title="Invite Someone to ${c.project.name}">
+    <p>Invite someone to the ${c.project.name} project. Enter their email address below.</p>
+    
+    <div>
+        <form action="${h.api_url('invite', 'create', project=c.project.eid)}" id="invite-form">
+            <p>${f.text('email', title='Enter an email address', autocomplete='off')}
+            as ${f.dropdown('role', roles, selectedValue=APP_ROLE_WRITE)}</p>
+            ${f.submit('Send', className='primary b114')}
+        </form>
+    </div>
+</div>
+% endif

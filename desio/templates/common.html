@@ -139,7 +139,7 @@
         </div>
     </%def>
     
-    <div id="${id}" class="activity-feed ${len(trimmed_items) > len(items) and 'has-more' or ''}">
+    <div id="${id}" class="activity-feed ${len(items) > len(trimmed_items) and 'has-more' or ''}">
         <div class="feed-list">
             % for i in trimmed_items:
                 ${feed_item(i.id, i.type, utils.date_str(i.created_date), utils.relative_date_str(i.created_date), i.tiny_message, i.get_message())}

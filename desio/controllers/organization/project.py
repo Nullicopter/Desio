@@ -179,8 +179,11 @@ class ProjectController(OrganizationBaseController):
         
         c.activity = activity.get_activities(project=c.project, limit=6)
         
-        c.users = [cu for cu in c.project.get_user_connections(status=None) if cu.status in (STATUS_APPROVED, STATUS_PENDING)]
+        #this is pretty slow...
+        c.users = [projects.ProjectUser(user=u, status=STATUS_APPROVED, role=c.project.get_role(u)) for u in c.project.interested_users]
+        c.users += c.project.get_user_connections(status=STATUS_PENDING)
         c.users.sort(key=lambda cu: cu.user.human_name)
+        c.users = c.project.get_invites(has_user=False) + c.users
         
         return self.render('/organization/project/view.html')
     

@@ -11,7 +11,7 @@ from desio.model.meta import Session, Base
 
 from pylons_common.lib import exceptions, date, utils
 from desio.model import users, activity, STATUS_OPEN, STATUS_COMPLETED, STATUS_INACTIVE, STATUS_APPROVED
-from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush, Roleable
+from desio.model import STATUS_EXISTS, STATUS_REMOVED, commit, flush, Roleable, STATUS_PENDING
 from desio.model import APP_ROLES, APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, APP_ROLE_INDEX
 from desio.utils import file_uploaders as fu, image, is_testing, digests
 
@@ -242,6 +242,19 @@ class Project(Base, Roleable):
             return max(proj_role, org_role, key=lambda r: APP_ROLE_INDEX[r])
         
         return proj_role
+    
+    def get_invites(self, status=STATUS_PENDING, has_user=None):
+        from desio.model.users import Invite, INVITE_TYPE_PROJECT
+        q = Session.query(Invite).filter_by(object_id=self.id, type=INVITE_TYPE_PROJECT)
+        if has_user == False:
+            q = q.filter(Invite.invited_user_id==None)
+        if has_user == True:
+            q = q.filter(Invite.invited_user_id!=None)
+        
+        q = q.filter(Invite.status.in_([status]))
+        q = q.order_by(sa.desc(Invite.created_date))
+        
+        return q.all()
     
     @property
     def interested_users(self):
