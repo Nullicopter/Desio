@@ -11,6 +11,7 @@ STATUS_COMPLETED = u'completed'
 STATUS_INACTIVE = u'inactive'
 STATUS_EXISTS = u'exists'
 STATUS_REMOVED = u'removed'
+STATUS_IN_PROGRESS = u'in_progress'
 
 APP_ROLE_ADMIN = 'admin'
 APP_ROLE_WRITE = 'write'

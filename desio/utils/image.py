@@ -76,9 +76,10 @@ class ExtractedFile(object):
         return 'ExtractedFile(%s, %s)' % (self.extract_type, self.filename)
 
 class ExtractStatus:
-    def __init__(self, status=PARSE_STATUS_COMPLETED, type=PARSE_TYPE_IMAGEMAGICK):
+    def __init__(self, status=PARSE_STATUS_COMPLETED, type=PARSE_TYPE_IMAGEMAGICK, file_type=None):
         self.status = status
         self.type = type
+        self.file_type = file_type
 
 class Extractor(object):
     
@@ -190,7 +191,8 @@ class Extractor(object):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
+        s = ExtractStatus(file_type=self.image.format)
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), s
     
     @classmethod
     def difference(cls, prev_image, current_image):
@@ -275,11 +277,13 @@ class SVGExtractor(Extractor):
         #self.image.trim()
         #print 'post trim', self.image.size
         
+        s = ExtractStatus(file_type=self.image.format)
+        
         if density:
             self.image.resolution = (density, density)
             #print 'density change', self.image.size
         
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), s
 
 class PostscriptExtractor(Extractor):
     """
@@ -298,6 +302,8 @@ class PostscriptExtractor(Extractor):
         #self.image.trim()
         #print 'post trim', self.image.size
         
+        s = ExtractStatus(file_type=self.image.format)
+        
         if density:
             self.image.resolution = (density, density)
             #print 'density change', self.image.size
@@ -310,7 +316,7 @@ class PostscriptExtractor(Extractor):
         
         self.image.iterator_reset()
         
-        return images + self.thumbnail(), ExtractStatus()
+        return images + self.thumbnail(), s
 
 class PSDExtractor(Extractor):
     """
@@ -322,7 +328,8 @@ class PSDExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
+        s = ExtractStatus(file_type=self.image.format)
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), s
 
 class PNGExtractor(Extractor):
     """
@@ -335,7 +342,8 @@ class PNGExtractor(Extractor):
         """
         Will return a list of all extracted files
         """
-        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), ExtractStatus()
+        s = ExtractStatus(file_type=self.image.format)
+        return [self._write_file(EXTRACT_TYPE_FULL)] + self.thumbnail(), s
 
 class FWPNGExtractor(Extractor):
     
@@ -379,7 +387,7 @@ class FWPNGExtractor(Extractor):
         files, _ = extract(self.filename, self.out_filename, preprocess=False, **kw)
         
         # let the external process know this needs to be parsed
-        return files, ExtractStatus(PARSE_STATUS_PENDING, type=parse_type)
+        return files, ExtractStatus(PARSE_STATUS_PENDING, type=parse_type, file_type='FWPNG')
         
     def extract(self, async_extract=None, **kw):
         """
@@ -445,7 +453,7 @@ class FWPNGExtractor(Extractor):
         elif error:
             raise error #ok, maybe it legitimately died.
         
-        return files, ExtractStatus(type=parse_type)
+        return files, ExtractStatus(type=parse_type, file_type='FWPNG')
 
 EXTRACTORS = {
     'PSD': PSDExtractor,

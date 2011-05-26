@@ -6,14 +6,20 @@
 <%!
     import simplejson as json
     from desio import utils
+    from desio.utils import image
     
-    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, STATUS_PENDING, STATUS_IN_PROGRESS
     
     roles = [
         {'key': APP_ROLE_READ, 'value': 'can only comment'},
         {'key': APP_ROLE_WRITE, 'value': 'can create new versions'},
         {'key': APP_ROLE_ADMIN, 'value': 'is an admin on this file'}
     ]
+    
+    EXPORTING = {
+        STATUS_PENDING: 'Fireworks pages export is pending',
+        STATUS_IN_PROGRESS: 'Exporting pages is in progress...'
+    }
 %>
 <%def name="header()">
     ${parent.header()}
@@ -24,6 +30,7 @@
     % endif
     #email{width: 225px;}
     .drop{display: none;}
+    .project-link {text-transform: none;}
     </style>
     
     <script type="text/javascript">
@@ -48,25 +55,47 @@
 <%def name="sidepanel()">
     <%
     %>
+    <h3 class="section-heading project-heading">
+        file:
+        <span class="project-link">
+            ${c.file.name}
+        </span>
+    </h3>
+    <div id="file-meta">
+        <div class="line">
+            <b>v<span class="version">${c.head_change.version}</span></b> by
+            <span class="name">${c.head_change.creator.human_name}</span>
+            <span class="time">${utils.relative_date_str(c.head_change.created_date)}</span>
+        </div>
+        <div class="line">
+            <span class="file-size">${utils.file_size(c.head_change.size)}</span>
+            <span class="file-type">${c.head_change.human_file_type}</span>
+        </div>
+        
+        % if c.head_change.parse_status in [STATUS_PENDING, STATUS_IN_PROGRESS] and c.head_change.parse_type in [image.PARSE_TYPE_FIREWORKS_CS4, image.PARSE_TYPE_FIREWORKS_CS5]:
+            <div class="line">
+                <span class="exporting">${EXPORTING[c.head_change.parse_status] | n}</span>
+            </div>
+        % endif
+    </div>
     <div class="info ${not c.user_role and 'no-role' or ''}">
         <p id="description">
         % if c.file.description:
             ${c.file.description}
         % else:
-            <span class="tip">Tip: You can upload a new version of this file by dragging it
-            and dropping it onto this page!</span>
+            <span class="tip">Tip: drag a file in here to upload a new version!</span>
         % endif
         </p>
         
         % if c.file_role:
-            <ul>
-                <li><a id="download-link" href="${c.head_change.download_url}" class="action icon-download">Download</a></li>
-                <li><a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="action icon-share">Share this file</a></li>
-            </ul>
+            <div id="buttons">
+                <a id="download-link" href="${c.head_change.download_url}" class="primary">Download</a>
+                <a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="primary">Share</a>
+            </div>
         % endif
     </div>
     
-    <h3 id="comments-header">Notes for version <span class="version">${c.head_change.version}</span></h3>
+    <h3 id="comments-header" class="section-heading">Notes for version <span class="version">${c.head_change.version}</span></h3>
     
     <div id="comments-view">
         <div id="comments-filter">
@@ -110,24 +139,9 @@
         </form>
     </div>
 </%def>
-<%def name="project_sidepanel()">
-    % if c.user_role:
-        ${parent.project_sidepanel()}
-    % endif
-</%def>
-<%def name="sidepanel_tabs()">
-    % if c.user_role:
-        ${parent.sidepanel_tabs()}
-    % endif
-</%def>
 
 <%def name="content_subheader()">
     <div id="version-tabs" class="tabs"></div>
-    <div class="file-meta">
-        <b>v<span class="version">${c.head_change.version}</span></b> by
-        <span class="name">${c.head_change.creator.human_name}</span>
-        <span class="time">${utils.relative_date_str(c.head_change.created_date)}</span>
-    </div>
 </%def>
 
 <div id="toolbar">

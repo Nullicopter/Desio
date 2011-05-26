@@ -58,6 +58,7 @@ def gen_extracts(change, tmp_filepath):
     extracts = []
     indices = dd(lambda: 0) #each type of file will have its own count
     raw_extracts, parse_info = image.extract(tmp_filepath)
+    change.file_type = parse_info.file_type
     raw_extracts += gen_diffs(previous, raw_extracts)
     for e in raw_extracts:
         

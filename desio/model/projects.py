@@ -576,6 +576,7 @@ class Change(Base, Uploadable, Commentable):
     eid = sa.Column(sa.String(22), default=utils.uuid, nullable=False, unique=True)
     status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
     
+    file_type = sa.Column(sa.String(64), nullable=True, default='unknown')
     parse_type = sa.Column(sa.String(16), nullable=False, default='unknown')
     parse_status = sa.Column(sa.String(16), nullable=False, default='completed')
 
@@ -611,7 +612,30 @@ class Change(Base, Uploadable, Commentable):
             Session.add(activity.NewFile(creator, self.entity))
         else:
             Session.add(activity.NewVersion(creator, self))
-
+    
+    @property
+    def human_file_type(self):
+        PARSE_TYPES = {
+            image.PARSE_TYPE_FIREWORKS_CS3: 'Fireworks CS3 Document',
+            image.PARSE_TYPE_FIREWORKS_CS4: 'Fireworks CS4 Document',
+            image.PARSE_TYPE_FIREWORKS_CS5: 'Fireworks CS5 Document'
+        }
+        FILE_TYPES = {
+            'FWPNG': 'Fireworks Document',
+            'PNG': 'PNG',
+            'JPEG': 'JPG',
+            'JPG': 'JPG',
+            'GIF': 'GIF',
+            'PDF': 'PDF',
+            'PSD': 'Photoshop Document',
+            'SVG': 'SVG',
+            #TODO: figure out ai and eps...
+        }
+        
+        if self.parse_type in PARSE_TYPES: return PARSE_TYPES[self.parse_type]
+        if self.file_type in FILE_TYPES: return FILE_TYPES[self.file_type]
+        return ''
+    
     def _get_next_version(self):
         """
         Retrieve the next version for this change.

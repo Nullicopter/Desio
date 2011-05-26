@@ -6,6 +6,36 @@
 #description{
     width: 270px;
     line-height: 1.5em;
+    font-size: 9pt;
+}
+
+#file-meta{}
+#file-meta .line{ margin: 8px 0; font-size: 9pt;}
+#file-meta .line .file-size{ font-weight: bold; }
+#file-meta .line .exporting{ color: #888; font-size: 9pt; font-style: italic; }
+
+.info #buttons{
+    height: 38px;
+}
+
+#download-link, #share-link{
+    float: left;
+    display: block;
+    margin-right: 5px;
+    height: 38px;
+    padding-left: 16px;
+    font-weight: bold;
+    line-height: 34px;
+}
+#download-link{
+    background-image: url(../../../i/buttons/download_green.png);
+    width: 103px;
+    text-shadow: 1px 1px 1px #6e9610;
+}
+#share-link{
+    background-image: url(../../../i/buttons/share_blue.png);
+    width: 78px;
+    text-shadow: 1px 1px 1px #4089bb;
 }
 
 #sidepanel .info.no-role{
@@ -166,11 +196,8 @@
     padding: 0;
 }
 
-#comments-header{
-    margin-bottom: 5px;
-    font-size: 15pt;
-    font-weight: normal;
-    color: #333;
+#sidepanel #comments-header{
+    border-bottom: none
 }
 
 #comments-view{position: relative;}
@@ -333,7 +360,7 @@
 /**
  * Delete links
  */
-.tip{color: #777;}
+.tip{color: #666;}
 .delete-link{
     color: #ABA9A2;
     font-weight: normal;
