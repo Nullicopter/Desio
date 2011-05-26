@@ -41,7 +41,7 @@ def out_change_extract(extract):
     return edict
 
 def out_change(real_user, change, with_extracts=True):
-    out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version', 'number_comments')
+    out = itemize(change, 'created_date', 'size', 'url', 'thumbnail_url', 'version', 'number_comments', 'parse_status')
     out['number_comments_open'] = change.get_number_comments(status=u'open')
     out['change_description'] = change.description
     out['change_eid'] = change.eid
@@ -53,7 +53,7 @@ def out_change(real_user, change, with_extracts=True):
     out['creator'] = user.get().output(change.creator)
     
     if real_user and real_user.is_robot():
-        out.update(itemize(change, 'parse_type', 'parse_status'))
+        out.update(itemize(change, 'parse_type'))
 
     if with_extracts:
         out['extracts'] = []

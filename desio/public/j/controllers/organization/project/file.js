@@ -142,7 +142,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
                 images.push(new Q.ImageView(
                     $.extend({}, this.settings, {
                         model: new Backbone.Model(ext.full[i]),
-                        diff: ext.diff[i]
+                        diff: ext.diff[i],
+                        index: parseInt(i)+1
                     })
                 ));
             
@@ -150,7 +151,8 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
             if(images.length == 0){
                 images.push(new Q.ImageView(
                     $.extend({}, this.settings, {
-                        model: new Backbone.Model(model.attributes)
+                        model: new Backbone.Model(model.attributes),
+                        index: 0
                     })
                 ));
             }
@@ -422,6 +424,7 @@ Q.ImageView = Q.View.extend({
         if(this.cropper)
             this.cropper.destroy();
         
+        this.model.set({index: this.settings.index}, {silent: true});
         this._super();
         
         var width = this.settings.collapseInitially ? this.settings.fullBoxWidth : this.settings.boxWidth;
@@ -1128,9 +1131,11 @@ Q.ViewFilePage = Q.Page.extend({
         pinToggle: '#pin-toggle',
         diffToggle: '#diff-toggle',
         sidepanel: '#sidepanel',
-        headerVersion: '#comments-header .version, .file-meta .version',
-        headerName: '.file-meta .name',
-        headerTime: '.file-meta .time',
+        headerVersion: '#comments-header .version, #file-meta .version',
+        headerName: '#file-meta .name',
+        headerTime: '#file-meta .time',
+        headerFileSize: '#file-meta .file-size',
+        parseStatus: '#file-meta .parse-status',
         downloadLink: '#download-link',
         shareDialog: '#share-dialog',
         shareEmail: '#email',
@@ -1340,6 +1345,11 @@ Q.ViewFilePage = Q.Page.extend({
         this.n.headerVersion.text(version.get('version'));
         this.n.headerName.text(m.get('creator').name);
         this.n.headerTime.text($.relativeDateStr($.parseDate(version.get('created_date'))));
+        
+        this.n.headerFileSize.text($.fileSize(version.get('size'), 1));
+        this.n.parseStatus.removeClass('parse-status-in_progress').removeClass('parse-status-pending').removeClass('parse-status-completed');
+        this.n.parseStatus.addClass('parse-status-'+version.get('parse_status'));
+        this.n.parseStatus.find('.exporting').text(this.settings.exportingStrings[version.get('parse_status')]);
         
         this.n.downloadLink[0].href = $.extendUrl(this.n.downloadLink[0].href, {version: version.get('version')});
     }

@@ -10,6 +10,9 @@
     text-decoration: none;
 }
 
+.file img, .processing-file img, .file-collection img{
+    background: #fff url(../../../i/site/transparent.gif) repeat top left;
+}
 .file, .processing-file, .file-collection{
     margin: 0 0 10px 10px;
     padding: 10px;
@@ -166,11 +169,11 @@
 .file-collection{width: 244px;}
 .file-collection img{width: 244px; height: 188px; display: block;}
 
-#content.collapsed .file, #content.collapsed .processing-file{width: 255px; height: 191px;}
-#content.collapsed .file img, #content.collapsed .processing-file .thumb{width: 255px;}
-#content.collapsed .file .name-bar, #content.collapsed .processing-file .name-bar{width: 255px;}
-#content.collapsed .file .name, #content.collapsed .processing-file .name{width: 247px;}
-#content.collapsed .file .extra-info{width: 247px;}
+#content.collapsed .file, #content.collapsed .processing-file{width: 248px; }
+#content.collapsed .file img, #content.collapsed .processing-file .thumb{width: 248px;}
+#content.collapsed .file .name-bar, #content.collapsed .processing-file .name-bar{width: 248px;}
+#content.collapsed .file .name, #content.collapsed .processing-file .name{width: 240px;}
+#content.collapsed .file .extra-info{width: 240px;}
 
 #content.collapsed .file-collection.posmod3, #content.collapsed .file.posmod3, #content.collapsed .processing-file.posmod3{margin-left: 10px;}
 #content.collapsed .file-collection.posmod4, #content.collapsed .file.posmod4, #content.collapsed .processing-file.posmod4{margin-left: 0;}

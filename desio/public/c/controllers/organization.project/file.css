@@ -1,3 +1,8 @@
+
+.section-heading.project-heading span.file-name{
+    text-transform: none;
+}
+
 .info a.action{
     font-size: 12pt;
     font-weight: normal;
@@ -13,6 +18,7 @@
 #file-meta .line{ margin: 8px 0; font-size: 9pt;}
 #file-meta .line .file-size{ font-weight: bold; }
 #file-meta .line .exporting{ color: #888; font-size: 9pt; font-style: italic; }
+#file-meta .line.parse-status-completed{ display:none; }
 
 .info #buttons{
     height: 38px;
@@ -50,28 +56,37 @@
 }
 
 /**
- * Single file page
+ * Single file page content
+ */
+
+#single-file-page #content, #single-file-page #content-toolbar{
+    background: #fff;
+}
+#single-file-page #content-inner{margin-top: 8px;}
+#single-file-page #content-toolbar a:first-child{margin-bottom: 5px;}
+
+/**
+ * version tabs
  */
 
 #version-tabs{
     position: absolute;
-    right: 0; bottom: -10px;
-    height: 30px;
+    right: 0; bottom: 4px;
+    height: 28px;
     z-index: 10;
+    border-bottom: none;
 }
 #version-tabs .tab{
-    height: 30px;
-    border-top: 1px solid #ddd;
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    -moz-border-radius: 5px 5px 0 0;
-    -webkit-border-radius: 5px 5px 0 0;
-    
+    height: 28px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    background: #f0f0f0;
     float: right;
     margin-left: 3px;
     color: #666;
     font-weight: bold;
-    line-height: 30px;
+    line-height: 28px;
     text-align: center;
     font-size: 9pt;
     cursor: pointer;
@@ -81,17 +96,29 @@
 
 #version-tabs .tab:hover{
     color: #333;
-    background: #f5f5f5;
+    background: #e5e5e5;
 }
 #version-tabs .tab.selected, #version-tabs .tab.selected:hover{
-    color: #333;
-    background: #fff;
-    height: 31px;
-    
-    border-top: 1px solid #e5e5e5;
-    border-left: 1px solid #e5e5e5;
-    border-right: 1px solid #e5e5e5;
+    position: relative;
+    color: #fff;
+    background: transparent url(../../../i/site/black_gradient_10x28.png) repeat top left;
+    height: 28px;
 }
+#version-tabs .tab .arrow{ display: none; }
+#version-tabs .tab.selected .arrow{
+    background: transparent url(../../../i/site/arrow_black_10x4.png) no-repeat top left;
+    height: 4px; width: 10px;
+    display: block;
+    position: absolute;
+    margin: 0 auto;
+    left: 36%;
+    bottom: -3px;
+}
+#version-tabs .tab.selected .has-open .arrow{
+    left: 43%
+}
+
+
 #version-tabs .tab .has-open .text{
     padding-right: 5px;
 }
@@ -99,47 +126,34 @@
     display: none;
 }
 #version-tabs .number-comments.has-open{
-    margin-top: 6px;
+    margin-top: 5px;
     display: block;
     float: right;
 }
-
-
-#toolbar {
-    position:absolute;
-    left: -30px;
-    top: 0;
-    width: 14px;
-    padding: 5px 8px;
-    height: 62px;
-    border-top: 1px solid #e5e5e5;
-    border-left: 1px solid #e5e5e5;
-    border-bottom: 1px solid #e5e5e5;
-    background: #fff;
-    -moz-border-radius: 5px 0 0 5px;
-    -webkit-border-radius: 5px 0 0 5px;
-    z-index: 10;
-}
-#toolbar a:first-child{margin-bottom: 5px;}
 /*****/
-.image-viewer .top-bar{
-    height: 35px;
-    background: #333;
-    color: #fff;
-}
-.image-viewer .top-bar .next-button{float: right; color: #fff}
-.image-viewer .top-bar .previous-button{float: left; color: #fff}
-
-.image-viewer .top-bar .text{text-align: center; font-weight: bold; line-height: 35px;}
 
 .image-viewer .image{
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    padding: 15px 0;
     /*width: 960px;*/
     text-align: center;
     margin-bottom: 10px;
 }
+.image-viewer .image .jcrop-holder{
+    border: 1px solid #f5f5f5;
+    -moz-border-radius: 2px;
+}
+
+#content .image-viewer .image:first-child h4.section-heading{
+    display:none;
+}
+#content .image-viewer .image h4.section-heading{
+    font-size: 10pt;
+    font-weight: normal;
+    text-align: left;
+    border: none;
+    line-height: 18px;
+    text-transform: none;
+}
+
 #content .image-viewer .image img{
     /*max-width: 800px;*/
 }
@@ -157,7 +171,7 @@
     top: 15px;
     left: 14px;
     bottom: 15px;
-    width: 800px;
+    width: 820px;
     z-index: 25;
     color: #fff;
     text-align: center;
@@ -279,7 +293,7 @@
 .comment.selected>.reply-box .text, .comment.selected>.reply-box textarea{
     color: #aaa;
     font-size: 10pt;
-    width: 288px
+    width: 258px
 }
 
 /*reply blocks*/
@@ -335,13 +349,14 @@
 
 #pin-toggle{
     display: block;
+    margin: 6px 0;
     width: 16px;
     height: 16px;
     background: url(../../../i/icons/pin_blue_small.png) no-repeat center top;
 }
 #diff-toggle{
     display: block;
-    margin-top: 8px;
+    margin: 8px 0 3px 0;
     width: 16px;
     height: 16px;
     background: url(../../../i/icons/diff_16x16.png) no-repeat center top;

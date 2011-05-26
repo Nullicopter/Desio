@@ -632,8 +632,9 @@ class Change(Base, Uploadable, Commentable):
             #TODO: figure out ai and eps...
         }
         
+        ft = self.file_type.strip()
         if self.parse_type in PARSE_TYPES: return PARSE_TYPES[self.parse_type]
-        if self.file_type in FILE_TYPES: return FILE_TYPES[self.file_type]
+        if ft in FILE_TYPES: return FILE_TYPES[ft]
         return ''
     
     def _get_next_version(self):

@@ -123,7 +123,6 @@ $.extend($, {
             cur /= k;
             i++;
         }
-        $.log(decimals);
         return Q.DataFormatters.decimal(cur, decimals, false) + '' + labels[i];
     }
 });

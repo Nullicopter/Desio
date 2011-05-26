@@ -1,7 +1,9 @@
 /**** JCROP ****/
 /* Fixes issue here http://code.google.com/p/jcrop/issues/detail?id=1 */
 .jcrop-holder { text-align: left; background-color: transparent !important;}
-.jcrop-holder img {background: #fff;}
+.jcrop-holder img {
+    background: #fff url(../../i/site/transparent.gif) repeat 0 0;
+}
 
 .jcrop-vline, .jcrop-hline
 {

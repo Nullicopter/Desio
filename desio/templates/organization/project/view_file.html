@@ -8,7 +8,7 @@
     from desio import utils
     from desio.utils import image
     
-    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, STATUS_PENDING, STATUS_IN_PROGRESS
+    from desio.model import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ, STATUS_PENDING, STATUS_IN_PROGRESS, STATUS_COMPLETED
     
     roles = [
         {'key': APP_ROLE_READ, 'value': 'can only comment'},
@@ -18,7 +18,8 @@
     
     EXPORTING = {
         STATUS_PENDING: 'Fireworks pages export is pending',
-        STATUS_IN_PROGRESS: 'Exporting pages is in progress...'
+        STATUS_IN_PROGRESS: 'Exporting pages is in progress...',
+        STATUS_COMPLETED: 'Parsing Completed'
     }
 %>
 <%def name="header()">
@@ -43,8 +44,9 @@
         path: '${c.path}',
         filePath: ${json.dumps(c.file.path) | n},
         name: ${json.dumps(c.file.name) | n},
-        boxWidth: 800,
-        fullBoxWidth: 800+310,
+        boxWidth: 818,
+        fullBoxWidth: 1108,
+        exportingStrings: ${json.dumps(EXPORTING) | n},
         collapsePreference: '${c.real_user and 'view_file_sidepanel_collapse' or ''}',
         collapseInitially: ${c.real_user and c.real_user.get_preference('view_file_sidepanel_collapse', default='false') or 'false'},
         showDropTargetOn: 'elemdrag'//'bodydrag'
@@ -52,12 +54,18 @@
     </script>
 </%def>
 
+<%def name="content_class()">
+    <% return 'has-toolbar' %>
+</%def>
+<%def name="pre_content()"><div id="single-file-page"></%def>
+<%def name="post_content()"></div></%def>
+
 <%def name="sidepanel()">
     <%
     %>
     <h3 class="section-heading project-heading">
         file:
-        <span class="project-link">
+        <span class="project-link file-name">
             ${c.file.name}
         </span>
     </h3>
@@ -72,8 +80,8 @@
             <span class="file-type">${c.head_change.human_file_type}</span>
         </div>
         
-        % if c.head_change.parse_status in [STATUS_PENDING, STATUS_IN_PROGRESS] and c.head_change.parse_type in [image.PARSE_TYPE_FIREWORKS_CS4, image.PARSE_TYPE_FIREWORKS_CS5]:
-            <div class="line">
+        % if c.head_change.parse_type in [image.PARSE_TYPE_FIREWORKS_CS4, image.PARSE_TYPE_FIREWORKS_CS5]:
+            <div class="line parse-status parse-status-${c.head_change.parse_status}">
                 <span class="exporting">${EXPORTING[c.head_change.parse_status] | n}</span>
             </div>
         % endif
@@ -140,15 +148,18 @@
     </div>
 </%def>
 
+<%def name="content_header()">
+    <div id="content-toolbar">
+        <a href="#" id="sidepanel-collapse"></a>
+        <a id="pin-toggle" class="selected" href="#" title="Click to hide annotation pins."></a>
+        <a id="diff-toggle" class="" href="#" title="Click to show this version's changes."></a>
+    </div>
+    ${parent.content_header()}
+</%def>
+
 <%def name="content_subheader()">
     <div id="version-tabs" class="tabs"></div>
 </%def>
-
-<div id="toolbar">
-    <a href="#" id="sidepanel-collapse"></a>
-    <a id="pin-toggle" class="selected" href="#" title="Click to hide annotation pins."></a>
-    <a id="diff-toggle" class="" href="#" title="Click to show this version's changes."></a>
-</div>
 
 <div id="inpage-image-viewer">
     <div class="image-viewer">
@@ -192,10 +203,12 @@
     <span class="tab-text {{comments_class}}">
         <span class="number-comments {{comments_class}}">{{number_comments_open}}</span>
         <span class="text">v{{version}}</span>
+        <div class="arrow"></div>
     </span>
 </script>
 
 <script id="image-template" class="jstemplate" type="text/template">
+    <h4 class="section-heading">Page {{index}}</h4>
     <img src="{{url}}" />
     <div class="pins"></div>
     <div class="no-diff">
