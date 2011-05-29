@@ -17,20 +17,14 @@ Q.BaseSettingsPage = Q.Page.extend({
         });
     }
 })
-Q.ProjectUserSettingsPage = Q.BaseSettingsPage.extend({
-    run: function(){
-        var self = this;
-        this._super.apply(this, arguments);
-        
-        this.projectUserModule = $('#project-user-module').ProjectUserModule(this.settings);
-    }
-});
 
 Q.ProjectGeneralSettingsPage = Q.BaseSettingsPage.extend({
     run: function(){
         var self = this;
         this._super.apply(this, arguments);
         _.bindAll(this, 'success');
+        
+        this.projectUserModule = $('#project-user-module').ProjectUserModule(this.settings);
         
         this.form = this.$('#edit-form').AsyncForm({
             validationOptions: {

@@ -1,28 +1,47 @@
 <%inherit file="base.html"/>
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
+<%namespace name="project" file="/modules/project.html"/>
 
 <%!
     import simplejson as json
 %>
 <%def name="header()">
     ${parent.header()}
+    ${r.require('project')}
     <style type="text/css">
         #name{width: 500px;}
         #description-entry{width: 550px; height: 150px;}
-        
+        #edit-form, #add-user-pane{margin: 10px 0 25px 0;}
     </style>
     <script type="text/javascript">
-        new Q.ProjectGeneralSettingsPage({
-            tree: ${json.dumps(c.tree) | n},
-        }).readyrun();
+        var params = ${json.dumps(c.project_user_module_params) | n};
+        params.sync = true;
+        new Q.ProjectGeneralSettingsPage(params).readyrun();
     </script>
 </%def>
 
+<h3 class="section-heading">General</h3>
 <form id="edit-form" action="${h.api_url('project', 'edit', project=c.project.eid)}" method="post">
     
     ${f.text_chunk('name', label='Project Name', value=c.project.name)}
     ${f.textarea_chunk('description', id='description-entry', label='Project Description', sublabel='optional', value=c.project.description)}
     
-    ${f.submit('Save Settings')}
+    ${f.submit('Save Settings', className='primary b114')}
 </form>
+
+<h2 class="section-heading">Users</h2>
+<div id="add-user-pane">
+    % if c.is_org_admin:
+        <p>Here you can invite users to be part of this project.</p>
+        
+        <p><b>If you want someone you invite
+        to be able to access all of ${c.organization.subdomain}.binder.io, not just this project,
+        <a href="${h.url_for(controller='organization/settings', action='users')}">
+            invite them to the organization
+        </a></b>
+        </p>
+    % endif
+    
+    ${project.project_user_module(c.project_user_module_params['userMap'])}
+</div>
