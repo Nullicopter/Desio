@@ -1,31 +1,7 @@
 
 ;(function($){
 
-
 Q.GeneralSettingsPage = Q.Page.extend({
-    init: function(settings){
-        this._super(settings);
-    },
-    
-    run: function(){
-        this._super.apply(this, arguments);
-        
-        this.form = this.$('form').AsyncForm({
-            validationOptions: {
-                rules:{
-                    name: 'required'
-                }
-            },
-            
-            onSuccess: function(){
-                Q.notify('Settings successfully updated');
-            }
-        });
-        this.form.focusFirst();
-    }
-});
-
-Q.UserSettingsPage = Q.Page.extend({
     n: {
         users: '#users',
         inviteForm: '#invite-form'
@@ -61,6 +37,19 @@ Q.UserSettingsPage = Q.Page.extend({
             }
         });
         $('#invite-form input').inputHint();
+        
+        this.form = $('#edit-form').AsyncForm({
+            validationOptions: {
+                rules:{
+                    name: 'required'
+                }
+            },
+            
+            onSuccess: function(){
+                Q.notify('Settings successfully updated');
+            }
+        });
+        this.form.focusFirst();
     },
     
     roleChange: function(e){

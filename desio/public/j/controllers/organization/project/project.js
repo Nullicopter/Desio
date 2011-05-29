@@ -119,7 +119,7 @@ Q.ViewProjectPage = Q.Page.extend({
     
     addDirectory: function(e){
         var l = $(e.target);
-        var n = prompt('What do you want to name this directory?');
+        var n = prompt('What do you want to name this folder?');
         
         //this will allow for adding children to the current directory
         //var dirs = this.currentDirectory.get('children');

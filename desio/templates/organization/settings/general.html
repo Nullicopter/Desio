@@ -2,18 +2,109 @@
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
 
+<%!
+    from desio.model import STATUS_PENDING, STATUS_REJECTED, STATUS_APPROVED
+    from desio.model.users import APP_ROLE_ADMIN, APP_ROLE_WRITE, APP_ROLE_READ
+    
+    roles = [
+        {'key': APP_ROLE_READ, 'value': 'Normal User'},
+        {'key': APP_ROLE_WRITE, 'value': 'Collaborator'},
+        {'key': APP_ROLE_ADMIN, 'value': 'Admin'}
+    ]
+%>
+
 <%def name="header()">
     ${parent.header()}
     <style type="text/css">
+    #invite input, #invite a, #invite select{float: left; margin-right: 10px; display: block;}
+    #invite input {margin-top: 3px;}
+    #invite .select {margin-top: 9px;}
+    #invite-form{height: 34px; margin: 0 0 10px 0;}
+    #invite h3 {margin-bottom: 5px;}
+    #invite .email{width: 300px;}
+    #edit-form, #users-section{margin: 10px 0 25px 0;}
+    #name{width: 300px;}
     </style>
     <script type="text/javascript">
-        new Q.GeneralSettingsPage({}).readyrun();
+        new Q.GeneralSettingsPage({
+            roleUrl: '${h.api_url('organization', 'set_user_role', organization=c.organization.id)}'
+        }).readyrun();
     </script>
 </%def>
 
-<form action="${h.api_url('organization', 'edit', id=c.organization.id)}" method="post">
+<h3 class="section-heading">General</h3>
+<form id="edit-form" action="${h.api_url('organization', 'edit', id=c.organization.id)}" method="post">
     ${f.text_chunk('name', value=c.organization.name)}
     ${f.checkbox_chunk('is_read_open', 'Everyone in this organization has read access to all projects.', checked=c.organization.is_read_open)}
     ${f.submit("Update", className='primary b114')}
 </form>
+
+<h3 class="section-heading">Users</h3>
+
+<div id="users-section">
+    <div id="invite">
+        <h3>Invite more users</h3>
+        <form id="invite-form" action="${h.api_url('invite', 'create', organization=c.organization.eid)}" method="post">
+            ${f.text('email', id=None, className='email', title='Email Address', autocomplete='off')}
+            ${f.dropdown('role', id=None, values=roles, selectedValue=APP_ROLE_WRITE)}
+            <a href="#" class="icon-button secondary b79">
+                <div class="icon icon-plus">Add</div>
+            </a>
+        </form>
+    </div>
+    <div class="user-list">
+    % for i in c.invites:
+        <div class="user">
+            <div class="actions">Invite Pending</div>
+            <div class="name">${i.invited_email}</div>
+        </div>
+        
+    % endfor
+    % for ou in c.users:
+        <div class="user" data-user="${ou.user.id}" >
+            
+            <div class="actions ${ou.status == STATUS_PENDING and 'hidden' or ''}">
+                <a href="${h.api_url('organization', 'remove_user', organization=c.organization.id, u=ou.user.id)}" class="remove icon-delete">
+                </a>
+            </div>
+            
+            % if c.organization.creator != ou.user:
+            
+                % if ou.status == STATUS_PENDING:
+                    <div class="actions">
+                        <a href="${h.api_url('organization', 'attachment_approval', organization=c.organization.id, u=ou.user.id, status=STATUS_APPROVED)}" class="approve">
+                            approve
+                        </a>
+                        <a href="${h.api_url('organization', 'attachment_approval', organization=c.organization.id, u=ou.user.id, status=STATUS_REJECTED)}" class="remove">
+                            reject
+                        </a>
+                    </div>
+                % endif
+                
+            % endif
+            
+            <div class="role ${ou.status == STATUS_PENDING and 'hidden' or ''}">
+                % if c.organization.creator == ou.user:
+                    Organization Creator
+                % else:
+                    ${f.dropdown('role', id=None, values=roles, selectedValue=ou.role)}
+                % endif
+            </div>
+            
+            <div class="name">${ou.user.human_name}</div>
+            
+            % if ou.user.human_name != ou.user.email:
+                <div class="email"><a href="mailto:${ou.user.email}">${ou.user.email}</a></div>
+            % endif
+        </div>
+    % endfor
+    </div>
+    
+    <script id="invited-template" class="jstemplate" type="text/template">
+        <div class="user">
+            <div class="actions">Invite Pending</div>
+            <div class="name">{{invited_email}}</div>
+        </div>
+    </script>
+</div>
 

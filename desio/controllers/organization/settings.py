@@ -22,14 +22,10 @@ class SettingsController(OrganizationBaseController):
     
     @authorize(CanAdminOrgRedirect())
     def general(self, **kw):
-        c.tab = 'General'
-        c.title = 'General'
-        return self.render('/organization/settings/general.html')
-    
-    @authorize(CanAdminOrgRedirect())
-    def users(self, **kw):
-        c.tab = 'Users'
-        c.title = 'Users'
+        c.tab = 'Organization'
+        c.title = '%s Organization Settings' % c.organization.name
+        
         c.invites = Session.query(users.Invite).filter_by(object_id=c.organization.id, type=users.INVITE_TYPE_ORGANIZATION, status=STATUS_PENDING).all()
         c.users = api.organization.get_users(c.real_user, c.user, c.organization, ','.join([STATUS_APPROVED, STATUS_PENDING]))
-        return self.render('/organization/settings/users.html')
+        
+        return self.render('/organization/settings/general.html')

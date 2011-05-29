@@ -4,19 +4,21 @@
 
 <%def name="js_includes()">
     ${parent.js_includes()}
-    ${r.require('controllers.organization.settings', 'skinny_page')}
+    ${r.require('controllers.organization.settings', 'medium_page')}
     <style>
-        #sidepanels{width: 260px;}
+    #content-header h2{
+        padding-left: 33px;
+        background: transparent url(${h.static_url('i', 'icons/gear.png')}) no-repeat 0 0;
+        height: 25px;
+        line-height: 25px;
+    }
+    #content-inner{
+        margin-top: 20px;
+    }
     </style>
 </%def>
 
 <%def name="sidepanel_container()">
-    <%
-    tab_def = [
-        ('Settings', '#', True)
-    ]
-    %>
-    ${com.tabs(tab_def, tab_def[-1][0], 'sidepanel-tabs')}
     
     <div id="sidepanels">
         <div class="sidepanel">
@@ -28,8 +30,8 @@
             
             <%
             tab_def = [
-                ('Users', h.url_for(controller='organization/settings', action='users'), True),
-                ('General', h.url_for(controller='organization/settings', action='general')),
+                #('Users', h.url_for(controller='organization/settings', action='users'), True),
+                ('Organization', h.url_for(controller='organization/settings', action='general')),
                 
             ] %>
             ${com.tabs(tab_def, c.tab, id='sidepanel-nav', className='sidepanel-nav', bg=True)}
@@ -43,7 +45,7 @@
 </%def>
 
 <%def name="content_header()">
-    ${'<span class="path-separator">/</span>'.join(['Settings', c.title]) | n}
+    <h2>${c.title}</h2>
 </%def>
 
 ${next.body()}
