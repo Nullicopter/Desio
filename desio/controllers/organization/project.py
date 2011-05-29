@@ -139,6 +139,11 @@ class ProjectController(OrganizationBaseController):
         
         c.path = path
         
+        c.users = [projects.EntityUser(user=u, status=STATUS_APPROVED, role=c.project.get_role(u)) for u in c.project.interested_users]
+        c.users += c.file.get_user_connections(status=STATUS_PENDING)
+        c.users.sort(key=lambda cu: cu.user.human_name)
+        c.users = c.file.get_invites(has_user=False) + c.users
+        
         return self.render('/organization/project/view_file.html')
     
     @authorize(CanReadProjectRedirect())

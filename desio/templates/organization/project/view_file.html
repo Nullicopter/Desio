@@ -2,6 +2,7 @@
 <%namespace name="r" file="/require.html"/>
 <%namespace name="f" file="/forms.html"/>
 <%namespace name="project" file="/modules/project.html"/>
+<%namespace name="com" file="/common.html"/>
 
 <%!
     import simplejson as json
@@ -103,6 +104,16 @@
         % endif
     </div>
     
+    <h3 class="section-heading">
+        % if c.project_role == APP_ROLE_ADMIN:
+            <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
+            </a>
+        % endif
+        Contributors
+    </h3>
+    
+    ${com.users(c.users, collapse=2)}
+
     <h3 id="comments-header" class="section-heading">Notes for version <span class="version">${c.head_change.version}</span></h3>
     
     <div id="comments-view">

@@ -1146,6 +1146,7 @@ Q.ViewFilePage = Q.Page.extend({
     events:{
         'click #add-comment-link': 'addCommentClick',
         'click #share-link': 'popShareDialog',
+        'click .user-invite': 'popShareDialog',
         'click #content .delete-link': 'deleteFile'
     },
     run: function(){

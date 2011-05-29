@@ -405,6 +405,19 @@ class Entity(Base, Roleable):
         
         return max(proj_role, ent_role, key=lambda r: APP_ROLE_INDEX[r])
     
+    def get_invites(self, status=STATUS_PENDING, has_user=None):
+        from desio.model.users import Invite, INVITE_TYPE_ENTITY
+        q = Session.query(Invite).filter_by(object_id=self.id, type=INVITE_TYPE_ENTITY)
+        if has_user == False:
+            q = q.filter(Invite.invited_user_id==None)
+        if has_user == True:
+            q = q.filter(Invite.invited_user_id!=None)
+        
+        q = q.filter(Invite.status.in_([status]))
+        q = q.order_by(sa.desc(Invite.created_date))
+        
+        return q.all()
+    
     @property
     def interested_users(self):
         # people invited to this file...
