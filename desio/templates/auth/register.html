@@ -7,12 +7,15 @@
 
 <%def name="header()">
     ${parent.header()}
+    <style>
+        .text {width: 355px;}
+    </style>
     <script type="text/javascript">
         new Q.RegisterPage().readyrun();
     </script>
 </%def>
 
-<h1>Register</h1>
+<h2 class="section-heading">Register</h2>
 
 <form action="${h.url_for(controller='auth', action='register')}" method="post">
     ${f.text_chunk('name', label='First and Last Name')}
@@ -20,5 +23,5 @@
     ${f.password_chunk('password')}
     ${f.password_chunk('confirm_password')}
     ${f.hidden('default_timezone')}
-    ${f.submit('Register')}
+    ${f.submit('Register', className="primary b114")}
 </form>

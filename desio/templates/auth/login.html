@@ -8,8 +8,6 @@
 <%def name="header()">
     ${parent.header()}
     <style>
-        #page-inner, #header-inner, #footer-inner{width: 400px !important;}
-        #login-container{background: #fff; border: 1px solid #e5e5e5; padding: 15px;}
         
         .text {width: 355px;}
         
@@ -27,7 +25,7 @@
 <%def name="header_right()">
 </%def>
 
-<h1>Login</h1>
+<h1 class="section-heading">Login</h1>
 
 <div id="login-container">
     <form action="${h.url_for(controller='auth', action='login')}" method="post">
@@ -37,4 +35,4 @@
     </form>
 </div>
 
-<%def name="footer()"><img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/></%def>
+<%def name="footer()"><img src="/i/icons/heart.png" alt="&lt;3 design"/></%def>

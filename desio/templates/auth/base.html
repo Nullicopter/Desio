@@ -4,6 +4,24 @@
 <%def name="js_includes()">
     ${parent.js_includes()}
     ${r.require('controllers.auth')}
+    ${r.require('controllers.organization')}
+    <style type="text/css">
+        #page{
+            padding-top: 25px !important;
+        }
+        #page-inner{
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 6px -1px #333;
+            background: #fff url(../../i/site/ibroughtthenoise.png) repeat;
+            padding: 15px;
+            width: 370px !important;
+        }
+        #header-right{display: none;}
+        #header-inner, #footer-inner{width: 400px !important;}
+        .section-heading{padding-top: 0px; margin-bottom: 15px;}
+    </style>
 </%def>
 
 ${next.body()}

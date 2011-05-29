@@ -278,7 +278,7 @@
     padding-left: 23px;
 }
 
-#content .section-heading{
+.section-heading, #content .section-heading{
     text-transform: uppercase;
     color: #ADACA7;
     font-size: 13pt;
