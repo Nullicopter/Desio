@@ -32,14 +32,14 @@ class UniqueEmail(fv.FancyValidator):
 
 class RegisterForm(formencode.Schema):
     
+    name = fv.UnicodeString(not_empty=True, max=128)
+    email = formencode.All(fv.Email(not_empty=True), fv.MaxLength(256), UniqueEmail())
     password = fv.UnicodeString(not_empty=True, min=5)
     confirm_password = fv.UnicodeString(not_empty=True, min=5)
-    email = formencode.All(fv.Email(not_empty=True), fv.MaxLength(256), UniqueEmail())
     default_timezone = fv.Int(not_empty=True)
     username = fv.UnicodeString(not_empty=False, min=4, max=64)
     first_name = fv.UnicodeString(not_empty=False, max=64)
     last_name = fv.UnicodeString(not_empty=False, max=64)
-    name = fv.UnicodeString(not_empty=False, max=128)
     
     chained_validators = [fv.FieldsMatch('password', 'confirm_password')]
 

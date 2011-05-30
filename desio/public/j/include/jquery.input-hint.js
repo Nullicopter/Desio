@@ -24,8 +24,17 @@
 	 */
 	$.fn.inputHint = function(options) {
 		
-		options = $.extend({hintClass: 'hint', hintAttr: 'title'}, options || {});
+		options = $.extend({hintClass: 'hint', hintAttr: 'data-hint'}, options || {});
 		
+        this.each(function() {
+            var self = this, el = $(this);
+            if(el.attr('title')){
+                el.attr(options.hintAttr, el.attr('title'));
+                el.attr('title', '');
+            }
+            el.parents('form').submit(function() { removeHint.apply(self); });
+        });
+        
 		function hintFor(element) {
 			var h;
 			if (options.using && (h = $(options.using, element)).length > 0) {
@@ -47,11 +56,6 @@
 		
 		this.filter(function() { return !!hintFor(this); })
 			.focus(removeHint).blur(showHint).blur();
-
-        this.each(function() {
-            var self = this;
-            $(this).parents('form').submit(function() { removeHint.apply(self); });
-        });
 
 		return this.end(); // undo filter
 

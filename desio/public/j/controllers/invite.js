@@ -6,6 +6,8 @@ Q.InvitePage = Q.Page.extend({
     run: function(){
         this._super.apply(this, arguments);
         
+        $('#name').inputHint();
+        
         this.form = this.$('form').RedirectForm({
             defaultData: {
                 default_timezone: -(new Date().getTimezoneOffset())/60,
@@ -13,8 +15,6 @@ Q.InvitePage = Q.Page.extend({
             },
             resetInitially: true
         });
-        
-        $('#name').inputHint();
         
         if(this.form.val('mode') == 'login_user')
             this.form.focusFirst();

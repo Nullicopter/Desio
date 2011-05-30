@@ -19,15 +19,24 @@ EDIT_FIELDS = ['name', 'url', 'is_read_open']
 ADMIN_EDIT_FIELDS = ['is_active', 'subdomain']
 
 SUBDOMAIN_VALIDATOR = formencode.All(
-    fv.UnicodeString(not_empty=True, min=2, max=32),
-    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
-    messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'})
+    fv.UnicodeString(not_empty=True, min=2, max=32, messages={
+            'empty': 'Please enter a value',
+            'tooShort': 'Subdomains must be at least %(min)i characters.'
+    }),
+    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]?$',
+        messages={
+            'invalid': 'Names can only contain letters, numbers, and dashes (-)'
+        })
 )
 
 SUBDOMAIN_VALIDATOR_EDIT = formencode.All(
-    fv.UnicodeString(not_empty=False, min=2, max=32),
-    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
-    messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'})
+    fv.UnicodeString(not_empty=False, min=2, max=32, messages={
+            'empty': 'Please enter a value',
+            'tooShort': 'Subdomains must be at least %(min)i characters.'
+    }),
+    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]?$',
+        messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'}
+    )
 )
 
 class UniqueSubdomain(fv.FancyValidator):
@@ -39,7 +48,7 @@ class UniqueSubdomain(fv.FancyValidator):
         subd = Session.query(users.Organization).filter(sa.func.lower(users.Organization.subdomain)==value.lower()).first()
         
         if subd:
-            raise fv.Invalid('That subdomain already exists :(', value, state)
+            raise fv.Invalid('%s is already taken' % value, value, state)
         
         return value.lower()
 
@@ -56,9 +65,12 @@ class EditForm(formencode.Schema):
 
 class CreateForm(formencode.Schema):
     subdomain = formencode.All(SUBDOMAIN_VALIDATOR, UniqueSubdomain())
-    name = fv.UnicodeString(not_empty=True, min=4, max=64)
+    company_name = fv.UnicodeString(not_empty=True, min=4, max=64)
     url = formencode.All(fv.MaxLength(512, not_empty=False), fv.URL())
 
+class SubdomainTestForm(formencode.Schema):
+    subdomain = formencode.All(SUBDOMAIN_VALIDATOR, UniqueSubdomain())
+    
 @enforce()
 @authorize(IsLoggedIn())
 def create(real_user, user, **params):
@@ -68,6 +80,9 @@ def create(real_user, user, **params):
     
     scrubbed = validate(CreateForm, **params)
     scrubbed.setdefault('is_active', True)
+    
+    scrubbed['name'] = scrubbed['company_name']
+    del scrubbed['company_name']
     
     #attach the user as a creator.
     org = users.Organization(creator=user, **scrubbed)
@@ -129,14 +144,8 @@ class Editor(FieldEditor):
 
 @enforce(subdomain=unicode)
 def is_unique(subdomain):
-    subdomain = SUBDOMAIN_VALIDATOR._to_python(subdomain, None)
-    
-    usd = UniqueSubdomain()
-    try:
-        usd._to_python(subdomain, None)
-    except fv.Invalid, e:
-        return False
-    return True
+    validate(SubdomainTestForm, subdomain=subdomain)
+    return {'is': True}
 
 @enforce(u=users.User, role=unicode, status=unicode)
 @authorize(IsLoggedIn(), Exists('organization', 'u'))

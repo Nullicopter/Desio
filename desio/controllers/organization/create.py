@@ -31,7 +31,7 @@ class CreateController(BaseController):
         user = api.user.create(**user_params)
         
         org_params = {
-            'name': request.params.get('company_name'),
+            'company_name': request.params.get('company_name'),
             'subdomain': request.params.get('subdomain')
         }
         org = api.organization.create(user, user, **org_params)

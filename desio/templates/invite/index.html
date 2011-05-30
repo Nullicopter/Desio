@@ -20,10 +20,10 @@
 
 <%def name="header()">
     ${parent.header()}
-    ${r.require('controllers.invite')}
+    ${r.require('controllers.organization', 'controllers.invite')}
     <style>
         #page-inner, #header-inner, #footer-inner{width: 400px !important;}
-        #invite-container{background: #fff; border: 1px solid #e5e5e5; padding: 15px;}
+        #header-right{display: none;}
         
         #invite-container p:first-child{ margin-top: 0px; }
         #invite-container form {margin-top: 25px;}
@@ -42,7 +42,7 @@
 
 <h1>You've been invited!</h1>
 
-<div id="invite-container">
+<div id="invite-container" class="has-content">
 % if c.invite.status == STATUS_PENDING and not c.invite.invited_user:
         
         <p>You've been invited to ${invite_type[c.invite.type]} <b>${c.invite.object.name}</b>.
@@ -86,4 +86,4 @@
 
 </div>
 
-<%def name="footer()"><img src="/i/homepage/heartdesign.png" alt="&lt;3 design"/></%def>
+<%def name="footer()"><img src="/i/icons/heart.png" alt="&lt;3 design"/></%def>

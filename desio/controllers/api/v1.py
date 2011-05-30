@@ -130,6 +130,7 @@ class organization:
     class remove_user: pass
     class attachment_approval: pass
     class set_user_role: pass
+    class is_unique: pass
     
     class edit:
         def output(self, o):
