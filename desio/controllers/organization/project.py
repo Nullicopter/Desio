@@ -94,7 +94,7 @@ class ProjectController(OrganizationBaseController):
                 return self._download_file(entity, project, path, c.path_components)
             return self._view_file(entity, project, path, c.path_components)
     
-    @authorize(CanReadEntityRedirect())
+    @authorize(CanWriteEntityRedirect())
     def _download_file(self, entity, project, path, path_components):
         import pylons
         

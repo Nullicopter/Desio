@@ -10,7 +10,7 @@
     text-decoration: none;
 }
 
-.file img, .processing-file img, .file-collection img{
+.file img.thumb, .processing-file img.thumb, .file-collection img.thumb{
     background: #fff url(../../../i/site/transparent.gif) repeat top left;
 }
 .file, .processing-file, .file-collection{
@@ -155,6 +155,9 @@
     font-size: 8pt;
     font-weight: normal;
     margin-top: 3px;
+}
+.file-collection a:hover{
+    text-decoration: none;
 }
 
 

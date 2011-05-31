@@ -88,15 +88,17 @@
         % endif
     </div>
     <div class="info ${not c.user_role and 'no-role' or ''}">
-        <p id="description">
         % if c.file.description:
-            ${c.file.description}
-        % else:
-            <span class="tip">Tip: drag a file in here to upload a new version!</span>
+            <p id="description">
+                ${c.file.description}
+            </p>
         % endif
-        </p>
         
-        % if c.file_role:
+        % if c.file_role in [APP_ROLE_WRITE, APP_ROLE_ADMIN]:
+            <p>
+                <span class="tip">Tip: drag a file in here to upload a new version!</span>
+            </p>
+            
             <div id="buttons">
                 <a id="download-link" href="${c.head_change.download_url}" class="primary">Download</a>
                 <a id="share-link" href="${h.url_for(controller='organization/file', action='view', project=c.project.eid, file=c.file.eid)}" class="primary">Share</a>
@@ -104,15 +106,17 @@
         % endif
     </div>
     
-    <h3 class="section-heading">
-        % if c.project_role == APP_ROLE_ADMIN:
-            <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
-            </a>
-        % endif
-        Contributors
-    </h3>
+    % if c.file_role:
+        <h3 class="section-heading">
+            % if c.project_role == APP_ROLE_ADMIN:
+                <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
+                </a>
+            % endif
+            Contributors
+        </h3>
     
-    ${com.users(c.users, collapse=2)}
+        ${com.users(c.users, collapse=2)}
+    % endif
 
     <h3 id="comments-header" class="section-heading">Notes for version <span class="version">${c.head_change.version}</span></h3>
     

@@ -8,8 +8,7 @@
     font-weight: normal;
 }
 
-#description{
-    width: 270px;
+.info p{
     line-height: 1.5em;
     font-size: 9pt;
 }
@@ -44,10 +43,6 @@
     text-shadow: 1px 1px 1px #4089bb;
 }
 
-#sidepanel .info.no-role{
-    padding-top: 52px;
-    min-height: 55px;
-}
 #sidepanel .info.no-role p#description{
     margin-top: 0;
 }
