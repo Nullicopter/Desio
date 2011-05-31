@@ -5,6 +5,8 @@ from celery.task.schedules import crontab, schedule
 from desio.utils import binder, adobe
 from datetime import datetime, timedelta
 
+import os.path, subprocess
+
 @periodic_task(run_every=schedule(timedelta(seconds=60)))
 def export_fireworks():
     from pylons import config
@@ -37,6 +39,14 @@ def check_fireworks():
         except adobe.AdobeException as e:
             print 'Fail. Killing FW'
             adobe.Fireworks.kill()
+
+@periodic_task(run_every=schedule(timedelta(seconds=30)))
+def check_fireworks_dialogs():
+    
+    params = ['osascript', os.path.join(os.path.dirname(__file__), 'fireworks_dialogs.scpt')]
+    print "Dismissing any dialogs.... %s" % params
+    
+    print subprocess.call(params)
 
 """
 # someday...
