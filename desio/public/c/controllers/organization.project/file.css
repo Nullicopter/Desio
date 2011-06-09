@@ -330,16 +330,24 @@
 /*pins*/
 
 .pin-small{
-    width: 12px;
     height: 16px;
     display: block;
     background: transparent url(../../../i/icons/pin_blue_small.png) top left;
+    text-align: center;
+    color: #fff;
+    line-height: 15px;
+    padding-left: 1px;
+    text-align: center;
+    width: 11px;
+    font-size: 7pt;
 }
 .pin-small:hover{
     background-position: bottom left;
+    text-decoration: none;
 }
 .pin-small.status-open{
     background-image: url(../../../i/icons/pin_red_small.png);
+    color: #600;
 }
 
 #pin-toggle{
@@ -360,11 +368,20 @@
     background-position: center bottom;
 }
 .pins .pin{
-    position: absolute; width: 33px; height: 44px; z-index: 1001;
+    position: absolute; width: 24px; height: 30px; z-index: 1001;
     background: transparent url(../../../i/icons/pin_blue_large.png) no-repeat top left;
+    text-align: center;
+    line-height: 30px;
+    font-size: 8pt;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
 }
+.pins .pin-inner{ padding-left: 2px; }
+
 .pins .pin.status-open{
     background-image: url(../../../i/icons/pin_red_large.png);
+    color: #600;
 }
 
 /**

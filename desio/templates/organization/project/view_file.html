@@ -107,15 +107,14 @@
     </div>
     
     % if c.file_role:
-        <h3 class="section-heading">
-            % if c.project_role == APP_ROLE_ADMIN:
-                <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
-                </a>
-            % endif
-            Contributors
-        </h3>
-    
-        ${com.users(c.users, collapse=2)}
+        ##<h3 class="section-heading">
+        ##    % if c.project_role == APP_ROLE_ADMIN:
+        ##        <a id="user-invite" title="Invite Someone to ${c.project.name}" class="user-invite actions icon-plus alone" href="#">
+        ##        </a>
+        ##    % endif
+        ##    Contributors
+        ##</h3>
+        ##${com.users(c.users, collapse=1)}
     % endif
 
     <h3 id="comments-header" class="section-heading">Notes for version <span class="version">${c.head_change.version}</span></h3>
@@ -232,7 +231,7 @@
 </script>
 
 <script id="pin-template" class="jstemplate" type="text/template">
-    <div class="pin not-doc status-{{completion_status}}" title="{{title}}"></div>
+    <div class="pin-inner not-doc" title="{{title}}">{{index}}</div>
 </script>
 
 <script id="image-comment-template" class="jstemplate" type="text/template">
@@ -257,7 +256,7 @@
     % if c.file_role in [APP_ROLE_ADMIN]:
         <a class="delete-link" href="#" title="delete this note">delete</a>
     % endif
-    <a href="#" class="pin-small complete-indicator status-{{completion_status}}" title="Click to mark this note complete"></a>
+    <a href="#" class="pin-small complete-indicator status-{{completion_status}}" title="Click to mark this note complete">{{index}}</a>
     <div class="creator">
         <span>{{creator}}</span> says
     </div>

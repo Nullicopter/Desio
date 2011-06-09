@@ -311,6 +311,7 @@ Q.Comments = Q.Collection.extend({
         com.body = body;
         com.extract = extract;
         com.created_date = new Date();
+        com.index = this.models.length;
         
         $.log('Comment.addComment: Adding new comment: ', com, position);
         this.add(com);

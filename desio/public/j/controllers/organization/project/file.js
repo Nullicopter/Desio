@@ -170,7 +170,7 @@ Q.ImageViewer = Q.View.extend('ImageViewer', {
 
 Q.PinView = Q.View.extend({
     template: '#pin-template',
-    pinsize:{ x: 33, y: 44 },
+    pinsize:{ x: 24, y: 30 },
     className: 'pin',
     
     events: {
@@ -216,7 +216,7 @@ Q.PinView = Q.View.extend({
         //find the center of the selection
         var pos = {
             left: (position[0] + position[2]/2 - this.pinsize.x/2)/this.settings.xscale,
-            top: (position[1] + position[3]/2 - this.pinsize.y - 10)/this.settings.yscale
+            top: (position[1] + position[3]/2 - this.pinsize.y)/this.settings.yscale
         };
         
         this.pin.css(pos);
@@ -227,7 +227,7 @@ Q.PinView = Q.View.extend({
         
         var pin = this.pin = this.container.append($(_.template(this.template, {
             title: m.get('creator').name + ': ' + m.get('body'),
-            completion_status: m.get('completion_status').status
+            index: m.get('index')+1
         })));
         
         this.position();
@@ -235,12 +235,14 @@ Q.PinView = Q.View.extend({
         if(m.get('extract'))
             pin.attr('extract', m.get('extract').id);
         
+        this.onChangeCompletionStatus(m);
+        
         return this;
     },
     
     onChangeCompletionStatus: function(m){
         var cv = m.get('completion_status');
-        var pin = this.$('.pin');
+        var pin = this.container;
         pin.removeClass('status-'+this.model.statusToggle[cv.status]);
         pin.addClass('status-'+cv.status);
     }
@@ -347,7 +349,7 @@ Q.ImageView = Q.View.extend({
     
     onAddComment: function(m){
         if(m && m.hasPosition() && (!m.get('extract') || m.get('extract').order_index == this.model.get('order_index')) && this.cropper){
-            //$.log('placing pin?', m);
+            $.log('placing pin?', m);
             var pin = new Q.PinView({
                 model: m,
                 selectedComment: this.settings.selectedComment,
@@ -727,6 +729,7 @@ Q.CommentView = Q.View.extend({
             time: $.relativeDateStr($.parseDate(this.model.get('created_date'))),
             creator: this.model.get('creator').name,
             body: this.model.get('body'),
+            index: this.model.get('index')+1,
             version: this.model.get('change_version'),
             completion_status: this.model.get('completion_status').status
         };
@@ -898,7 +901,12 @@ Q.CommentsView = Q.View.extend('CommentsView', {
     _checkNoCommentsMessages: function(){
         var t = this.n.filterLinks.filter('.selected');
         this.n.noCommentBoxen.hide();
-        if(this.n.comments.find('.comment:visible').length == 0)
+        
+        var sel = '.comment';
+        if(t.attr('rel') != 'all')
+            sel = '.comment.status-'+t.attr('rel');
+        
+        if(this.n.comments.find(sel).length == 0)
             this.$('.no-comments-'+t.attr('rel')).show();
     },
     
@@ -1344,7 +1352,8 @@ Q.ViewFilePage = Q.Page.extend({
         this.comments.fetchForVersion(version);
         
         this.n.headerVersion.text(version.get('version'));
-        this.n.headerName.text(m.get('creator').name);
+        $.log('WHO', this.n.headerName, version.get('creator').name);
+        this.n.headerName.text(version.get('creator').name);
         this.n.headerTime.text($.relativeDateStr($.parseDate(version.get('created_date'))));
         
         this.n.headerFileSize.text($.fileSize(version.get('size'), 1));

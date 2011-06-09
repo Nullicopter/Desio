@@ -267,9 +267,10 @@ class file:
             
             def get_comments(parent):
                 res = []
-                for comment in children[parent]:
+                for i, comment in enumerate(children[parent]):
                     c = out_comment(comment)
                     c['replies'] = get_comments(comment.id)
+                    c['index'] = i
                     res.append(c)
                 return res
             
