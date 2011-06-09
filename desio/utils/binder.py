@@ -205,7 +205,7 @@ class FireworksExtractor(object):
         changes = resp.results
         if status == 200:
             for ch in changes:
-                if ch.parse_type in [image.PARSE_TYPE_FIREWORKS_CS5, image.PARSE_TYPE_FIREWORKS_CS4]:
+                if ch.parse_type in [image.PARSE_TYPE_FIREWORKS_CS5, image.PARSE_TYPE_FIREWORKS_CS4, image.PARSE_TYPE_FIREWORKS_CS3]:
                     self.download_and_extract(ch)
                     break
         else:

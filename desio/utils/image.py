@@ -48,7 +48,7 @@ convert -depth 16 -background white eps/headphones.eps -trim +repage converted/h
 from magickwand.image import Image
 from magickwand import api, wand
 import tempfile, urllib, shutil
-import os.path
+import os.path, re
 from desio.utils import adobe, ignore_fireworks
 
 EXTRACT_TYPE_THUMBNAIL = u'thumbnail'
@@ -443,8 +443,17 @@ class FWPNGExtractor(Extractor):
         
         os.remove(scname)
         
+        regex = re.compile('FILE([0-9]+)')
+        def key(s):
+            m = regex.search(s)
+            if m:
+                return int(m.group(1))
+            return None
+        
         #now there should be files.
-        files = [ExtractedFile(os.path.join(temp_dir, f), EXTRACT_TYPE_FULL) for f in os.listdir(temp_dir) if 'png' in f]
+        files = os.listdir(temp_dir)
+        files.sort(key=key)
+        files = [ExtractedFile(os.path.join(temp_dir, f), EXTRACT_TYPE_FULL) for f in files if key(f) != None]
         
         if files:
             self.image = Image(files[0].filename)
