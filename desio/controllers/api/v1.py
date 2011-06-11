@@ -138,7 +138,9 @@ class organization:
     
     class get:
         def output(self, org):
-            return itemize(org, 'subdomain', 'name')
+            if isinstance(org, list):
+                return [itemize(o, 'subdomain', 'name', 'eid') for o in org]
+            return itemize(org, 'subdomain', 'name', 'eid')
     
     class get_users:
         def output(self, org_users):

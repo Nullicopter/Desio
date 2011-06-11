@@ -23,7 +23,7 @@ SUBDOMAIN_VALIDATOR = formencode.All(
             'empty': 'Please enter a value',
             'tooShort': 'Subdomains must be at least %(min)i characters.'
     }),
-    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]?$',
+    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
         messages={
             'invalid': 'Names can only contain letters, numbers, and dashes (-)'
         })
@@ -34,7 +34,7 @@ SUBDOMAIN_VALIDATOR_EDIT = formencode.All(
             'empty': 'Please enter a value',
             'tooShort': 'Subdomains must be at least %(min)i characters.'
     }),
-    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]?$',
+    fv.Regex(regex='^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$',
         messages={'invalid': 'Names can only contain letters, numbers, and dashes (-)'}
     )
 )
@@ -95,20 +95,14 @@ def create(real_user, user, **params):
     Session.flush()
     return org
 
-@enforce(subdomain=unicode)
-#@authorize(CanReadOrg()) # dont have to be logged in. Must be careful if we expose this to webservice
-def get(organization=None, subdomain=None):
-    if not organization and not subdomain:
-        abort(404)
+@enforce()
+def get(real_user, user, organization=None):
     
-    if organization: return organization
+    if organization:
+        CanReadOrg().check(real_user, user, organization=organization)
+        return organization
     
-    organization = Session.query(users.Organization).filter(users.Organization.subdomain==subdomain).first()
-    
-    if not organization:
-        raise ClientException('Org not found', code=NOT_FOUND)
-    
-    return organization
+    return user.get_organizations()
 
 @enforce(is_active=bool)
 @authorize(CanAdminOrg())

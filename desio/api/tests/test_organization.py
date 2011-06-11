@@ -13,18 +13,69 @@ from pylons_common.lib.exceptions import *
 
 class TestOrganization(TestController):
     
+    def test_get(self):
+        u, _ = fh.create_user(), fh.create_user()
+        
+        o = {
+            'subdomain': u'mycompany',
+            'company_name': u'My company',
+            'url': u'http://heyman.com',
+        }
+        org1 = api.organization.create(u,u, **o)
+        
+        o = {
+            'subdomain': u'meh',
+            'company_name': u'WOWZA',
+            'url': u'http://heyman.com',
+        }
+        org2 = api.organization.create(_,_, **o)
+        self.flush()
+        
+        #test api
+        orgs = api.organization.get(u,u);
+        
+        assert len(orgs) == 1
+        assert orgs[0] == org1
+        
+        #test serialized
+        self.login(u)
+        response = self.client_async(api_url('organization', 'get'), {})
+        assert len(response.results) == 1
+        assert response.results[0].eid == org1.eid
+        
+        org2.attach_user(u, status=STATUS_APPROVED)
+        self.flush()
+        
+        #test multiple
+        orgs = api.organization.get(u,u);
+        assert len(orgs) == 2
+        orgs = set([o.eid for o in orgs])
+        
+        assert org1.eid in orgs
+        assert org2.eid in orgs
+        
+        response = self.client_async(api_url('organization', 'get'), {})
+        assert len(response.results) == 2
+        
+        #test grab single
+        orgs = api.organization.get(u,u, organization=org1.eid);
+        assert orgs.eid == org1.eid
+        
+        response = self.client_async(api_url('organization', 'get'), {'organization': org1.eid})
+        assert response.results.eid == org1.eid
+    
     def test_create(self):
         u = fh.create_user()
         
         o = {
             'subdomain': u'mycompany',
-            'name': u'My company',
+            'company_name': u'My company',
             'url': u'http://heyman.com',
         }
         org = api.organization.create(u,u, **o)
         self.flush()
         assert org.subdomain == o['subdomain']
-        assert org.name == o['name']
+        assert org.name == o['company_name']
         assert org.url == o['url']
         assert org.is_active == True
         
@@ -38,14 +89,14 @@ class TestOrganization(TestController):
         
         o = {
             'subdomain': u'SomeCompany',
-            'name': u'My company',
+            'company_name': u'My company',
         }
         org = api.organization.create(u,u, **o)
         assert org.subdomain == 'somecompany'
         
         o = {
             'subdomain': u'mycompany2',
-            'name': u'My company',
+            'company_name': u'My company',
         }
         org = api.organization.create(u,u, **o)
         self.flush()
@@ -54,14 +105,14 @@ class TestOrganization(TestController):
         #same subdomain
         o = {
             'subdomain': u'mycompany2',
-            'name': u'My company',
+            'company_name': u'My company',
         }
         assert 'subdomain' in self.throws_exception(lambda: api.organization.create(u,u, **o)).error_dict
         
         #no user
         o = {
             'subdomain': u'mycompany7',
-            'name': u'My company',
+            'company_name': u'My company',
         }
         err = self.throws_exception(lambda: api.organization.create(None, None, o))
         assert err.code
@@ -71,9 +122,9 @@ class TestOrganization(TestController):
         two = fh.create_organization(subdomain=u'two')
         self.flush()
         
-        assert not api.organization.is_unique('one')
-        assert api.organization.is_unique('three')
-        assert api.organization.is_unique('ab-c')
+        assert self.throws_exception(lambda: api.organization.is_unique('one'))
+        assert api.organization.is_unique('three')['is']
+        assert api.organization.is_unique('ab-c')['is']
         
         err = self.throws_exception(lambda: api.organization.is_unique('_ []'))
         assert err.message
