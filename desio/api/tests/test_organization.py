@@ -64,6 +64,45 @@ class TestOrganization(TestController):
         response = self.client_async(api_url('organization', 'get'), {'organization': org1.eid})
         assert response.results.eid == org1.eid
     
+    def test_get_structure(self):
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        
+        u = fh.create_user()
+        user = fh.create_user()
+        o = fh.create_organization(user=u)
+        p1 = fh.create_project(organization=o, user=u)
+        p2 = fh.create_project(organization=o, user=u)
+        p3 = fh.create_project(organization=o, user=u)
+        self.flush()
+        
+        filepath = file_path('ffcc00.gif')
+        change = p1.add_change(u, u"/this/is/a/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+        filepath = file_path('ffcc00.gif')
+        change = p1.add_change(u, u"/this/is/a/foobar.gif", filepath, u"this is Another!")
+        self.flush()
+        filepath = file_path('ffcc00.gif')
+        change = p1.add_change(user, u"/this/is/a/foobar.gif", filepath, u"And again")
+        self.flush()
+        
+        filepath = file_path('ffcc00.gif')
+        change = p3.add_change(user, u"/something.gif", filepath, u"New")
+        self.flush()
+        
+        filepath = file_path('ffcc00.gif')
+        change = p3.add_change(user, u"/something_else.gif", filepath, u"New")
+        self.flush()
+        
+        self.login(u)
+        response = self.client_async(api_url('organization', 'get_structure'), {'organization': o.eid})
+        assert response.results
+        assert len(response.results.projects) == 3
+        projs = dict([(p.eid,p) for p in [p1,p2,p3]])
+        for p in response.results.projects:
+            assert p.eid in projs
+        #pp.pprint(response)
+    
     def test_create(self):
         u = fh.create_user()
         

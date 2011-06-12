@@ -97,12 +97,27 @@ def create(real_user, user, **params):
 
 @enforce()
 def get(real_user, user, organization=None):
-    
+    """
+    get a single project, or all the user's projects
+    """
     if organization:
         CanReadOrg().check(real_user, user, organization=organization)
         return organization
     
     return user.get_organizations()
+
+@enforce()
+@authorize(CanReadOrg())
+def get_structure(real_user, user, organization=None):
+    """
+    get the org and all projects. Serializer does most the work.
+    """
+    if not organization:
+        abort(404)
+    
+    projects = organization.get_projects(user)
+    
+    return (organization, projects)
 
 @enforce(is_active=bool)
 @authorize(CanAdminOrg())

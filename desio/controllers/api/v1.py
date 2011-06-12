@@ -35,6 +35,15 @@ def out_file(real_user, filenchange):
     out.update(out_change(real_user, change))
     return out
 
+def out_file_with_all_changes(real_user, f, with_extracts=True):
+    out = itemize(f, 'eid', 'name', 'path', 'full_path')
+    out['changes'] = []
+    for change in f.get_changes():
+        ochange = out_change(real_user, change, with_extracts)
+        ochange['digest'] = change.digest
+        out['changes'].append(ochange)
+    return out
+
 def out_change_extract(extract):
     edict = itemize(extract, 'id', 'order_index', 'extract_type', 'url', 'description')
     edict['url'] = extract.base_url + edict['url']
@@ -83,15 +92,6 @@ def out_comment(comment):
 
 def out_directory(directory):
     return itemize(directory, 'name', 'path', 'eid', 'description', 'full_path')
-
-def out_file_with_all_changes(real_user, f, with_extracts=True):
-    out = itemize(f, 'eid', 'name', 'path', 'full_path')
-    out['changes'] = []
-    for change in f.get_changes():
-        ochange = out_change(real_user, change, with_extracts)
-        ochange['digest'] = change.digest
-        out['changes'].append(ochange)
-    return out
     
 class error:
     class explode: pass
@@ -141,6 +141,22 @@ class organization:
             if isinstance(org, list):
                 return [itemize(o, 'subdomain', 'name', 'eid') for o in org]
             return itemize(org, 'subdomain', 'name', 'eid')
+    
+    class get_structure:
+        def output(self, orgp):
+            from desio.model import projects
+            org, projs = orgp
+            
+            org = organization.get().output(org)
+            org['projects'] = []
+            
+            for p in projs:
+                proj = project.get().output(p)
+                files = p.get_entities(only_type=projects.File.TYPE)
+                proj['files'] = [out_file_with_all_changes(self.real_user, f) for f in files]
+                org['projects'].append(proj)
+            
+            return org
     
     class get_users:
         def output(self, org_users):
