@@ -81,6 +81,12 @@ def create(real_user, user, organization, **params):
 
 @enforce()
 @authorize(CanAdminProject())
+def delete(real_user, user, project, **kwargs):
+    project.deactivate(user)
+    return True
+
+@enforce()
+@authorize(CanAdminProject())
 def edit(real_user, user, project, **kwargs):
     """
     Editing of the campaigns. Supports editing one param at a time. Uses the FieldEditor

@@ -154,6 +154,18 @@ class NewProject(Activity):
         url = project_url(self.organization, self.project)
         return '%s created new project <a href="%s">%s</a>' % (self.user.human_name, url, self.project.name)
 
+class DeleteProject(Activity):
+    
+    TYPE = u'delete_project'
+    __mapper_args__ = {'polymorphic_identity': TYPE}
+    
+    def __init__(self, user, project):
+        super(self.__class__, self).__init__(user=user, project=project, organization=project.organization)
+    
+    def get_message(self, user=None):
+        url = project_url(self.organization, self.project)
+        return '%s deleted project <a href="%s">%s</a>' % (self.user.human_name, url, self.project.name)
+
 class NewFile(Activity):
     
     TYPE = u'new_file'

@@ -205,8 +205,8 @@
 /**** USERs attached to things ****/
 
 .user-list{
-    border-top: 1px solid #CCC9C0;
-    border-bottom: 1px solid #CCC9C0;
+    border-top: 1px solid #E0DDD4;
+    border-bottom: 1px solid #E0DDD4;
 }
 .user-list .user:first-child{
     border-top: none;

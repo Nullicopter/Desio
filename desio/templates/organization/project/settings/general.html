@@ -13,35 +13,50 @@
         #name{width: 500px;}
         #description-entry{width: 550px; height: 150px;}
         #edit-form, #add-user-pane{margin: 10px 0 25px 0;}
+        .section{margin: 15px 0 30px 0;}
+        #content .section-heading {
+            border-bottom: 1px solid #CCC9C0;
+        }
+        #delete-link{padding-left: 28px;}
     </style>
     <script type="text/javascript">
         var params = ${json.dumps(c.project_user_module_params) | n};
         params.sync = true;
+        params.name = ${json.dumps(c.project.name) | n};
         new Q.ProjectGeneralSettingsPage(params).readyrun();
     </script>
 </%def>
 
 <h3 class="section-heading">General</h3>
-<form id="edit-form" action="${h.api_url('project', 'edit', project=c.project.eid)}" method="post">
-    
-    ${f.text_chunk('name', label='Project Name', value=c.project.name)}
-    ${f.textarea_chunk('description', id='description-entry', label='Project Description', sublabel='optional', value=c.project.description)}
-    
-    ${f.submit('Save Settings', className='primary b114')}
-</form>
+<div class="section">
+    <form id="edit-form" action="${h.api_url('project', 'edit', project=c.project.eid)}" method="post">
+        
+        ${f.text_chunk('name', label='Project Name', value=c.project.name)}
+        ${f.textarea_chunk('description', id='description-entry', label='Project Description', sublabel='optional', value=c.project.description)}
+        
+        ${f.submit('Save Settings', className='primary b114')}
+    </form>
+</div>
 
 <h2 class="section-heading">Users</h2>
-<div id="add-user-pane">
-    % if c.is_org_admin:
-        <p>Here you can invite users to be part of this project.</p>
+<div class="section">
+    <div id="add-user-pane">
+        % if c.is_org_admin:
+            <p>Here you can invite users to be part of this project.</p>
+            
+            <p><b>If you want someone you invite
+            to be able to access all of ${c.organization.subdomain}.binder.io, not just this project,
+            <a href="${h.url_for(controller='organization/settings', action='users')}">
+                invite them to the organization
+            </a></b>
+            </p>
+        % endif
         
-        <p><b>If you want someone you invite
-        to be able to access all of ${c.organization.subdomain}.binder.io, not just this project,
-        <a href="${h.url_for(controller='organization/settings', action='users')}">
-            invite them to the organization
-        </a></b>
-        </p>
-    % endif
-    
-    ${project.project_user_module(c.project_user_module_params['userMap'])}
+        ${project.project_user_module(c.project_user_module_params['userMap'])}
+    </div>
+</div>
+
+<h2 class="section-heading">Delete</h2>
+<div class="section">
+    <a href="${h.api_url('project', 'delete', id=c.project.eid)}" id="delete-link" class="icon-delete">Delete this project</a>
 </div>

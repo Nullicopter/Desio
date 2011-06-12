@@ -22,7 +22,7 @@ Q.ProjectGeneralSettingsPage = Q.BaseSettingsPage.extend({
     run: function(){
         var self = this;
         this._super.apply(this, arguments);
-        _.bindAll(this, 'success');
+        _.bindAll(this, 'success', 'del');
         
         this.projectUserModule = $('#project-user-module').ProjectUserModule(this.settings);
         
@@ -36,8 +36,19 @@ Q.ProjectGeneralSettingsPage = Q.BaseSettingsPage.extend({
             onSuccess: function(data){self.success(data);}
         });
         this.form.focusFirst();
+        
+        $('#delete-link').click(this.del);
     },
-    
+    del: function(){
+        var name = this.settings.name;
+        if(confirm('Are you sure you want to delete project ' + name)){
+            $.postJSON($('#delete-link')[0].href, {}, function(){
+                alert(name + ' has been deleted.');
+                $.redirect('/');
+            });
+        }
+        return false;
+    },
     success: function(data){
         Q.notify('Settings saved successfully.');
     }

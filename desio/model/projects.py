@@ -122,7 +122,7 @@ class Project(Base, Roleable):
         """
         self.last_modified_date = date.now()
 
-    def deactivate(self):
+    def deactivate(self, user):
         """
         Deactivate this project. Since there is a unique contraint in the
         organization_id/name tuple we also rename the project using the
@@ -131,6 +131,8 @@ class Project(Base, Roleable):
         self.status = STATUS_INACTIVE
         self.name = "%s-%s" % (self.eid, self.name)
         self.update_activity()
+        
+        Session.add(activity.DeleteProject(user, self))
 
     def get_entities(self, filepath=None, only_type=None, only_status=STATUS_EXISTS, order_by_field=u'last_modified_date', desc=True):
         """

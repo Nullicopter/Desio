@@ -112,7 +112,7 @@ class Organization(Base, Roleable):
     
     def get_projects(self, user):
         from desio.model import projects
-        q = Session.query(projects.Project).filter_by(organization=self)
+        q = Session.query(projects.Project).filter_by(organization=self, status=STATUS_APPROVED)
         
         # this is kind of hairy. If org.is_read_open, the user can see all projects, otherwise,
         # we get based on connections

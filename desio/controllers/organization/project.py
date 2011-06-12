@@ -24,7 +24,7 @@ def has_project():
         @zipargs(fn)
         def new(**kwargs):
             
-            kwargs['project'] = c.project = Session.query(projects.Project).filter_by(organization=c.organization, slug=kwargs.get('slug') or '_NO_').first()
+            kwargs['project'] = c.project = Session.query(projects.Project).filter_by(organization=c.organization, status=STATUS_APPROVED, slug=kwargs.get('slug') or '_NO_').first()
             
             if c.project:
                 c.project_role = c.project.get_role(c.user)
@@ -63,8 +63,7 @@ class ProjectController(OrganizationBaseController):
     @has_project()
     def view(self, slug=None, path=u'/', project=None, **kw):
         
-        print path
-        if not path: abort(404)
+        if not path or not project: abort(404)
         
         if path[0] != u'/': path = u'/'+path #add pre slash
         if len(path) > 1 and path[-1] == '/': path = path[:-1] #remove trailing slash

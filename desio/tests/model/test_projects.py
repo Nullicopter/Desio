@@ -56,13 +56,18 @@ class TestProjects(TestController):
             assert e.msg.startswith("Only one complete path is supported")
 
         current = project.last_modified_date
-        project.deactivate()
+        
+        assert len(project.organization.get_projects(user)) == 1
+        
+        project.deactivate(user)
         self.flush()
         assert project.status == STATUS_INACTIVE
         assert project.name == "%s-%s" % (project.eid, u"helloooo")
         assert project.last_modified_date > current
         assert project.last_modified == project.last_modified_date
         self.flush()
+        
+        assert len(project.organization.get_projects(user)) == 0
         
     def test_filetree_creation_and_navigation(self):
         """

@@ -165,6 +165,7 @@ class organization:
 class project:
     class remove_user: pass
     class set_user_role: pass
+    class delete: pass
     
     class create:
         def output(self, proj):
