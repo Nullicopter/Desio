@@ -96,13 +96,16 @@ def create(real_user, user, **params):
     return org
 
 @enforce()
-def get(real_user, user, organization=None):
+def get(real_user=None, user=None, organization=None, subdomain=None):
     """
     get a single project, or all the user's projects
     """
     if organization:
         CanReadOrg().check(real_user, user, organization=organization)
         return organization
+    
+    elif subdomain:
+        return Session.query(users.Organization).filter_by(subdomain=subdomain).first()
     
     return user.get_organizations()
 

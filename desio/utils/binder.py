@@ -2,8 +2,9 @@
 This is a wrapper for our api.
 
 from desio.utils import binder
-c = binder.Client('robot@binder.io', 'f0ckm@rthA')
-c._request('/change/get', parse_status='completed')
+c = binder.Client('user', 'password', 'self.binder.io', '80')
+res = c.get('organization', 'get')
+c.get('organization', 'get_structure', organization=res['results'][0]['eid'])
 
 """
 import subprocess, binascii, urllib, httplib, base64, os.path, simplejson as json, tempfile, os
