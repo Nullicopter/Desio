@@ -8,6 +8,51 @@ from pylons_common.lib.exceptions import *
 
 class TestFile(TestController):
     
+    def test_edit(self):
+        
+        user = fh.create_user()
+        project = fh.create_project(user=user, name=u"helloooo")
+        self.flush()
+
+        filepath = file_path('ffcc00.gif')
+        change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
+        self.flush()
+        filepath = file_path('ffcc00.gif')
+        change2 = project.add_change(user, u"/kittens.gif", filepath, u"this is a new change")
+        self.flush()
+        
+        r, change = api.file.get(user, user, project.eid, path=u"/foobar.gif")
+        kittens, change2 = api.file.get(user, user, project.eid, path=u"/kittens.gif")
+        
+        assert r.name == 'foobar.gif'
+        eid = r.eid
+        
+        r = api.file.edit(user, user, eid, name=u"somethingelse.gif")
+        self.flush()
+        
+        assert r.name == 'somethingelse.gif'
+        
+        r, change = api.file.get(user, user, project.eid, path=u"/somethingelse.gif")
+        
+        assert r.name == 'somethingelse.gif'
+        assert eid == r.eid
+        
+        #change again to same thing...
+        r = api.file.edit(user, user, eid, name=u"somethingelse.gif")
+        assert r
+        
+        r = self.throws_exception(lambda: api.file.edit(user, user, kittens.eid, name=u"somethingelse.gif"))
+        assert 'name' in r.error_dict
+        
+        self.login(user)
+        r = self.client_async(api_url('file', 'edit', id=kittens.eid), {'name': 'cats.gif'})
+        assert r.results
+        assert r.results.name == 'cats.gif'
+        
+        r = self.client_async(api_url('file', 'edit', id=kittens.eid), {'key': 'name', 'value': 'meow.gif'})
+        assert r.results
+        assert r.results.name == 'meow.gif'
+    
     def test_get(self):
         
         user = fh.create_user()

@@ -253,6 +253,10 @@ class file:
         def output(self, f):
             return file.get(self.real_user, self.user).output(f)
     
+    class edit(ReqUsers):
+        def output(self, f):
+            return out_file(self.real_user, (f, f.get_change()))
+    
     class get(ReqUsers):
         
         def output(self, files):

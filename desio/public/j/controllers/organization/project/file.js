@@ -1149,7 +1149,8 @@ Q.ViewFilePage = Q.Page.extend({
         shareEmail: '#email',
         inviteForm: '#invite-form',
         deleteLink: '#content .delete-link',
-        org: '.organization'
+        org: '.organization',
+        name: '.file-name, .object-name'
     },
     events:{
         'click #add-comment-link': 'addCommentClick',
@@ -1262,7 +1263,18 @@ Q.ViewFilePage = Q.Page.extend({
         
         this.selectedVersion.bind('change:version', this.viewVersion);
         
-        $.log(this.comments);
+        if(this.settings.userRole == 'admin'){
+            this.n.name.editable(this.settings.editUrl, {
+                name: 'name',
+                submit: 'save',
+                tooltip: 'Click to edit the name...',
+                ajaxoptions: {dataType: 'json'},
+                callback: function(data, settings){
+                    $(this).text(data.results.name);
+                    $.redirect(data.results.name);
+                }
+            });
+        }
     },
     
     onUploadStart: function(id, file) {

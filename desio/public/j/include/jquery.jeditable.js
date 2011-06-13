@@ -164,7 +164,7 @@
                             settings.autoheight ? $(self).height() : settings.height;
                     }
                 }
-                settings.width += 20;
+                //settings.width += 20;
                 //$(this).css('visibility', '');
                 
                 /* remove placeholder text, replace is here because of IE */

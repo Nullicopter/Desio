@@ -3,7 +3,7 @@ from desio.api import enforce, logger, validate, h, authorize, \
                     AppException, ClientException, CompoundException, \
                     abort, FieldEditor, auth, \
                     IsAdmin, MustOwn, IsLoggedIn, CanWriteProject,CanAdminProject, CanReadProject, \
-                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity, IsRobot, IsAdmin
+                    CanWriteOrg, CanReadOrg, MustOwn, Or, Exists, CanReadEntity, IsRobot, IsAdmin, CanAdminEntity
 from desio.model import users, Session, projects, STATUS_APPROVED, STATUS_PENDING, STATUS_REJECTED, STATUS_COMPLETED, STATUS_OPEN
 from desio import utils
 from desio.utils import email
@@ -14,7 +14,34 @@ import formencode.validators as fv
 
 from pylons_common.lib.exceptions import *
 
+EDIT_FIELDS = ['name']
+ADMIN_EDIT_FIELDS = []
+
 ID_PARAM = 'file'
+
+class UniqueName(fv.FancyValidator):
+    def __init__(self, project, file):
+        self.file = file
+        self.project = project
+    
+    def _to_python(self, value, state):
+        # we don't support multiple values, so we run a quick check here (we got a webapp where this was a problem)
+        if not isinstance(value, unicode):
+            raise fv.Invalid('You must supply a valid string.', value, state)
+
+        file = Session.query(projects.Entity
+                ).filter(projects.Entity.project==self.project
+                ).filter(projects.Entity.path==self.file.path
+                ).filter(projects.Entity.name==value
+                )
+        
+        file = file.filter(projects.Entity.id != self.file.id)
+        file = file.first()
+
+        if file:
+            raise fv.Invalid('A file with this name already exists. Please choose another.', value, state)
+        
+        return value
 
 @enforce(path=unicode, version=unicode, file=projects.Entity)
 def get(real_user, user, project=None, path=None, version=None, file=None):
@@ -44,6 +71,29 @@ def get(real_user, user, project=None, path=None, version=None, file=None):
             raise ClientException('Version must be an int, "all" or empty', code=INVALID, field='version')
     
     return f, f.get_change(version)
+
+@enforce(file=projects.Entity)
+@authorize(CanAdminEntity(param='file'))
+def edit(real_user, user, file, **kwargs):
+    """
+    Editing of the campaigns. Supports editing one param at a time. Uses the FieldEditor
+    paradigm.
+    """
+    editor = Editor(file)
+    editor.edit(real_user, user, file, **kwargs)
+    Session.flush()
+    Session.refresh(file)
+    return file
+
+class Editor(FieldEditor):
+    def __init__(self, file):
+        
+        class EditForm(formencode.Schema):
+            name = formencode.All(fv.UnicodeString(not_empty=False), UniqueName(file.project, file))
+        super(Editor, self).__init__(EDIT_FIELDS, ADMIN_EDIT_FIELDS, EditForm)
+
+    def edit_name(self, real_user, user, u, key, param):
+        self._edit_generic('Name', u, key, param)
 
 @enforce(binbody=bool)
 @authorize(CanWriteProject())

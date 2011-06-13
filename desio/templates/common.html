@@ -41,9 +41,13 @@
     
     res = [build_href('', path_components[0], 'root-path', "Go to this project's home page")]
     accum = []
-    for p in path_components[1:]:
-        accum.append(p)
-        res.append(build_href('/'.join(accum), p))
+    l = len(path_components[1:])
+    for i, p in enumerate(path_components[1:]):
+        if i+1 == l:
+            res.append('<span class="object-name">%s</span>' % p)
+        else:
+            accum.append(p)
+            res.append(build_href('/'.join(accum), p))
     
     return res
 %>

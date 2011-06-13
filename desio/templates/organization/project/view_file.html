@@ -40,6 +40,7 @@
         userRole: ${c.file_role and '"%s"' % c.file_role or 'null' | n},
         user: ${json.dumps(c.user_dict) | n},
         url: '${c.real_user and h.api_url('file', 'upload', project=c.project.eid) or ''}',
+        editUrl: '${h.api_url('file', 'edit', id=c.file.eid) or ''}',
         versions: ${json.dumps(c.file_dict) | n},
         comments: ${json.dumps(c.comments['comments']) | n},
         path: '${c.path}',
@@ -65,10 +66,9 @@
     <%
     %>
     <h3 class="section-heading project-heading">
-        file:
-        <span class="project-link file-name">
-            ${c.file.name}
-        </span>
+        <div class="label">file:</div>
+        <span id="name" class="project-link file-name">${c.file.name}</span>
+        <div class="clearl"></div>
     </h3>
     <div id="file-meta">
         <div class="line">

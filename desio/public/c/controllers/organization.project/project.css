@@ -194,10 +194,36 @@
 
 /*** other ***/
 
+#content-header form{display: inline;}
+.section-heading input, #content-header input{
+    font-size: 10pt;
+    padding: 0px 3px 0px 3px;
+    -moz-border-radius: 3px;
+    height: auto;
+    line-height: inherit;
+    border: none;
+}
+#content-header input{
+    border: 1px solid #e5e5e5;
+}
+
+.project-heading input{
+    width: 160px !important;
+}
+.project-heading .label{
+    float: left;
+    margin-right: 5px;
+}
 .project-heading .project-link{
     text-transform: capitalize;
     color: #333;
+    display: block;
+    float: left;
 }
+.project-heading .project-link:hover{
+    background: #f3e7b3;
+}
+.project-heading{width: 252px;}
 
 #no-dir-info p{
     margin-left: 95px;
