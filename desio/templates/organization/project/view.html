@@ -30,8 +30,10 @@
         module: '#files-module',
         previewImage: '/i/site/preview.png',
         url: '${h.api_url('file', 'upload', project=c.project.eid)}',
+        editUrl: '${h.api_url('project', 'edit', id=c.project.eid)}',
+        directoryEditUrl: '${c.directory and h.api_url('file', 'edit', id=c.directory.eid) or ''}',
         directories: ${json.dumps(c.structure) | n},
-        role: '${c.project_role}',
+        userRole: '${c.project_role}',
         tree: ${json.dumps(c.tree) | n},
         path: '${c.path}',
         collapsePreference: 'view_project_sidepanel_collapse',
@@ -64,10 +66,9 @@
             <a id="project-settings-link" class="icon-gear" href="${h.url_for(controller='organization/project', action='settings_index', slug=c.project.slug)}"></a>
         % endif
         
-        Project:
-        <a class="project-link" href="${h.url_for(controller='organization/project', action='view', slug=c.project.slug)}">
-            ${c.project.name}
-        </a>
+        <span class="label">Project:</span>
+        <span class="project-link project-name">${c.project.name}</span>
+        <div class="clearl"></div>
     </h3>
     
     <div class="info">
@@ -80,7 +81,7 @@
     
     
     % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE] or len(c.tree) > 1:
-        <h3 class="section-heading project-heading">
+        <h3 class="section-heading">
             % if c.project_role in [APP_ROLE_ADMIN, APP_ROLE_WRITE]:
             <div class="new-button">
                 <a class="icon-plus alone actions add-directory-link" href="${h.api_url('project', 'add_directory', id=c.project.eid)}"></a>

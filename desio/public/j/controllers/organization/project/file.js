@@ -1150,7 +1150,8 @@ Q.ViewFilePage = Q.Page.extend({
         inviteForm: '#invite-form',
         deleteLink: '#content .delete-link',
         org: '.organization',
-        name: '.file-name, .object-name'
+        name: '.file-name, .object-name',
+        headingLabel: '.project-heading .label'
     },
     events:{
         'click #add-comment-link': 'addCommentClick',
@@ -1264,13 +1265,15 @@ Q.ViewFilePage = Q.Page.extend({
         this.selectedVersion.bind('change:version', this.viewVersion);
         
         if(this.settings.userRole == 'admin'){
-            this.n.name.editable(this.settings.editUrl, {
+            this.n.name.Editable({
+                url: this.settings.editUrl,
                 name: 'name',
-                submit: 'save',
                 tooltip: 'Click to edit the name...',
-                ajaxoptions: {dataType: 'json'},
-                callback: function(data, settings){
-                    $(this).text(data.results.name);
+                onedit: function(){ self.n.headingLabel.hide(); },
+                onfinished: function(){ self.n.headingLabel.show(); },
+                callback: function(editable, data, settings){
+                    $.log('cb!', arguments);
+                    $(editable).text(data.results.name);
                     $.redirect(data.results.name);
                 }
             });

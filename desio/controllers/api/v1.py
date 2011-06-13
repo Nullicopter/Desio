@@ -255,7 +255,11 @@ class file:
     
     class edit(ReqUsers):
         def output(self, f):
-            return out_file(self.real_user, (f, f.get_change()))
+            from desio.model import projects
+            if f.type == projects.Directory.TYPE:
+                return out_directory(f)
+            else:
+                return out_file(self.real_user, (f, f.get_change()))
     
     class get(ReqUsers):
         

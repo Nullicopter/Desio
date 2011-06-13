@@ -208,7 +208,7 @@
 }
 
 .project-heading input{
-    width: 160px !important;
+    width: 200px !important;
 }
 .project-heading .label{
     float: left;
@@ -220,7 +220,7 @@
     display: block;
     float: left;
 }
-.project-heading .project-link:hover{
+.project-heading .project-link:hover, #content-header .object-name:hover{
     background: #f3e7b3;
 }
 .project-heading{width: 252px;}

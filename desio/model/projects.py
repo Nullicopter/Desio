@@ -4,7 +4,7 @@ import urlparse
 from datetime import datetime, MINYEAR
 
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, synonym
 from sqlalchemy.sql.expression import func
 
 from desio.model.meta import Session, Base
@@ -302,7 +302,7 @@ class Entity(Base, Roleable):
     status = sa.Column(sa.String(16), nullable=False, default=STATUS_EXISTS)
     type = sa.Column(sa.String(1), nullable=False)
     path = sa.Column(sa.UnicodeText(), nullable=False)
-    name = sa.Column(sa.UnicodeText(), nullable=False)
+    _name = sa.Column('name', sa.UnicodeText(), nullable=False)
     
     description = sa.Column(sa.UnicodeText())
     #: this is not the modified date of this object but of the entire set of changes
@@ -321,6 +321,14 @@ class Entity(Base, Roleable):
     def __repr__(self):
         return "%s%r" % (self.__class__.__name__, (self.id, self.eid, self.project_id, self.path, self.name, self.status))
 
+    def _pname():
+        def fset(self, value):
+            self._name = value
+        def fget(self):
+            return self._name
+        return locals()
+    name = synonym('_name', descriptor=property(**_pname()))
+    
     @property
     def full_path(self):
         return os.path.join(self.path, self.name)
@@ -443,6 +451,27 @@ class Directory(Entity):
     """
     TYPE = u'd'
     __mapper_args__ = {'polymorphic_identity': TYPE}
+    
+    def _pname():
+        def fset(self, value):
+            
+            if self.path and self.name:
+                old_path = self.full_path
+                
+                q = Session.query(Entity).filter(Entity.path.like(old_path + '%'))
+                entities = q.all()
+                self._name = value
+                new_path = self.full_path
+                
+                for e in entities:
+                    e.path = new_path + e.path[len(old_path):]
+            else:
+                self._name = value
+            
+        def fget(self):
+            return self._name
+        return locals()
+    name = synonym('_name', descriptor=property(**_pname()))
     
 class File(Entity):
     """

@@ -87,6 +87,7 @@ class ProjectController(OrganizationBaseController):
         c.title = path_components[-1]
         
         if view_dir:
+            c.directory = entity
             return self._view_directory(entity, project, path, c.path_components)
         else:
             if 'download' in request.params:

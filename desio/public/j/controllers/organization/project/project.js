@@ -60,7 +60,10 @@ Q.ViewProjectPage = Q.Page.extend({
         emptyInfo: '#no-dir-info',
         shareDialog: '#share-dialog',
         shareEmail: '#email',
-        inviteForm: '#invite-form'
+        inviteForm: '#invite-form',
+        objectName: '.object-name',
+        projectName: '.project-name',
+        editHideShow: '#project-settings-link, .project-heading .label'
     },
     run: function(){
         var self = this;
@@ -97,6 +100,32 @@ Q.ViewProjectPage = Q.Page.extend({
         this.n.feed.FeedView({model: this.feed});
         
         this.setupInvites();
+        
+        if(this.settings.userRole == 'admin'){
+            this.n.projectName.Editable({
+                url: this.settings.editUrl,
+                name: 'name',
+                tooltip: 'Click to edit the project name...',
+                onedit: function(){
+                    self.n.editHideShow.hide();
+                },
+                onfinished: function(){
+                    self.n.editHideShow.show();
+                },
+                callback: function(editable, data, settings){
+                    $(editable).text(data.results.name);
+                }
+            });
+            this.n.objectName.Editable({
+                url: this.settings.directoryEditUrl,
+                name: 'name',
+                tooltip: "Click to edit the filder's name...",
+                callback: function(editable, data, settings){
+                    $(editable).text(data.results.name);
+                    $.redirect(data.results.name);
+                }
+            });
+        }
     },
     
     setupInvites: function(){

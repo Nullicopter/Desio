@@ -15,15 +15,17 @@ class TestFile(TestController):
         self.flush()
 
         filepath = file_path('ffcc00.gif')
-        change = project.add_change(user, u"/foobar.gif", filepath, u"this is a new change")
+        change = project.add_change(user, u"/wowza/foobar.gif", filepath, u"this is a new change")
         self.flush()
         filepath = file_path('ffcc00.gif')
-        change2 = project.add_change(user, u"/kittens.gif", filepath, u"this is a new change")
+        change2 = project.add_change(user, u"/wowza/kittens.gif", filepath, u"this is a new change")
         self.flush()
         
-        r, change = api.file.get(user, user, project.eid, path=u"/foobar.gif")
-        kittens, change2 = api.file.get(user, user, project.eid, path=u"/kittens.gif")
+        r, change = api.file.get(user, user, project.eid, path=u"/wowza/foobar.gif")
+        kittens, change2 = api.file.get(user, user, project.eid, path=u"/wowza/kittens.gif")
+        directory = Session.query(projects.Entity).filter_by(name='wowza', project=project).first()
         
+        assert directory
         assert r.name == 'foobar.gif'
         eid = r.eid
         
@@ -32,7 +34,7 @@ class TestFile(TestController):
         
         assert r.name == 'somethingelse.gif'
         
-        r, change = api.file.get(user, user, project.eid, path=u"/somethingelse.gif")
+        r, change = api.file.get(user, user, project.eid, path=u"/wowza/somethingelse.gif")
         
         assert r.name == 'somethingelse.gif'
         assert eid == r.eid
@@ -52,6 +54,13 @@ class TestFile(TestController):
         r = self.client_async(api_url('file', 'edit', id=kittens.eid), {'key': 'name', 'value': 'meow.gif'})
         assert r.results
         assert r.results.name == 'meow.gif'
+        
+        r = self.client_async(api_url('file', 'edit', id=directory.eid), {'key': 'name', 'value': 'omg'})
+        assert r.results
+        assert r.results.name == 'omg'
+        
+        r, change = api.file.get(user, user, project.eid, path=u"/omg/meow.gif")
+        assert r.eid == kittens.eid
     
     def test_get(self):
         

@@ -71,6 +71,7 @@ JS = {
         'lib/util.js',
         'lib/dialog.js',
         'lib/models.js',
+        'lib/forms.js',
         'lib/views.js'
     ]),
     
