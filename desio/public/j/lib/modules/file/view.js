@@ -344,8 +344,8 @@ Q.FilesModule = Q.Module.extend('FilesModule', {
             
             set.path = $.pathJoin(m.attributes.path, m.attributes.name);
             set.files = m.get('files');
-            $.log('Setting up upload module', '@'+this.settings.role+'@')
-            if(this.settings.role && this.settings.role != 'read')
+            $.log('Setting up upload module', '@'+this.settings.userRole+'@')
+            if(this.settings.userRole && this.settings.userRole != 'read')
                 view.target.target.UploadModule(set);
             
             for(var j = 0; j < files.length; j++){
