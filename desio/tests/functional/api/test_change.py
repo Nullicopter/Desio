@@ -13,6 +13,7 @@ class TestChange(TestController):
     
     def test_get(self):
         
+        noob = fh.create_user()
         user = fh.create_user()
         bot = fh.create_user()
         bot.role = users.ROLE_ROBOT
@@ -47,6 +48,14 @@ class TestChange(TestController):
         assert len(r.results) == 2
         assert r.results[0].change_eid == change.eid
         assert r.results[1].change_eid == changepng.eid
+        
+        self.login(user)
+        r = self.client_async(api_url('change', 'get', id=changepng.eid), {})
+        assert r.results.change_eid == changepng.eid
+        self.logout()
+        
+        self.login(noob)
+        self.post(api_url('change', 'get', id=changepng.eid), {}, status=400)
     
     def test_edit(self):
         
