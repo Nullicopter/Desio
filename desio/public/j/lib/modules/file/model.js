@@ -499,7 +499,6 @@ Q.FileUploader = Q.Module.extend('FileUploader', {
 	}
 });
 Q.FileUploader.id = 2;
-
 Q.UploadModule = Q.FileUploader.extend('UploadModule', {
     
     init: function(container, settings){
@@ -512,7 +511,18 @@ Q.UploadModule = Q.FileUploader.extend('UploadModule', {
         var defs = {
             files: null, //a Q.Files obj
             previewImage: '',
-            maxPreviewSize: 5242880 //5MB
+            maxPreviewSize: 1048600, //1MB
+            maxSize: 1048600*20, //1MB
+            acceptableTypes: [
+                'image/jpeg',
+                'image/svg+xml',
+                'image/vnd.adobe.photoshop',
+                'application/postscript',
+                'image/png',
+                'application/x-photoshop',
+                'image/gif',
+                'application/pdf'
+            ]
         };
         settings = $.extend({}, defs, settings);
         settings.onProgress = this.onProgress;
@@ -525,13 +535,23 @@ Q.UploadModule = Q.FileUploader.extend('UploadModule', {
     },
     
     onStart: function(id, file, reader, bin){
+        
         var ret = this._super(id, file, reader, bin);
         if(ret == false) return ret;
+        
+        if(!_.contains(this.settings.acceptableTypes, file.type)){
+            Q.warn('Only files of type .psd, .pdf, .png, .gif, .jpg, .ai, .eps, .svg are accepted right now!');
+            return false;
+        }
+        if(file.size > this.settings.maxSize){
+            Q.warn('Files must be less than '+ $.fileSize(this.settings.maxSize));
+            return false;
+        }
         
         //figure out what the contents of the file are. our view will blindly jam it
         //into an image elem.
         var image = this.settings.previewImage;
-        $.log(file.size, this.settings.maxPreviewSize, file.size < this.settings.maxPreviewSize);
+        
         if(bin && _.contains(Q.UploadModule.previewFormats, file.type) && file.size < this.settings.maxPreviewSize)
             image = bin;
         

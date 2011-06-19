@@ -125,6 +125,9 @@ Q.ProcessingFileView = Q.FileView.extend({
     }
 });
 
+/*
+    Knows nothing about the actual uploading. Just deals with hiding/showing the target box.
+*/
 Q.DropTarget = Q.Module.extend('DropTarget', {
     
     init: function(c, s){
@@ -154,6 +157,7 @@ Q.DropTarget = Q.Module.extend('DropTarget', {
         elem.bind("dragenter",this.handleDrag);
         this.target.bind("dragenter",this.handleTargetEnter);
         this.target.bind("dragleave",this.handleTargetLeave);
+        this.target.bind("drop",this.handleTargetLeave);
     },
     
     handleDrag: function(event){
