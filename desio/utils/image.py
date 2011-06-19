@@ -173,16 +173,13 @@ class Extractor(object):
                 sz = (sx, int(ratioy))
             else:
                 sz = (int(ratiox), sy)
-            print 'resize', sz
             self.image.resize(sz, blur=1.0)
         
         dx = sz[0] - sx
         dy = sz[1] - sy
         
         cropsize = (min(x, sx), min(y, sy))
-        offset = (dx >= 0 and dx/2 or 0, dy >= 0 and dy/2 or 0)
-        
-        print (dx, dy), cropsize, offset
+        offset = (dx >= 0 and dx/2 or 0, 0)
         
         self.image.crop(cropsize, offset)
         return [self._write_file(EXTRACT_TYPE_THUMBNAIL)]
