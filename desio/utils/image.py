@@ -107,7 +107,7 @@ class Extractor(object):
         
         return f, name
     
-    def resize_if_huge(self, max_size=(1200, 1600)):
+    def resize_if_huge(self, max_size=(1200, 5000)):
         """
         resize_if_huge is destructive to the image object. It will resize the image file if over
         max_size. Do this after you have done anything you need to do at full size.
@@ -137,7 +137,7 @@ class Extractor(object):
         
         return False
     
-    def _write_file(self, type, max_size=(1200, 1600)):
+    def _write_file(self, type, max_size=(1200, 5000)):
         """
         """
         
