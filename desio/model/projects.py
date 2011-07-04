@@ -68,7 +68,7 @@ class Project(Base, Roleable):
     status = sa.Column(sa.Unicode(16), nullable=False, default=STATUS_APPROVED)
     name = sa.Column(sa.UnicodeText(), nullable=False)
     description = sa.Column(sa.UnicodeText())
-    slug = sa.Column(sa.Unicode(128), nullable=False, index=True, unique=True)
+    slug = sa.Column(sa.Unicode(128), nullable=False, index=True)
     created_date = sa.Column(sa.DateTime, nullable=False, default=date.now)
 
     #: this is not the modified date of this object but of the entire project

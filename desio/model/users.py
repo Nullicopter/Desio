@@ -245,6 +245,8 @@ class User(Base):
     def human_name(self):
         if self.first_name and self.last_name:
             return '%s %s' % (self.first_name, self.last_name)
+        elif self.first_name:
+            return self.first_name
         return self.username
     
     def get_preference(self, key, default=None, ignore_default=False):
