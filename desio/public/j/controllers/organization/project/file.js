@@ -724,11 +724,13 @@ Q.CommentView = Q.View.extend({
     },
     
     render: function(){
+        var body = this.model.get('body');
+        body = body.trim().replace(/\n/g, '<br/>');
         this.container[0].id = this.model.get('eid');
         var d = {
             time: $.relativeDateStr($.parseDate(this.model.get('created_date'))),
             creator: this.model.get('creator').name,
-            body: this.model.get('body'),
+            body: body,
             index: this.model.get('index')+1,
             version: this.model.get('change_version'),
             completion_status: this.model.get('completion_status').status
